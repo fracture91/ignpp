@@ -1,16 +1,8 @@
 {
+"update_url":"http://clients2.google.com/service/update2/crx",
 
 	"name": "IGN++",
-	"version": "2.2.0.31",
-	/*
-	major.minor.maint.build
-	Correspondence of build with alphanumeric FF version:
-	3x = ax
-	4x = bx
-	5x = prex
-	6x = rcx
-	9x = final release
-	*/
+	"version": "2.2.0.10002",
 	"description": "Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.",
 	"minimum_chrome_version": "6.0.472.59",
 

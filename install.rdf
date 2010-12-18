@@ -5,7 +5,7 @@
 		<em:id>ignpp@vestitools.pbworks.com</em:id>
 		<em:type>2</em:type>
 		<em:name>IGN++</em:name>
-		<em:version>2.2.0a1</em:version>
+		<em:version>2.2.0a2</em:version>
 		<em:description>Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.</em:description>
 		<em:creator>Andrew Hurle</em:creator>
 		<em:contributor>Greasemonkey Compiler by Anthony Lieuallen</em:contributor>

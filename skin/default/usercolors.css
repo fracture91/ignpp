@@ -10,41 +10,6 @@ height: 0 ! important;
  padding-bottom: 80px;
  background-image: url('http://media.ign.com/boards/images/icons2/heyfool2.gif');
 }
- a[href^="http://club.ign.com/b/about?username=tacos_tacos_tacos"],
- a[href^="/ASP/admin/userportal.asp?usr=tacos_tacos_tacos"]{
- color:#FFFFFF !important;
-background-color:#0099cb !important;
-border:1px solid #94cb77 !important;
-font-weight:bold !important;
-font-style:normal !important;
-text-decoration:none !important;
- }
- a[href^="http://club.ign.com/b/about?username=Audio-Technica"],
- a[href^="/ASP/admin/userportal.asp?usr=Audio-Technica"]{
- color:#990066 !important;
-border:1px solid #990066 !important;
-font-weight:bold !important;
-font-style:normal !important;
-text-decoration:none !important;
- }
- a[href^="http://club.ign.com/b/about?username=osukdawg76"],
- a[href^="/ASP/admin/userportal.asp?usr=osukdawg76"]{
- color:#ec2323 !important;
-background-color:#c6c8d1 !important;
-border:1px solid #de4d6b !important;
-font-weight:bold !important;
-font-style:normal !important;
-text-decoration:none !important;
- }
- a[href^="http://club.ign.com/b/about?username=BigRandal_ps3"],
- a[href^="/ASP/admin/userportal.asp?usr=BigRandal_ps3"]{
- color:#0f1ddb !important;
-background-color:#f32525 !important;
-border:1px solid #ffffff !important;
-font-weight:bold !important;
-font-style:italic !important;
-text-decoration:none !important;
- }
  a[href^="http://club.ign.com/b/about?username=VaTech07"],
  a[href^="/ASP/admin/userportal.asp?usr=VaTech07"]{
  font-weight:bold !important;
@@ -496,15 +461,6 @@ font-weight:bold !important;
 font-style:normal !important;
 text-decoration:none !important;
  }
- a[href^="http://club.ign.com/b/about?username=Bullonie"],
- a[href^="/ASP/admin/userportal.asp?usr=Bullonie"]{
- color:#996049 !important;
-background-color:#EDAB95 !important;
-border:1px solid #EDAB95 !important;
-font-weight:bold !important;
-font-style:normal !important;
-text-decoration:none !important;
- }
  a[href^="http://club.ign.com/b/about?username=Shadow_Moses_FTW"],
  a[href^="/ASP/admin/userportal.asp?usr=Shadow_Moses_FTW"]{
  color:#307D7E !important;
@@ -673,15 +629,6 @@ text-decoration:none !important;
 font-style:normal !important;
 text-decoration:none !important;
  }
- a[href^="http://club.ign.com/b/about?username=kcjr93"],
- a[href^="/ASP/admin/userportal.asp?usr=kcjr93"]{
- color:#FFD700 !important;
-background-color:#000000 !important;
-border:1px solid #FFD700 !important;
-font-weight:bold !important;
-font-style:italic !important;
-text-decoration:none !important;
- }
  a[href^="http://club.ign.com/b/about?username=puffteam"],
  a[href^="/ASP/admin/userportal.asp?usr=puffteam"]{
  color:#252823 !important;
@@ -752,15 +699,6 @@ text-decoration:underline !important;
  a[href^="/ASP/admin/userportal.asp?usr=rocksolid142"] > b {
  font-weight:inherit !important;
  }
- a[href^="http://club.ign.com/b/about?username=mastertopher"],
- a[href^="/ASP/admin/userportal.asp?usr=mastertopher"]{
- color:#000000 !important;
-background-color:#FFFFFF !important;
-border:1px solid #000000 !important;
-font-weight:bold !important;
-font-style:italic !important;
-text-decoration:line-through !important;
- }
  a[href^="http://club.ign.com/b/about?username=Lord_Conflict"],
  a[href^="/ASP/admin/userportal.asp?usr=Lord_Conflict"]{
  color:#942683 !important;
@@ -827,15 +765,6 @@ background-color:#000000 !important;
 border:1px solid #1E90FF !important;
 font-weight:bold !important;
 font-style:normal !important;
-text-decoration:none !important;
- }
- a[href^="http://club.ign.com/b/about?username=007Nayman"],
- a[href^="/ASP/admin/userportal.asp?usr=007Nayman"]{
- color:#FFFFFF !important;
-background-color:#5C5B5B !important;
-border:1px solid #A00F0F !important;
-font-weight:bold !important;
-font-style:italic !important;
 text-decoration:none !important;
  }
  a[href^="http://club.ign.com/b/about?username=the_spike"],
@@ -1393,13 +1322,6 @@ font-weight:bold !important;
 font-style:italic !important;
 text-decoration:overline !important;
  }
- a[href^="http://club.ign.com/b/about?username=cord_wd"],
- a[href^="/ASP/admin/userportal.asp?usr=cord_wd"]{
- color:#fa5858 !important;
-font-weight:bold !important;
-font-style:italic !important;
-text-decoration:none !important;
- }
  a[href^="http://club.ign.com/b/about?username=pieman404"],
  a[href^="/ASP/admin/userportal.asp?usr=pieman404"]{
  color:#000000 !important;
@@ -1515,6 +1437,82 @@ text-decoration:line-through !important;
  color:#FEFFFF !important;
 background-color:#000CD9 !important;
 border:1px solid #F2FF22 !important;
+font-weight:bold !important;
+font-style:normal !important;
+text-decoration:none !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=kcjr93"],
+ a[href^="/ASP/admin/userportal.asp?usr=kcjr93"]{
+ color:#ffffff !important;
+background-color:#1E90FF !important;
+border:1px solid #ffffff !important;
+font-weight:bold !important;
+font-style:normal !important;
+text-decoration:none !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=Bullonie"],
+ a[href^="/ASP/admin/userportal.asp?usr=Bullonie"]{
+ color:#B25938 !important;
+background-color:#FFB395 !important;
+font-weight:bold !important;
+font-style:normal !important;
+text-decoration:none !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=luckynacho"],
+ a[href^="/ASP/admin/userportal.asp?usr=luckynacho"]{
+ color:#ffff66 !important;
+background-color:#ff9900 !important;
+border:1px solid #cc3333 !important;
+font-weight:normal !important;
+font-style:italic !important;
+text-decoration:none !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=luckynacho"] > b,
+ a[href^="/ASP/admin/userportal.asp?usr=luckynacho"] > b {
+ font-weight:inherit !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=GoBlue32"],
+ a[href^="/ASP/admin/userportal.asp?usr=GoBlue32"]{
+ color:#1025f2 !important;
+background-color:#ffffff !important;
+border:1px solid #2626d9 !important;
+font-weight:normal !important;
+font-style:normal !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=GoBlue32"] > b,
+ a[href^="/ASP/admin/userportal.asp?usr=GoBlue32"] > b {
+ font-weight:inherit !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=007Nayman"],
+ a[href^="/ASP/admin/userportal.asp?usr=007Nayman"]{
+ color:#FFFFFF !important;
+background-color:#5C5B5B !important;
+border:1px solid #A00F0F !important;
+font-weight:bold !important;
+font-style:italic !important;
+text-decoration:none !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=cord_wd"],
+ a[href^="/ASP/admin/userportal.asp?usr=cord_wd"]{
+ color:#FF0000 !important;
+font-weight:bold !important;
+font-style:italic !important;
+text-decoration:overline !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=mastertopher"],
+ a[href^="/ASP/admin/userportal.asp?usr=mastertopher"]{
+ color:#000000 !important;
+background-color:#FFFFFF !important;
+border:1px solid #CC0000 !important;
+font-weight:bold !important;
+font-style:italic !important;
+text-decoration:underline !important;
+ }
+ a[href^="http://club.ign.com/b/about?username=tacos_tacos_tacos"],
+ a[href^="/ASP/admin/userportal.asp?usr=tacos_tacos_tacos"]{
+ color:#FFFFFF !important;
+background-color:#0099cb !important;
+border:1px solid #94cb77 !important;
 font-weight:bold !important;
 font-style:normal !important;
 text-decoration:none !important;
