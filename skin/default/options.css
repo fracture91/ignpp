@@ -1,0 +1,54 @@
+@import url(chrome://global/skin/);
+
+groupbox {
+max-width: 250px;
+}
+
+tabbox[orient="horizontal"] > tabs > tab {
+min-width: 100px;
+}
+
+description.indent {
+opacity: 0.75;
+font-size: 11px;
+}
+
+textbox[multiline="true"] {
+height: 33px;
+}
+
+textbox[type="number"] {
+max-width: 50px;
+}
+
+iframe {
+width: 256px;
+height: 245px;
+}
+
+tabpanel {
+max-width: 400px;
+}
+
+#usercolorsPanel description {
+max-width: 350px;
+}
+
+#usercolorsPanel textbox {
+width: 60px;
+}
+
+#usercolorsPanel menulist {
+width: 75px;
+}
+
+#username {
+border: 1px solid transparent;
+font-family: Arial,Helvetica,sans-serif;
+font-size: 13.3333px;
+}
+
+#preview {
+background-color: #b1b3bc;
+padding: 1px;
+}

@@ -1,0 +1,50 @@
+{
+
+	"name": "IGN++",
+	"version": "2.1.0",
+	"description": "Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.",
+	"minimum_chrome_version": "5.0.375.125",
+
+	"permissions": [
+		"tabs",
+		"http://boards.ign.com/*",
+		"http://forums.ign.com/*",
+		"http://betaboards.ign.com/*"
+	],
+	
+	"options_page": "content/options/options.xul",
+	"background_page": "content/background.html",
+	
+	"content_scripts": [
+		{
+			"matches": [
+				"http://boards.ign.com/*",
+				"http://forums.ign.com/*",
+				"http://betaboards.ign.com/*"
+			],
+			"css": ["skin/default/main.css"],
+			"js": [
+				"content/gchromewrap.js",
+				"content/util.js",
+				"content/info.js",
+				"content/console.js",
+				"content/parse.js",
+				"content/replies.js",
+				"content/topics.js",
+				"content/editors.js",
+				"content/panels.js",
+				"content/overlay.js",
+				"content/message.js",
+				"content/infopanels.js",
+				"content/quickstats.js",
+				"content/threadpreview.js",
+				"content/autowul.js",
+				"content/conditionalstyle.js",
+				"content/integratedtools.js",
+				"content/autorefresh.js",
+				"content/kbonly.js"
+			]
+		}
+	]
+
+}	

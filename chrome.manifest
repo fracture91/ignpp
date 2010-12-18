@@ -1,0 +1,4 @@
+content	vestitools	content/
+resource modules modules/
+skin vestitools default skin/default/
+overlay	chrome://browser/content/browser.xul	chrome://vestitools/content/script-compiler-overlay.xul

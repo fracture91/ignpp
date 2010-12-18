@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+	<Description about="urn:mozilla:install-manifest">
+		<em:id>ignpp@vestitools.pbworks.com</em:id>
+		<em:type>2</em:type>
+		<em:name>IGN++</em:name>
+		<em:version>2.1.0</em:version>
+		<em:description>Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.</em:description>
+		<em:creator>Andrew Hurle</em:creator>
+		<em:contributor>Greasemonkey Compiler by Anthony Lieuallen</em:contributor>
+		<em:contributor>http://arantius.com/</em:contributor>
+		<em:homepageURL>http://vestitools.pbworks.com/</em:homepageURL>
+		
+		<em:targetApplication>
+			<Description>
+			<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+			<em:minVersion>3.5</em:minVersion>
+			<em:maxVersion>4.0b6pre</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+		
+		<em:optionsURL>chrome://vestitools/content/options/options.xul</em:optionsURL>
+		
+	</Description>
+</RDF>

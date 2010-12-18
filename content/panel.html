@@ -1,0 +1,40 @@
+<div class="panel">
+	<div class="panelHeading">
+		<span class="title"></span>
+		<img class="closeButton closeIcon" title="Close">
+		<img class="maximizeButton maximizeIcon" title="Maximize">
+		<img class="minimizeButton minimizeIcon" title="Minimize">
+	</div>
+	<div class="panelContent">
+		<div class="top">
+			<input class="lock" type="checkbox" disabled="true" title="Lock topic">
+			<input class="user" type="text" title="Username" maxlength="20">
+			<div class="subjectContainer">
+				<input class="subject" type="text" maxlength="100" title="Subject"
+				onFocus="this.nextSibling.nextSibling.style.display = 'block'; this.nextSibling.nextSibling.innerHTML = (this.maxLength - this.value.length) + ' Characters Left'"
+				onBlur="this.nextSibling.nextSibling.style.display = 'none'"
+				onKeydown="this.nextSibling.nextSibling.innerHTML = (this.maxLength - this.value.length) + ' Characters Left'"
+				onKeyup="this.nextSibling.nextSibling.innerHTML = (this.maxLength - this.value.length) + ' Characters Left'">
+				<div class="charsLeft">100 Characters Left</div>
+			</div>
+		</div>
+		<div class="middle">
+			<div class="preview" title="Preview"></div>
+			<div class="previewButtons">
+				<div class="previewCloseButton">Close Preview</div>
+				<div class="copyButton">Copy To WYSIWYG</div>
+			</div>
+			<textarea class="body" title="Message body"></textarea>
+		</div>
+		<div class="controls">
+			<input class="postButton" type="button" disabled="true" value="Post">
+			<input class="previewButton" type="button" disabled="true" value="Preview" title="Pass your post through IGN's previewer to see exactly how it will turn out">
+		</div>
+		<div class="info">-</div>
+		<input type="hidden" class="boardId">
+		<input type="hidden" class="topicId">
+		<input type="hidden" class="replyId">
+		<input type="hidden" class="eventValidation">
+		<input type="hidden" class="viewState">
+	</div>
+</div>
