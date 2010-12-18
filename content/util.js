@@ -517,7 +517,8 @@ function bools2bits(bools) {
 	return integer;
 	
 	}
-	
+
+//dec2hex and rgb2hex from IGNBQ by heyf00L, modified a bit
 function dec2hex(dec) {
     var hex = parseInt(dec).toString(16);
     while(hex.length < 2) hex = "0" + hex;
@@ -588,6 +589,8 @@ function colorBrightness(rgb) {
 	return Math.sqrt( (.241 * r * r) + (.691 * g * g) + (.068 * b * b) );
 	}
 	
+
+//faces and shortcuts from IGNBQ by heyf00L
 	
 var faces = 
 [null, "happy", "sad", "wink", "grin", "batting", "confused", "love", "blush", "tongue",

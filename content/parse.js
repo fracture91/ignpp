@@ -57,9 +57,18 @@ var Parse = new function() {
 		
 		}
 	
-	this.HTMLNode = function(node) {
+	
+	
+	/*HTMLNode, HTML, handleBlock, and boardCode all based heavily
+	on IGNBQ's parser, courtesy of heyf00L*/
+	
+	
+	
+	this.HTMLNode = function(node, depth) {
 
 		var color, bgcolor, b, i, u;
+		
+		if(!depth) depth = 1;
 		
 		if(!node) return;
 		
@@ -99,7 +108,7 @@ var Parse = new function() {
 			}
 		
 		//if it has children, recurse on them
-		for(var i=0; node.childNodes[i]; i++) this.HTMLNode(node.childNodes[i]);
+		for(var i=0; node.childNodes[i]; i++) this.HTMLNode(node.childNodes[i], depth+1);
 		
 		//at this point, all children are in boardcode
 		
@@ -110,7 +119,7 @@ var Parse = new function() {
 			try {
 				var innerText = node.textContent;
 				var tag = node.tagName;
-				}catch(e){}
+				}catch(e){vlog("HTML Parsing error: " + e.message)}
 				
 			try {
 				if(!node.style) node.style = []; //may not exist for some reason
@@ -231,7 +240,9 @@ var Parse = new function() {
 			  case "P":
 			  case "PRE":
 			  case "CENTER":
-				innerText = "_block_text_" + innerText + "_block_text_";
+			  //we don't want to add block text around the div that's just used as a container
+				if(depth!=1 || tag!="DIV")
+					innerText = "_block_text_" + innerText + "_block_text_";
 				break;
 			  case "INPUT":
 			  case "TEXTAREA":
@@ -272,6 +283,13 @@ var Parse = new function() {
 	
 	this.handleBlock = function(_match, $1, $2) {
 		var check = ($1 && $2) ? '\n' : '';
+		
+		/*There's a bug in Firefox where $1 and $2 are "", but
+		in other browsers they're undefined.  Change them to
+		empty strings if necessary.*/
+		
+		if(!defined($1)) $1 = "";
+		if(!defined($2)) $2 = "";
 		return $1 + check + $2;
 		}
 	

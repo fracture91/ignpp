@@ -332,8 +332,6 @@ var Message = new function Message_Obj() {
 			data: _data,
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded",
-				"Host" : I.url.host,
-				"User-Agent": navigator.userAgent,
 				"Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8",
 				"Cache-Control" : "no-cache, no-cache",
 				"Content-Length" : _data.length,
@@ -507,8 +505,6 @@ var Message = new function Message_Obj() {
 			method: "GET",
 			url: page,
 			headers: {
-				"Host" : I.url.host,
-				"User-Agent": navigator.userAgent,
 				"Accept" : "text/html, text/plain",
 				},
 			onload: function(details) {
@@ -516,7 +512,7 @@ var Message = new function Message_Obj() {
 				var viewState = that.getViewState(dr);
 				var eventValidation = that.getEventValidation(dr);
 				var locked = type=="edit" && that.getLocked(dr);
-				var finalUrl = new Url(details.finalUrl);
+				var finalUrl = details.finalUrl ? new Url(details.finalUrl) : null;
 				
 				if(panel) {
 					panel.eventValidation = eventValidation;
@@ -531,7 +527,7 @@ var Message = new function Message_Obj() {
 					//content interfering with dr.search
 					
 					//old login page that works is at login.ign, new broken one at my.ign
-					if(finalUrl.host=="login.ign.com" || (finalUrl.host=="my.ign.com" && finalUrl.pathname.indexOf("/login")!=-1)) {
+					if(finalUrl && (finalUrl.host=="login.ign.com" || (finalUrl.host=="my.ign.com" && finalUrl.pathname.indexOf("/login")!=-1))) {
 						messErrorGen("User not logged in.");
 						}
 					else {

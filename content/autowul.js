@@ -63,8 +63,6 @@ var Autowul = new function() {
 			method: "GET",
 			url: href,
 			headers: {
-				"Host" : I.url.host,
-				"User-Agent": navigator.userAgent,
 				"Accept" : "text/html, text/plain"
 				},
 			onload: function(details) {
@@ -100,8 +98,6 @@ var Autowul = new function() {
 					data: _data,
 					headers: {
 						"Content-Type": "application/x-www-form-urlencoded",
-						"Host" : I.url.host,
-						"User-Agent": navigator.userAgent,
 						"Accept" : "text/html, text/plain",
 						"Content-Length" : _data.length
 						},

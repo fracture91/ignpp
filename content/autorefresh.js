@@ -50,7 +50,6 @@ function Refresher(target, interval) {
 			method: "GET",
 			url: ref.target,
 			headers:{
-			"User-Agent": navigator.userAgent,
 			"Accept": ref.accept,
 			"Pragma": "no-cache",
 			"Cache-Control": "no-cache"

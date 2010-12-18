@@ -193,7 +193,8 @@ Editor.prototype = {
 		highlight: {
 			state: function(ref) {
 				var value = document.queryCommandValue("hilitecolor");
-				var valid = value != "transparent";
+				//chrome returns false instead of "transparent"
+				var valid = value && value != "transparent";
 				ref.style.backgroundColor = valid ? value : "";
 				ref.style.color = valid ? colorBrightness(value) < 130 ? "white" : "black" : "";
 				return valid;
@@ -208,7 +209,7 @@ Editor.prototype = {
 		color: {
 			state: function(ref) {
 				var value = document.queryCommandValue("forecolor");
-				var valid = value != "rgb(0, 0, 0)" && value != "";
+				var valid = value && value != "rgb(0, 0, 0)" && value != "";
 				ref.style.backgroundColor = valid ? value : "";
 				ref.style.color = valid ? colorBrightness(value) < 130 ? "white" : "black" : "";
 				return valid;
