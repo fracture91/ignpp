@@ -121,7 +121,12 @@ function Overlay(textarea) {
 			if((I.url.pageType!="sendPM" && e.target != document.getElementById(pref + "ccContent_updPanelPost")) ||
 				(I.url.pageType=="sendPM" && e.target != document.getElementById(pref + "UpdatePanel1"))) return;
 			
+			//make sure an overlay isn't already drawn
 			if(e.target.getElementsByClassName("overlayContainer")[0]) return;
+			
+			//this check seems necessary for Chrome
+			var ta = e.target.getElementsByTagName("textarea")[0];
+			if(obj.textarea == ta) return;
 			
 			var o = obj;
 			
@@ -131,7 +136,7 @@ function Overlay(textarea) {
 			setTimeout(
 				function(){
 					var p = o.editor.wysiwygOn;
-					o.draw(e.target.getElementsByTagName("textarea")[0]);
+					o.draw(ta);
 					o.editor.wysiwygOn = p;
 					},
 				0);
@@ -144,7 +149,7 @@ Cleanup.add(function(){ Overlay = null; });
 
 if(I.url.pageType=="postReply" || I.url.pageType=="postTopic" || I.url.pageType=="postEdit" || I.url.pageType=="sendPM") {
 
-	if(GM_getValue("overlayWysiwyg", false)) {
+	if(GM_getValue("overlayWysiwyg", true)) {
 	
 		var pageOverlay = new Overlay(document.getElementById("boards_webform_wrapper").getElementsByTagName('textarea')[0]);
 		Cleanup.add(function(){ pageOverlay = null; });
