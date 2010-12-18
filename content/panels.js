@@ -949,11 +949,17 @@ Listeners.add(document, 'click', function(event) {
 				break;
 				
 			case "postButton":
-				if(evt.parentNode.parentNode.tagName!="TD" && !evt.disabled) Message.post(Panels.get(evt));
+				if(evt.disabled) break;
+				var mypa = Panels.get(evt);
+				if(!mypa) break;
+				Message.post(mypa);
 				break;
 				
 			case "previewButton":
-				if(!evt.disabled) Message.post(Panels.get(evt), null, null, true);
+				if(evt.disabled) break;
+				var mypa = Panels.get(evt);
+				if(!mypa) break;
+				Message.post(mypa, null, null, true);
 				break;
 		
 			}

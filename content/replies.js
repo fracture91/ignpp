@@ -407,12 +407,14 @@ Reply.prototype = {
 		
 		var thisUID;
 		
+		//TODO: move into method of Reply
 		if(I.layout.fresh) {
 			//only place you can find the UID is in a script tag in the reply
 			var script = this.ref.getElementsByTagName("SCRIPT")[0].innerHTML;
 			thisUID = script.slice(script.indexOf('usr=')+4, script.indexOf('">'));
 			}
 		else {
+			//TODO: this is dumb and breaks easily, fix it
 			var history = this.rows[2].getElementsByTagName("A")[3].href;
 			thisUID = history.split("=")[1];
 			}
