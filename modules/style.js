@@ -77,7 +77,9 @@ var vestitools_style = new function vt_Style() {
 		"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
 		temp.replace(/\n/g, "%0A")
 			.replace(/chrome-extension:\/\//g, "chrome://")
-			.replace(/mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
+			//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
+			//http://code.google.com/p/chromium/issues/detail?id=39899
+			.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
 			.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
 		" }",
 		null, null);

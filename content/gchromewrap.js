@@ -15,7 +15,7 @@ GM_localStorage = undefined;
 GM_getValue = function(name, def) {
 	
 	var value = GM_localStorage[name];
-	if(value !== undefined) return value;
+	if(defined(value)) return value;
 	
 	return def;
 	

@@ -263,6 +263,36 @@ function xpath(query) {
 		XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
 	}
 	
+//returns an array holding all ranges in Selection object
+//returned by window.getSelection(), null if no ranges
+function getSelectionCopy() {
+	
+	var sel = window.getSelection();
+	var copy = null;
+	var len = sel.rangeCount;
+	if(len>0) {
+		var i=-1;
+		copy = [];
+		while(++i<len) copy.push(sel.getRangeAt(i));
+		}
+		
+	return copy;
+	
+	}
+
+//restores selection from a copy (array of ranges)
+function restoreSelection(copy) {
+	
+	var sel = window.getSelection();
+	sel.removeAllRanges();
+	
+	for(var i=0, len=copy.length; i<len; i++)
+		sel.addRange(copy[i]);
+		
+	return sel;
+	
+	}
+	
 function debugString(string) {
 
 	var debug = top.document.createElement("div");

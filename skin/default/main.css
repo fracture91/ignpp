@@ -57,6 +57,8 @@ height: 100%;
 /* floating panels need shadow */
 body > .panel, #settingsBox, #status, .infoPanel {
 -moz-box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
+-webkit-box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
+box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
 }
 
 /* control buttons in boards drop down */
@@ -71,6 +73,7 @@ margin-left: 3px !important;
 }
 .settingsButton, .regularButton {
 -moz-user-select: none;
+-webkit-user-select: none;
 background-color: transparent;
 font: bold 10pt verdana,arial,sans-serif;
 color: #BBBBBB;
@@ -161,6 +164,7 @@ bottom: 10px;
 border: 2px solid #cccccc;
 z-index: 99997;
 -moz-border-radius: 4px 4px 2px 2px;
+border-radius: 4px 4px 2px 2px;
 height: 312px;
 }
 /* integrated panels */
@@ -178,6 +182,7 @@ left: 0;
 margin: 3px 4px 0px 4px;
 border: 2px solid #cccccc;
 -moz-border-radius: 4px 4px 2px 2px;
+border-radius: 4px 4px 2px 2px;
 height: 312px;
 z-index: 1;
 }
@@ -219,6 +224,8 @@ background: #dadbdf !important;
 background-image: none !important;
 border: 1px solid #66676b !important;
 -moz-box-shadow: 2px 2px 0 0 #939498 !important;
+-webkit-box-shadow: 2px 2px 0 0 #939498 !important;
+box-shadow: 2px 2px 0 0 #939498 !important;
 }
 .panelInside .panel {
 min-width: 500px;
@@ -234,6 +241,7 @@ padding: 2px;
 position: absolute;
 border: 2px solid #cccccc;
 -moz-border-radius: 4px 4px 4px 4px;
+border-radius: 4px 4px 4px 4px;
 z-index: 1;
 }
 .infoPanel > .panelContent > .loadingIcon {
@@ -266,6 +274,8 @@ top: 35px;
 background: #b1b3bc;
 opacity: 0.25;
 -moz-box-shadow: 0 0 10px 5px #b1b3bc;
+-webkit-box-shadow: 0 0 10px 5px #b1b3bc;
+box-shadow: 0 0 10px 5px #b1b3bc;
 z-index: 0;
 }
 
@@ -360,6 +370,7 @@ margin: 1px;
 .panel > .panelHeading {
 padding: 2px 5px 0px;
 -moz-user-select: -moz-none;
+-webkit-user-select: none;
 }
 .infoPanel > .panelHeading {
 text-align: center;
@@ -379,6 +390,7 @@ font-size: 10pt;
 .threadPreview > .panelHeading {
 text-align: left;
 -moz-user-select: -moz-none;
+-webkit-user-select: none;
 }
 .panel > .panelContent {
 text-align: center;
@@ -436,6 +448,13 @@ margin-left: 15px;
 .panelContent input {
 font-size: 10pt;
 }
+.panelContent [type="button"] {
+height: 24px;
+font-family: MS Shell Dlg, Arial, sans-serif;
+padding-bottom: 2px !important;
+padding-left: 2px !important;
+padding-right: 2px !important;
+}
 .panelContent input[type="text"], .panelContent textarea {
 font: 11px "Lucida Grande", Verdana, Arial, sans-serif;
 -moz-box-sizing: border-box;
@@ -484,6 +503,7 @@ background-color: white;
 color: #333333;
 text-align: center;
 -moz-border-radius: 2px 2px 0px 0px;
+border-radius: 2px 2px 0px 0px;
 width: 97px;
 padding: 0px 2px 0px 1px;
 border: 1px solid #3d7bad;
@@ -638,15 +658,20 @@ font-size: 10px;
 font-family: Arial, sans-serif;
 float: left;
 -moz-user-select: none;
+-webkit-user-select: none;
 cursor: pointer;
 background-color: #c1c2c9;
 -moz-border-radius: 2px;
 border-radius: 2px;
 }
-/*text shadow color is based on color property if omitted*/
+/*text shadow color is based on color property if omitted in Firefox, Chrome is transparent*/
 .buttons > .editorButton[state="true"] {
-text-shadow: 0 0 3px;
-background-image: -moz-linear-gradient(bottom, rgba(255,255,255,0.01), rgba(255,255,255, 0.3));
+text-shadow: 0 0 3px black;
+background-image: -moz-linear-gradient(bottom, rgba(255,255,255, 0.01), rgba(255,255,255, 0.3));
+background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255, 0.3)), to(rgba(255,255,255, 0.01)));
+}
+.buttons > .editorButton[state="true"].linkButton {
+text-shadow: 0 0 3px blue;
 }
 .previewButtons > div {
 background-color: #b1b3bc;
@@ -675,14 +700,14 @@ color: #ffffff;
 }
 .buttons > .toggleButton {
 padding: 1px;
-background-image: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/wysiwyg.png");
+background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/wysiwyg.png");
 background-position: 1px 1px;
 background-repeat: no-repeat;
 height: 14px;
 width: 13px;
 }
 .buttons > .toggleButton[state="true"] {
-background-image: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/code.png");
+background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/code.png");
 }
 .buttons > .editorButton:hover,
 .previewButtons > div:hover {
@@ -699,6 +724,7 @@ text-align: center;
 height: 18px;
 float: right;
 -moz-user-select: none;
+-webkit-user-select: none;
 margin-left: 266px;
 }
 .faces > img {
@@ -738,7 +764,7 @@ font-weight: bold;
 font-family: tahoma;
 margin-right: 10px;
 text-align: right;
-text-shadow: 0 0 5px;
+text-shadow: 0 0 5px #353535;
 position: relative;
 bottom: 35px;
 height: 0;
@@ -749,6 +775,7 @@ opacity: 0.1;
 color: #353535;
 z-index: 0;
 -moz-user-select: none;
+-webkit-user-select: none;
 cursor: default;
 }
 td > .replyNumber {
@@ -783,17 +810,17 @@ outline: 1px solid transparent;
 
 /* when reply autorefresh gets some new content, indicate this with a little gradient */
 .newReply, .newReply > td.boards_thread_subject {
-background-image: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/newreply.png") !important;
+background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/newreply.png") !important;
 background-repeat: repeat-x !important;
 background-position: top left !important;
 }
 .editedReply, .editedReply > td.boards_thread_subject {
-background-image: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/editedreply.png") !important;
+background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/editedreply.png") !important;
 background-repeat: repeat-x !important;
 background-position: top left !important;
 }
 .newReply.editedReply, .newReply.editedReply > td.boards_thread_subject {
-background-image: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/editedreply.png"), url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/newreply.png") !important;
+background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/editedreply.png"), url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/newreply.png") !important;
 background-repeat: repeat-x, repeat-x !important;
 background-position: top left, top left !important;
 }
@@ -802,7 +829,7 @@ background-position: top left, top left !important;
 .boards_topic_tabs_row.newReplies {
 background-color: rgba(255,255,255, 0.05);
 background-image: -moz-linear-gradient(bottom, rgba(255,255,255,0.01), rgba(255,255,255, 0.3));
-background-image: linear-gradient(bottom, rgba(255,255,255,0.01), rgba(255,255,255, 0.3));
+background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.3)), to(rgba(255,255,255, 0.01)));
 -moz-border-radius: 4px;
 border-radius: 4px;
 }
@@ -877,53 +904,53 @@ background-repeat: no-repeat;
 
 .closeIcon {
 padding: 13px 13px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/close.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/close.png") no-repeat;
 }
 .maximizeIcon {
 padding: 13px 13px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/maximize.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/maximize.png") no-repeat;
 }
 .minimizeIcon {
 padding: 13px 13px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/minimize.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/minimize.png") no-repeat;
 }
 .restoreIcon {
 padding: 13px 13px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/restore.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/restore.png") no-repeat;
 }
 .gearIcon {
 padding: 13px 13px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/gear.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/gear.png") no-repeat;
 }
 .loadingIcon {
 padding: 16px 16px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/loading.gif") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/loading.gif") no-repeat;
 display: block;
 }
 .postHistoryIcon {
 padding: 24px 27px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/posthistory.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/posthistory.png") no-repeat;
 }
 .postTopicIcon {
 padding: 24px 29px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/posttopic.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/posttopic.png") no-repeat;
 }
 .postReplyIcon {
 padding: 24px 30px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/postreply.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/postreply.png") no-repeat;
 }
 .privateMessageIcon {
 padding: 24px 32px 0px 0px;
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/privatemessage.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/privatemessage.png") no-repeat;
 }
 .codeIcon,
 .wysiwygIcon {
 padding: 14px 13px 0px 0px;
 }
 .codeIcon {
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/code.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/code.png") no-repeat;
 }
 .wysiwygIcon {
-background: url("chrome-extension://mhopcnahlbanfaniphbpeaoggmofanhf/skin/default/images/wysiwyg.png") no-repeat;
+background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/wysiwyg.png") no-repeat;
 }
 

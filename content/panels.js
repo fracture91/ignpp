@@ -235,6 +235,7 @@ Panel.prototype = {
 	autoFocus: function() {
 		
 		this.editor.field.focus();
+		this.editor.restoreSelection();
 		if(this.subject=="") this.subjectRef.focus();
 		if(this.type=="pm" && this.user=="") this.userRef.focus();
 		
@@ -647,14 +648,7 @@ Panels = new function Panels_Obj() {
 		GM_time("Panel.open");
 		if(!defined(usual)) usual = false;
 		GM_time("p1");
-		var sel = window.getSelection();
-		this.lastSelection = null;
-		var len = sel.rangeCount;
-		if(len>0) {
-			var i=-1;
-			this.lastSelection = [];
-			while(++i<len) this.lastSelection.push(sel.getRangeAt(i));
-			}
+		this.lastSelection = getSelectionCopy();
 		GM_timeEnd("p1");
 		GM_time("p2");
 		var quote = type=="quote";
@@ -984,6 +978,7 @@ Listeners.add(document, "keydown", function(e) {
 		if(mypa && e.target == mypa.subjectRef) {
 			e.preventDefault();
 			mypa.editor.field.focus();
+			mypa.editor.restoreSelection();
 			return;
 			}
 	

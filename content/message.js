@@ -532,7 +532,7 @@ var Message = new function Message_Obj() {
 						}
 					else {
 					
-						if(finalUrl.pageType=="denied") messErrorGen("Topic moved.");
+						if(finalUrl && finalUrl.pageType=="denied") messErrorGen("Topic moved.");
 						else {
 							
 							//note to self: don't forget to use that instead of this, derp derp derp

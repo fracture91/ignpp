@@ -29,7 +29,7 @@ function readFile(path, callback) {
 	
 	}
 	
-function otherReadFile(path) {
+function otherReadFileTest(path) {
 	
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function(){
@@ -124,9 +124,9 @@ window.onload = function(e){
 		
 		
 		});
-		
-	readFile('/content/panel.html');
-	otherReadFile('/content/panel.html');
+	
+	//test to see if this works yet
+	otherReadFileTest('/content/panel.html');
 	
 	}
 
@@ -210,6 +210,7 @@ function XHRDockHag(port) {
 	this.requester = new vestitools_xmlhttpRequester(this.port, window, this.port.sender.tab.url);
 	
 	//object that contentStartRequest returns that lets us abort the request
+	//(not implemented yet)
 	this.gynecologist = null;
 	
 	var that = this;
