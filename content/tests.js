@@ -58,6 +58,21 @@ Tester.add(new Test("simple parse", "a", function(){
 	return Parse.HTML("a");
 }));
 
+Tester.add(new Test("one br", "\n", function(){
+	return Parse.HTML("<br/>");
+}));
+Tester.add(new Test("two br", "\n\n", function(){
+	return Parse.HTML("<br/><br/>");
+}));
+
+Tester.add(new Test("one div wrapped br", "\n", function(){
+	return Parse.HTML("<div><br/></div>");
+}));
+
+Tester.add(new Test("two div wrapped br", "\n\n", function(){
+	return Parse.HTML("<div><br/></div><div><br/></div>");
+}));
+
 Tester.add(new Test("text separated by one br", "a\na", function(){
 	return Parse.HTML("a<br/>a");
 }));
@@ -84,6 +99,26 @@ Tester.add(new Test("divs separated by one div wrapped br", "a\n\na", function()
 
 Tester.add(new Test("divs separated by two div wrapped br", "a\n\n\na", function(){
 	return Parse.HTML("<div>a</div><div><br/></div><div><br/></div><div>a</div>");
+}));
+
+Tester.add(new Test("three divs separated by zero br", "a\na\na", function(){
+	return Parse.HTML("<div>a</div><div>a</div><div>a</div>");
+}));
+
+Tester.add(new Test("three divs separated by one br", "a\n\na\n\na", function(){
+	return Parse.HTML("<div>a</div><br/><div>a</div><br/><div>a</div>");
+}));
+
+Tester.add(new Test("three divs separated by two br", "a\n\n\na\n\n\na", function(){
+	return Parse.HTML("<div>a</div><br/><br/><div>a</div><br/><br/><div>a</div>");
+}));
+
+Tester.add(new Test("three divs separated by one div wrapped br", "a\n\na\n\na", function(){
+	return Parse.HTML("<div>a</div><div><br/></div><div>a</div><div><br/></div><div>a</div>");
+}));
+
+Tester.add(new Test("three divs separated by two div wrapped br", "a\n\n\na\n\n\na", function(){
+	return Parse.HTML("<div>a</div><div><br/></div><div><br/></div><div>a</div><div><br/></div><div><br/></div><div>a</div>");
 }));
 
 
