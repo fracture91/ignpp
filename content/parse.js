@@ -218,13 +218,14 @@ var Parse = new function() {
 				innerText = "[hr]";
 				break;
 			  case "BR":
-				innerText = (!node.type || node.type!="_moz") ? "_line_break_" : "";
+				//always wrap line breaks with block indicators - parsing won't work otherwise
+				innerText = (!node.type || node.type!="_moz") ? "_block_start__line_break__block_end_" : "";
 				break;
 			  case "Q":
 				innerText = "\"" + innerText + "\"";
 				// fallthrough
 			  case "ADDRESS":
-				innerText = "_block_text_[i]" + innerText + "[/i]_block_text_";
+				innerText = "_block_start_[i]" + innerText + "[/i]_block_end_";
 				break;
 			  case "H1":
 			  case "H2":
@@ -232,7 +233,7 @@ var Parse = new function() {
 			  case "H4":
 			  case "H5":
 			  case "H6":
-				innerText = "_block_text_[b]" + innerText + "[/b]_block_text_";
+				innerText = "_block_start_[b]" + innerText + "[/b]_block_end_";
 				break;
 			  case "DIV":
 			  case "TABLE":
@@ -242,7 +243,7 @@ var Parse = new function() {
 			  case "CENTER":
 			  //we don't want to add block text around the div that's just used as a container
 				if(depth!=1 || tag!="DIV")
-					innerText = "_block_text_" + innerText + "_block_text_";
+					innerText = "_block_start_" + innerText + "_block_end_";
 				break;
 			  case "INPUT":
 			  case "TEXTAREA":
@@ -320,7 +321,13 @@ var Parse = new function() {
 		
 		text = text
 		.replace(/_line_break_/g, '\n') //line breaks
-		.replace(/(\S)?(?:_block_text_)+(\S)?/g, this.handleBlock) //block text
+		/*
+		find any number of consecutive _block_text_ strings and any surrounding characters that aren't whitespace
+		if the block text strings are surrounded by non-whitespace, replace them with a line break
+		otherwise, replace them with an empty string
+		*/
+		.replace(/(\S)?(?:_block_start_)+(\S)?/g, this.handleBlock) //block text
+		.replace(/(\S)?(?:_block_end_)+(\S)?/g, this.handleBlock) //block text
 		//.replace(/<(\/)?\w+((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)(\/)?>/gi,"") //HTML entities
 		.replace(this.charactersToRemove, "")
 		.replace(this.horizontalWhiteSpace, " ") //convert any weird spacing to standard \u0020 spaces
@@ -410,7 +417,7 @@ var Parse = new function() {
 		.replace(this.horizontalWhiteSpace, " ")
 		.replace(/ {2,}/gi, " ") //eat multiple spaces
 		.replace(/^ | $/gim, "") //leading and trailing spaces, that m flag is important
-		.replace(/\n/gi, "<br>") //line breaks
+		.replace(/\n/gi, "<div><br></div>") //line breaks
 		//These simple markup tags can easily be replaced here
 		.replace(/\[((\/)?(ol|ul|li))\]/gi, "<$1>") //list stuff
 
