@@ -58,9 +58,18 @@ Tester.add(new Test("simple parse", "a", function(){
 	return Parse.HTML("a");
 }));
 
+Tester.add(new Test("one div", "", function(){
+	return Parse.HTML("<div></div>");
+}));
+
+Tester.add(new Test("two nested divs", "", function(){
+	return Parse.HTML("<div><div></div></div>");
+}));
+
 Tester.add(new Test("one br", "\n", function(){
 	return Parse.HTML("<br/>");
 }));
+
 Tester.add(new Test("two br", "\n\n", function(){
 	return Parse.HTML("<br/><br/>");
 }));
@@ -71,6 +80,14 @@ Tester.add(new Test("one div wrapped br", "\n", function(){
 
 Tester.add(new Test("two div wrapped br", "\n\n", function(){
 	return Parse.HTML("<div><br/></div><div><br/></div>");
+}));
+
+Tester.add(new Test("one div wrapped br surrounded by br", "\n\n\n", function(){
+	return Parse.HTML("<br/><div><br/></div><br/>");
+}));
+
+Tester.add(new Test("one br surrounded by div wrapped br", "\n\n\n", function(){
+	return Parse.HTML("<div><br/></div><br/><div><br/></div>");
 }));
 
 Tester.add(new Test("text separated by one br", "a\na", function(){
