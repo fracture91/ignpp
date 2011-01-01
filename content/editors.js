@@ -970,7 +970,7 @@ Editor.prototype = {
 			},
 			
 		togglewysiwyg: {
-			key: 87, //w
+			key: 83, //s
 			button: "toggle",
 			override: function(editor, e) {
 				
