@@ -484,10 +484,13 @@ Editor.prototype = {
 	//insert a text node at the current cursor position and select it
 	insertTextNode: function(text) {
 		
-		var range = window.getSelection().getRangeAt(0);
+		var sel = window.getSelection();
+		var range = sel.getRangeAt(0);
 		var node = document.createTextNode(text);
 		range.insertNode(node);
 		range.selectNode(node);
+		sel.removeAllRanges();
+		sel.addRange(range);
 		return node;
 		
 		},
