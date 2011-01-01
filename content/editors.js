@@ -816,7 +816,7 @@ Editor.prototype = {
 				
 				if(editor.wysiwygOn) {
 				
-					if(window.getSelection().getRangeAt(0).collapsed) {
+					if(chrome && window.getSelection().getRangeAt(0).collapsed) {
 						//this fixes this case in Chrome for some reason, otherwise nothing happens
 						editor.insertTextNode("\u2060");
 						window.getSelection().getRangeAt(0).collapse(false);
@@ -949,8 +949,17 @@ Editor.prototype = {
 			button: "erase",
 			func: function(editor, e) {
 				
-				if(editor.wysiwygOn)
+				if(editor.wysiwygOn) {
+					
+					if(chrome && window.getSelection().getRangeAt(0).collapsed) {
+						//this fixes this case in Chrome for some reason, otherwise nothing happens
+						editor.insertTextNode("\u2060");
+						window.getSelection().getRangeAt(0).collapse(false);
+						}
+					
 					document.execCommand("removeformat", false, null);
+					
+					}
 					
 				//no support for code view
 				
