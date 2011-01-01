@@ -814,7 +814,17 @@ Editor.prototype = {
 				var emptyString = highlight=="";
 				if(emptyString) highlight = "transparent";
 				
-				if(editor.wysiwygOn) document.execCommand("hilitecolor", false, highlight);
+				if(editor.wysiwygOn) {
+				
+					if(window.getSelection().getRangeAt(0).collapsed) {
+						//this fixes this case in Chrome for some reason, otherwise nothing happens
+						editor.insertTextNode("\u2060");
+						window.getSelection().getRangeAt(0).collapse(false);
+						}
+						
+					document.execCommand("hilitecolor", false, highlight);
+					
+					}
 				else editor.addTag("hl", highlight);
 				
 				if(!emptyString) GM_setValue("lastHighlightWysiwyg", highlight);
