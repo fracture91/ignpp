@@ -728,8 +728,9 @@ Editor.prototype = {
 					
 					//if it's a regular link operation and there's no selection,
 					//we need to insert some default text and select it
-					//because the default createlink behavior won't create a link if there's no selection
-					if(!e.altKey && collapsed && !changeExistingHref) {
+					//because the default createlink behavior won't create a link if there's no selection.
+					//Chrome will insert the link url in this case, so ignore chrome
+					if(!chrome && !e.altKey && collapsed && !changeExistingHref) {
 						//insert a word-joiner character that takes up no space
 						textNode = editor.insertTextNode("\u2060");
 						}

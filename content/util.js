@@ -14,6 +14,10 @@ function defined(o) {
 	return (typeof(o)!="undefined");
 	}
 	
+//Chrome will have defined window.chrome, but Firefox doesn't.
+//Setting it to null lets us easily check if the browser is Chrome in an if statement.
+if(!defined(window.chrome)) chrome = null;
+	
 	
 //not done yet or tested properly
 //plan to use for anonymous posting (need to delete and restore cookies)
