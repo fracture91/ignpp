@@ -710,8 +710,10 @@ Editor.prototype = {
 				
 				if(editor.wysiwygOn) {
 				
-					//just in case we're already in a link
-					document.execCommand("unlink", false, null);
+					//just in case we're already in a link, unlink what's linked
+					//Chrome destroys the selection at some point upon unlinking, so we have to it this way
+					//instead of calling document.execCommand directly.  Not entirely sure why this works.
+					editor.format("unlink", e);
 	
 					var collapsed = range.collapsed;
 					var textNode;
@@ -739,8 +741,9 @@ Editor.prototype = {
 					var parent;
 					//select within the appropriate link
 					if( (textNode && (parent = getParentByTagName(textNode, "A"))) ||
-						((range.startContainer!=range.endContainer || range.startContainer.tagName != range.endContainer.tagName != "A") && (parent = range.startContainer.nextSibling)) )
+						((range.startContainer!=range.endContainer || range.startContainer.tagName != range.endContainer.tagName != "A") && (parent = range.startContainer.nextSibling)) ) {
 						range.selectNodeContents(parent);
+						}
 					
 					//if we don't collapse the selection afterwards,
 					//the cursor is invisible
@@ -1176,7 +1179,7 @@ Editors = new function Editors_Obj() {
 		var copy = getSelectionCopy();
 		if(!(myed=Editors.selectionInEditor(copy))) return;
 			
-		myed.lastSelection = getSelectionCopy();
+		myed.lastSelection = copy;
 		//vlog(inspect(myed.lastSelection));
 		
 		}, true);
