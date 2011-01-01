@@ -907,7 +907,10 @@ Editor.prototype = {
 						document.execCommand("inserthtml", false, "<br><blockquote><strong>" + username + '</strong> posted:<hr noshade="noshade">' + middle + '<hr noshade="noshade"></blockquote><br>');
 						}
 					
-					if(middleIsEmpty || e.altKey) editor.moveCursor();
+					if(middleIsEmpty || e.altKey) {
+						editor.moveCursor();
+						editor.restoreSelection();
+						}
 					
 					}
 				
