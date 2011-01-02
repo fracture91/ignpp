@@ -198,8 +198,7 @@ Editor.prototype = {
 		
 		highlight: {
 			state: function(ref) {
-				var value = document.queryCommandValue("hilitecolor");
-				//chrome returns false instead of "transparent"
+				var value = document.queryCommandValue(chrome ? "backcolor" : "hilitecolor");
 				var valid = value && value != "transparent";
 				ref.style.backgroundColor = valid ? value : "";
 				ref.style.color = valid ? colorBrightness(value) < 130 ? "white" : "black" : "";
