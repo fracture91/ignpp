@@ -788,8 +788,16 @@ Editor.prototype = {
 			button: "bq",
 			func: function(editor, e) {
 				
-				if(editor.wysiwygOn)
-					document.execCommand("formatblock", false, "<blockquote>");
+				if(editor.wysiwygOn) {
+					//using formatblock prevents you from doing nested blockquotes in Chrome
+					//but using indent on Firefox only makes a div with a margin
+					if(chrome) {
+						document.execCommand("indent", false, null);
+						}
+					else {
+						document.execCommand("formatblock", false, "<blockquote>");
+						}
+					}
 				
 				else editor.addTag("blockquote");
 				
