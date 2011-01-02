@@ -189,8 +189,15 @@ Editor.prototype = {
 			
 		bq: {
 			state: function(ref) {
+				
 				//queryCommandEnabled always returns true for outdent on Chrome
-				return chrome ? !!getParentByTagName(window.getSelection().getRangeAt(0).commonAncestorContainer, "blockquote") : document.queryCommandEnabled("outdent");
+				if(chrome) {
+					var anc = window.getSelection().getRangeAt(0).commonAncestorContainer;
+					return anc.tagName=="BLOCKQUOTE" || !!getParentByTagName(anc, "blockquote");
+					}
+					
+				return document.queryCommandEnabled("outdent");
+				
 				}
 			},
 		
