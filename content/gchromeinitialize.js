@@ -19,8 +19,8 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	switch(request.type.toLowerCase()) {
 		
 		case "setvalue":
-			var name = request.name, value = request.value;
-			GM_localStorage[name] = value;
+			var name = request.name, jsonValue = request.jsonValue;
+			GM_localStorage[name] = jsonValue;
 			break;
 			
 		case "ping":

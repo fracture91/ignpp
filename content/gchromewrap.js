@@ -14,8 +14,8 @@ GM_localStorage = undefined;
 
 GM_getValue = function(name, def) {
 	
-	var value = GM_localStorage[name];
-	if(defined(value)) return value;
+	var jsonValue = GM_localStorage[name];
+	if(defined(jsonValue)) return JSON.parse(jsonValue);
 	
 	return def;
 	
@@ -23,12 +23,14 @@ GM_getValue = function(name, def) {
 	
 GM_setValue = function(name, value) {
 
+	var jsonValue = JSON.stringify(value);
+
 	//set value of our copy
-	GM_localStorage[name] = value;
+	GM_localStorage[name] = jsonValue;
 	
 	//set value of background localStorage, which will then alert other pages under its control
 	//that the setting has been changed, and they will change their copies
-	chrome.extension.sendRequest({type: "setvalue", name: name, value: value});
+	chrome.extension.sendRequest({type: "setvalue", name: name, jsonValue: jsonValue});
 	
 	return value;
 	

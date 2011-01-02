@@ -173,11 +173,11 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			break;
 			
 		case "setvalue":
-			var name = request.name, value = request.value;
-			localStorage[name] = localStorageCopy[name] = value;
+			var name = request.name, jsonValue = request.jsonValue;
+			localStorage[name] = localStorageCopy[name] = jsonValue;
 			managedTabs.forEach(function(el, i, arr) {
 				if(sender.tab.id==el.id) return;
-				chrome.tabs.sendRequest(el.id, {type: "setValue", name: name, value: value});
+				chrome.tabs.sendRequest(el.id, {type: "setValue", name: name, jsonValue: jsonValue});
 				});
 			break;
 			
