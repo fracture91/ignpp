@@ -417,7 +417,7 @@ var Parse = new function() {
 		.replace(this.horizontalWhiteSpace, " ")
 		.replace(/ {2,}/gi, " ") //eat multiple spaces
 		.replace(/^ | $/gim, "") //leading and trailing spaces, that m flag is important
-		.replace(/\n/gi, "<div><br></div>") //line breaks
+		.replace(/\n/gi, "<br>") //line breaks
 		//These simple markup tags can easily be replaced here
 		.replace(/\[((\/)?(ol|ul|li))\]/gi, "<$1>") //list stuff
 

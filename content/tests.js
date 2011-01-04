@@ -98,6 +98,14 @@ Tester.add(new Test("text separated by two br", "a\n\na", function(){
 	return Parse.HTML("a<br/><br/>a");
 }));
 
+Tester.add(new Test("text separated by one div wrapped br", "a\n\na", function(){
+	return Parse.HTML("a<div><br/></div>a");
+}));
+
+Tester.add(new Test("text separated by two div wrapped br", "a\n\n\na", function(){
+	return Parse.HTML("a<div><br/></div><div><br/></div>a");
+}));
+
 Tester.add(new Test("divs separated by zero br", "a\na", function(){
 	return Parse.HTML("<div>a</div><div>a</div>");
 }));
@@ -137,6 +145,16 @@ Tester.add(new Test("three divs separated by one div wrapped br", "a\n\na\n\na",
 Tester.add(new Test("three divs separated by two div wrapped br", "a\n\n\na\n\n\na", function(){
 	return Parse.HTML("<div>a</div><div><br/></div><div><br/></div><div>a</div><div><br/></div><div><br/></div><div>a</div>");
 }));
+
+Tester.add(new Test("text and unexpected div", "a\n\na", function(){
+	return Parse.HTML("a<div><br>a</div>");
+}));
+
+Tester.add(new Test("text and unexpected div separated by div wrapped br", "a\n\n\na", function(){
+	return Parse.HTML("a<div><br></div><div><br>a</div>");
+}));
+
+
 
 
 
