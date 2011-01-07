@@ -57,7 +57,13 @@ var Parse = new function() {
 		
 		}
 	
-	
+	this.isBlockExp = /^(div|address|h[1-6]|table|tr|p|pre|center)$/i;
+	this.isBlock = function(node) {
+		if(node==null || !defined(node)) return null;
+		if(node.nodeType != 1) return false;
+		if(typeof node.tagName != "string") return null;
+		return this.isBlockExp.test(node.tagName);
+		}
 	
 	/*HTMLNode, HTML, handleBlock, and boardCode all based heavily
 	on IGNBQ's parser, courtesy of heyf00L*/
@@ -107,8 +113,24 @@ var Parse = new function() {
 			
 			}
 		
+		if(node.nodeType==1) vlog(node.tagName + ", " + node.textContent);
+		
 		//if it has children, recurse on them
-		for(var i=0; node.childNodes[i]; i++) this.HTMLNode(node.childNodes[i], depth+1);
+		var lastIsBlock, thisIsBlock;
+		lastIsBlock = thisIsBlock = null;
+		for(var i=0, len=node.childNodes.length, thisChild; thisChild = node.childNodes[i]; i++) {
+			lastIsBlock = thisIsBlock;
+			
+			thisIsBlock = this.isBlock(thisChild);
+			vlog(lastIsBlock + ", " + thisIsBlock);
+			this.HTMLNode(thisChild, depth+1);
+			
+			if((lastIsBlock!=null && thisIsBlock) || (lastIsBlock && thisIsBlock!=null && !thisIsBlock)) {
+				thisChild.textContent = "_block_break_" + thisChild.textContent;
+				}
+			
+			}
+		
 		
 		//at this point, all children are in boardcode
 		
@@ -218,14 +240,13 @@ var Parse = new function() {
 				innerText = "[hr]";
 				break;
 			  case "BR":
-				//always wrap line breaks with block indicators - parsing won't work otherwise
-				innerText = (!node.type || node.type!="_moz") ? "_block_start__line_break__block_end_" : "";
+				innerText = (!node.type || node.type!="_moz") ? "_line_break_" : "";
 				break;
 			  case "Q":
 				innerText = "\"" + innerText + "\"";
 				// fallthrough
 			  case "ADDRESS":
-				innerText = "_block_start_[i]" + innerText + "[/i]_block_end_";
+				innerText = "[i]" + innerText + "[/i]";
 				break;
 			  case "H1":
 			  case "H2":
@@ -233,7 +254,7 @@ var Parse = new function() {
 			  case "H4":
 			  case "H5":
 			  case "H6":
-				innerText = "_block_start_[b]" + innerText + "[/b]_block_end_";
+				innerText = "[b]" + innerText + "[/b]";
 				break;
 			  case "DIV":
 			  case "TABLE":
@@ -243,7 +264,7 @@ var Parse = new function() {
 			  case "CENTER":
 			  //we don't want to add block text around the div that's just used as a container
 				if(depth!=1 || tag!="DIV")
-					innerText = "_block_start_" + innerText + "_block_end_";
+					innerText = innerText;
 				break;
 			  case "INPUT":
 			  case "TEXTAREA":
@@ -293,6 +314,17 @@ var Parse = new function() {
 		if(!defined($2)) $2 = "";
 		return $1 + check + $2;
 		}
+		
+	this.handleBreak = function(_match, $1) {
+		var check = $1 ? '' : '\n';
+		
+		/*There's a bug in Firefox where $1 and $2 are "", but
+		in other browsers they're undefined.  Change them to
+		empty strings if necessary.*/
+		
+		if(!defined($1)) $1 = "";
+		return check + $1;
+		}
 	
 	this.HTML = function(input) {
 		
@@ -314,20 +346,21 @@ var Parse = new function() {
 			}
 			
 		temp = temp.firstChild;
-		
+		vlog(input);
 		this.HTMLNode(temp);
 		
 		text = temp.textContent+'';
-		
+		vlog(text);
 		text = text
-		.replace(/_line_break_/g, '\n') //line breaks
+		.replace(/(?:_line_break_)(_block_break_)?/g, this.handleBreak) //line breaks
+		.replace(/_block_break_/g, '\n') //line breaks
 		/*
 		find any number of consecutive _block_text_ strings and any surrounding characters that aren't whitespace
 		if the block text strings are surrounded by non-whitespace, replace them with a line break
 		otherwise, replace them with an empty string
 		*/
-		.replace(/(\S)?(?:_block_start_)+(\S)?/g, this.handleBlock) //block text
-		.replace(/(\S)?(?:_block_end_)+(\S)?/g, this.handleBlock) //block text
+		//.replace(/(\S)?(?:_block_start_)+(\S)?/g, this.handleBlock) //block text
+		//.replace(/(\S)?(?:_block_end_)+(\S)?/g, this.handleBlock) //block text
 		//.replace(/<(\/)?\w+((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)(\/)?>/gi,"") //HTML entities
 		.replace(this.charactersToRemove, "")
 		.replace(this.horizontalWhiteSpace, " ") //convert any weird spacing to standard \u0020 spaces
