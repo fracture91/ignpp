@@ -57,7 +57,14 @@ var Parse = new function() {
 		
 		}
 	
-	this.isBlockExp = /^(div|address|h[1-6]|table|tr|p|pre|center)$/i;
+	/*
+	I would've liked to use getComputedStyles().display here to check if something's block-level or not
+	but that doesn't work on invisible elements so I had to go with this list
+	*/
+	
+	//block elements which aren't handled with boardcode markup
+	//regex borrowed from TinyMCE and modified for my purposes
+	this.isBlockExp = /^(H[1-6]|P|DIV|ADDRESS|PRE|FORM|T(ABLE|BODY|HEAD|FOOT|R)|CAPTION|CENTER|DL|DT|DD|FIELDSET|NOSCRIPT|ISINDEX|SAMP)$/i;
 	this.isBlock = function(node) {
 		if(node==null || !defined(node)) return null;
 		if(node.nodeType != 1) return false;
@@ -65,9 +72,9 @@ var Parse = new function() {
 		return this.isBlockExp.test(node.tagName);
 		}
 	
-	/*HTMLNode, HTML, handleBlock, and boardCode all based heavily
-	on IGNBQ's parser, courtesy of heyf00L*/
 	
+	/*HTMLNode, HTML, handleBreak, and boardCode all based heavily
+	on IGNBQ's parser, courtesy of heyf00L*/
 	
 	
 	this.HTMLNode = function(node, depth) {
@@ -113,19 +120,26 @@ var Parse = new function() {
 			
 			}
 		
-		if(node.nodeType==1) vlog(node.tagName + ", " + node.textContent);
 		
 		//if it has children, recurse on them
+		//also take care of block element breaks
 		var lastIsBlock, thisIsBlock;
 		lastIsBlock = thisIsBlock = null;
-		for(var i=0, len=node.childNodes.length, thisChild; thisChild = node.childNodes[i]; i++) {
-			lastIsBlock = thisIsBlock;
+		for(var i=0, thisChild; thisChild = node.childNodes[i]; i++) {
 			
+			//these indicate if the current and previous children are
+			//block-level elements or not
+			//if null, that means the element didn't exist (i==0) or isBlock freaked out
+			lastIsBlock = thisIsBlock;
 			thisIsBlock = this.isBlock(thisChild);
-			vlog(lastIsBlock + ", " + thisIsBlock);
+			
 			this.HTMLNode(thisChild, depth+1);
 			
-			if((lastIsBlock!=null && thisIsBlock) || (lastIsBlock && thisIsBlock!=null && !thisIsBlock)) {
+			if(
+				(lastIsBlock!=null && thisIsBlock) ||				//all block elements start on their own line
+				(lastIsBlock && thisIsBlock!=null && !thisIsBlock)	//all non-block elements preceded by a block element start on their own line
+				) {
+				//the prepended string is eventually parsed away as a line break
 				thisChild.textContent = "_block_break_" + thisChild.textContent;
 				}
 			
@@ -141,7 +155,7 @@ var Parse = new function() {
 			try {
 				var innerText = node.textContent;
 				var tag = node.tagName;
-				}catch(e){vlog("HTML Parsing error: " + e.message)}
+				}catch(e){vlog("HTML Parsing error 1: " + e.message)}
 				
 			try {
 				if(!node.style) node.style = []; //may not exist for some reason
@@ -150,7 +164,7 @@ var Parse = new function() {
 				b = node.style.fontWeight == "bold";
 				i = node.style.fontStyle == "italic";
 				u = node.style.textDecoration == "underline";
-				} catch(e){}
+				} catch(e){vlog("HTML Parsing error 2: " + e.message)}
 			
 			//rgb2hex returns input without spaces if not recognized as rgb
 			
@@ -179,28 +193,7 @@ var Parse = new function() {
 				break;
 			  case "A":
 				if(node.href && this.validProtocolExp.test(node.href) && innerText.indexOf("[image=") != 0) {
-					
-					//old way of doing it
-					/*this.innerLinkExp.lastIndex = 0;
-					
-					var after = "";
-					
-					var innerLinkMatch = this.innerLinkExp.exec(innerText);
-					if(innerLinkMatch) {
-						var innerLinkEnd = this.innerLinkExp.lastIndex;
-						var innerLinkStart = innerLinkEnd - innerLinkMatch[0].length + innerLinkMatch[1].length;
-						after = " " + innerText.slice(innerLinkEnd, innerText.length);
-						innerText = innerText.slice(0, innerLinkStart);
-						innerLinkMatch = innerLinkMatch[0];
-						this.innerLinkExp.lastIndex = 0;
-						}
-					else innerLinkMatch = "";
-					
-					//this is how IGN breaks it up...
-					innerText = "[link=" + node.href + "]" + innerText + "[/link]" + innerLinkMatch + after;*/
-					
 					innerText = this.linkText(innerText, node.href);
-					
 					}
 				break;
 			  case "IMG":
@@ -248,6 +241,12 @@ var Parse = new function() {
 			  case "ADDRESS":
 				innerText = "[i]" + innerText + "[/i]";
 				break;
+			  case "TH":
+				innerText = "[b]" + innerText + "[/b]";
+				//fallthrough
+			  case "TD":
+				innerText = " " + innerText;
+				break;
 			  case "H1":
 			  case "H2":
 			  case "H3":
@@ -262,9 +261,7 @@ var Parse = new function() {
 			  case "P":
 			  case "PRE":
 			  case "CENTER":
-			  //we don't want to add block text around the div that's just used as a container
-				if(depth!=1 || tag!="DIV")
-					innerText = innerText;
+				//do nothing
 				break;
 			  case "INPUT":
 			  case "TEXTAREA":
@@ -303,18 +300,7 @@ var Parse = new function() {
 		
 		}
 	
-	this.handleBlock = function(_match, $1, $2) {
-		var check = ($1 && $2) ? '\n' : '';
-		
-		/*There's a bug in Firefox where $1 and $2 are "", but
-		in other browsers they're undefined.  Change them to
-		empty strings if necessary.*/
-		
-		if(!defined($1)) $1 = "";
-		if(!defined($2)) $2 = "";
-		return $1 + check + $2;
-		}
-		
+	//handle the parsing of line breaks
 	this.handleBreak = function(_match, $1) {
 		var check = $1 ? '' : '\n';
 		
@@ -346,25 +332,16 @@ var Parse = new function() {
 			}
 			
 		temp = temp.firstChild;
-		vlog(input);
+		
 		this.HTMLNode(temp);
 		
 		text = temp.textContent+'';
-		vlog(text);
+		
 		text = text
-		.replace(/(?:_line_break_)(_block_break_)?/g, this.handleBreak) //line breaks
-		.replace(/_block_break_/g, '\n') //line breaks
-		/*
-		find any number of consecutive _block_text_ strings and any surrounding characters that aren't whitespace
-		if the block text strings are surrounded by non-whitespace, replace them with a line break
-		otherwise, replace them with an empty string
-		*/
-		//.replace(/(\S)?(?:_block_start_)+(\S)?/g, this.handleBlock) //block text
-		//.replace(/(\S)?(?:_block_end_)+(\S)?/g, this.handleBlock) //block text
-		//.replace(/<(\/)?\w+((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)(\/)?>/gi,"") //HTML entities
+		.replace(/(?:_line_break_)(_block_break_)?/g, this.handleBreak) //line breaks (<br/>) only added here if not followed by a block break
+		.replace(/_block_break_/g, '\n') //block breaks generated by block-level elements
 		.replace(this.charactersToRemove, "")
 		.replace(this.horizontalWhiteSpace, " ") //convert any weird spacing to standard \u0020 spaces
-		//.replace(/<![^>]*>/gim, "") //HTML comments
 		.replace(/ {2,}/g, ' ') //eat multiple spaces
 		.replace(/^ | $/gim, ""); //leading and trailing spaces, that m flag is important
 		
