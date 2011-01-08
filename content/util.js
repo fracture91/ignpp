@@ -2,8 +2,6 @@
 
 function vlog(t) { GM_log(t); }
 
-vlog("active");
-
 function logError(n, e) {
 	if(typeof n != "string") n = "General";
 	vlog(n + " Error: " + (e.message ? e.message : e) + (e.name ? ", " + e.name : ""));

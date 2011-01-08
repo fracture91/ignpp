@@ -13,6 +13,13 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		
 		case "setvalue":
 			//change value of respective input if not already changed by user
+			var pref = Preferences.prefs[request.name];
+			if(!pref) {
+				pref = Preferences.add(request.name, JSON.parse(request.jsonValue));
+				}
+			else if(!pref.changedFromLastSaved) {
+				pref.model.lastSavedValue = pref.value = JSON.parse(request.jsonValue);
+				}
 			break;
 			
 		case "ping":
@@ -40,8 +47,6 @@ PreferenceView = function(model) {
 	
 PreferenceView.prototype = {
 	
-	masterContainer: null,
-	
 	get value() {
 		if(this.model.type=="boolean") {
 			return this.input.checked;
@@ -66,15 +71,19 @@ PreferenceView.prototype = {
 		},
 		
 	save: function() {
-		this.model.set(this.value);
+		this.model.value = this.value;
 		},
 		
 	load: function() {
-		this.value = this.model.get;
+		this.value = this.model.value;
 		},
 		
 	get changed() {
-		return this.model.get != this.clean;
+		return this.model.value != this.clean;
+		},
+		
+	get changedFromLastSaved() {
+		return this.model.lastSavedValue != this.clean;
 		},
 		
 	
@@ -100,8 +109,6 @@ PreferenceView.prototype = {
 		this.container.appendChild(this.name);
 		this.container.appendChild(this.input);
 		
-		this.masterContainer.appendChild(this.container);
-		
 		}
 	
 	}
@@ -111,6 +118,7 @@ Preference = function(name, def) {
 	this.name = name;
 	this.def = def;
 	this.type = typeof this.def;
+	this.lastSavedValue = undefined;
 	
 	}
 	
@@ -118,8 +126,8 @@ Preference.prototype = {
 	
 	clean: function(val, type) {
 		
-		if(typeof(type)=="undefined") type = this.type;
-		if(typeof(val)=="undefined") val = this.get;
+		if(!defined(type)) type = this.type;
+		if(!defined(val)) val = this.value;
 		
 		switch(type) {
 			case "number":
@@ -134,12 +142,14 @@ Preference.prototype = {
 		
 		},
 	
-	get get() {
-		return GM_getValue(this.name, this.def);
+	get value() {
+		var val = GM_getValue(this.name, this.def);
+		if(!defined(this.lastSavedValue)) this.lastSavedValue = val;
+		return val;
 		},
 		
-	set set(val) {
-		return GM_setValue(this.name, this.clean(val));
+	set value(val) {
+		return this.lastSavedValue = GM_setValue(this.name, this.clean(val));
 		}
 	
 	}
@@ -156,7 +166,50 @@ Preferences = new function() {
 		
 		if(!this.prefs[name]) {
 			this.prefs[name] = new PreferenceView(new Preference(name, def));
+			this.masterContainer.appendChild(this.prefs[name].container);
 			}
+		
+		}
+		
+	this.forEachPref = function(func) {
+		for(var i in this.prefs) if(func(this.prefs[i], i, this.prefs)===false) return false;
+		}
+		
+	this.save = function() {
+		
+		var someInvalid = false;
+		this.forEachPref(function(e, i, a) {
+			if(e.changed) {
+				if(e.validate()) {
+					e.save();
+					}
+				else {
+					someInvalid = true;
+					}
+				}
+			});
+			
+		return someInvalid;
+		
+		}
+		
+	this.__defineGetter__("anyChanges", function() {
+		var changes = false;
+		this.forEachPref(function(e, i, a) {
+			if(e.changed) {
+				changes = true;
+				return false;
+				}
+			});
+		return changes;
+		});
+		
+	this.clearLog = function(time) {
+		
+		if(typeof time != "number") return this.controlLog.textContent = "";
+		
+		if(defined(this.logTimer)) clearTimeout(this.logTimer);
+		this.logTimer = setTimeout(this.clearLog, time);
 		
 		}
 	
@@ -173,8 +226,35 @@ function pref(name, def) {
 	
 window.onload = function(e) {
 	
-	PreferenceView.prototype.masterContainer = document.getElementById("generatedPrefs");
+	Preferences.masterContainer = document.getElementById("generatedPrefs");
+	Preferences.saveButton = document.getElementById("saveButton");
+	Preferences.closeButton = document.getElementById("closeButton");
+	Preferences.controlLog = document.getElementById("controlLog");
 	
 	Preferences.addFromObject(prefsCatcher);
 		
 	}
+
+function controlButtonHandler(e) {
+	
+	if(e.target == Preferences.saveButton) {
+		
+		var someInvalid = Preferences.save();
+		if(someInvalid) alert("Some preferences were not valid and, consequently, not saved.");
+		Preferences.controlLog.textContent = "Saved!";
+		Preferences.clearLog(2000);
+		
+		}
+	
+	else if(e.target == Preferences.closeButton) {
+		
+		if(!Preferences.anyChanges ||
+			confirm("You have unsaved changes - are you sure you want to close the Options tab?")) {
+				window.close();
+			}
+		
+		}
+	
+	}
+	
+document.addEventListener("click", controlButtonHandler, true);
