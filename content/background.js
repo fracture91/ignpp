@@ -194,6 +194,10 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			addStyle(sender.tab, request.css);
 			break;
 			
+		case "checkin":
+			//options page just checking in
+			break;
+			
 		default:
 			vlog("Unknown request: " + request.type);
 			break;
