@@ -304,8 +304,8 @@ var Parse = new function() {
 	this.handleBreak = function(_match, $1) {
 		var check = $1 ? '' : '\n';
 		
-		/*There's a bug in Firefox where $1 and $2 are "", but
-		in other browsers they're undefined.  Change them to
+		/*There's a bug in Firefox where $1 is "", but
+		in other browsers it's undefined.  Change them to
 		empty strings if necessary.*/
 		
 		if(!defined($1)) $1 = "";
