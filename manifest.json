@@ -13,7 +13,7 @@
 		"http://betaboards.ign.com/*"
 	],
 	
-	"options_page": "content/options/options.xul",
+	"options_page": "content/options/gchromeoptions.html",
 	"background_page": "content/background.html",
 	
 	"content_scripts": [
