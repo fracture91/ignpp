@@ -32,7 +32,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 PreferenceView = function(model) {
 	
 	this.model = model;
+	this.multiline = this.model.name.indexOf("pretext") != -1;
 	this.make();
+	this.load();
 	
 	}
 	
@@ -40,12 +42,65 @@ PreferenceView.prototype = {
 	
 	masterContainer: null,
 	
+	get value() {
+		if(this.model.type=="boolean") {
+			return this.input.checked;
+			}
+		return this.input.value;
+		},
+		
+	set value(v) {
+		v = this.model.clean(v);
+		if(this.model.type=="boolean") {
+			return this.input.checked = v;
+			}
+		return this.input.value = v;
+		},
+		
+	get clean() {
+		return this.model.clean(this.value);
+		},
+		
+	validate: function() {
+		return this.clean == this.value;
+		},
+		
+	save: function() {
+		this.model.set(this.value);
+		},
+		
+	load: function() {
+		this.value = this.model.get;
+		},
+		
+	get changed() {
+		return this.model.get != this.clean;
+		},
+		
+	
 	make: function() {
 		
-		this.listItem = document.createElement("li");
-		this.listItem.textContent = this.model.name + ", " + this.model.def;
+		this.container = document.createElement("li");
+		this.name = document.createElement("h6");
+		this.name.textContent = this.model.name;
 		
-		this.masterContainer.appendChild(this.listItem);
+		if(!this.multiline) {
+			this.input = document.createElement("input");
+			if(this.model.type == "boolean") {
+				this.input.type = "checkbox";
+				}
+			else {
+				this.input.type = "text";
+				}
+			}
+		else {
+			this.input = document.createElement("textarea");
+			}
+		
+		this.container.appendChild(this.name);
+		this.container.appendChild(this.input);
+		
+		this.masterContainer.appendChild(this.container);
 		
 		}
 	
@@ -55,39 +110,36 @@ Preference = function(name, def) {
 	
 	this.name = name;
 	this.def = def;
-	this.view = new PreferenceView(this);
+	this.type = typeof this.def;
 	
 	}
 	
 Preference.prototype = {
 	
-	validate: function() {
+	clean: function(val, type) {
 		
-		var val = this.view.value;
+		if(typeof(type)=="undefined") type = this.type;
+		if(typeof(val)=="undefined") val = this.get;
 		
-		if(typeof this.def == "number") {
-			return val/1 === val;
+		switch(type) {
+			case "number":
+				return val/1;
+			case "boolean":
+				return !!val;
+			case "string":
+				return val+"";
 			}
-		if(typeof this.def == "boolean") {
-			return !!val === val;
-			}
-		if(typeof this.def == "string") {
-			return val+"" === val;
-			}
-		
-		return true;
+			
+		return null;
 		
 		},
 	
-	get: function() {
-		
+	get get() {
+		return GM_getValue(this.name, this.def);
 		},
-	
-	//assumes that validation has occurred
-	save: function() {
 		
-		
-		
+	set set(val) {
+		return GM_setValue(this.name, this.clean(val));
 		}
 	
 	}
@@ -103,7 +155,7 @@ Preferences = new function() {
 	this.add = function(name, def) {
 		
 		if(!this.prefs[name]) {
-			this.prefs[name] = new Preference(name, def);
+			this.prefs[name] = new PreferenceView(new Preference(name, def));
 			}
 		
 		}
