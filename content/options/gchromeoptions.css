@@ -1,11 +1,41 @@
-#generatedPrefs > li {
-list-style-type: none;
+/*
+Chrome colors:
+browser content upper border - #B6BAC0
+
+Extension page
+header background - #EBEFF9
+header border - #B5C7DE
+developer mode background - #F4F6FC
+developer mode bottom border - #EDEFF5
+extension separator border - #CDCDCD
+disabled background - #F0F0F0
+*/
+
+
+html {
+margin-top: 0;
+padding-top: 0;
+}
+
+body {
+margin-top: 0;
+padding-top: 0;
+font-family: Arial, sans-serif;
+}
+
+header {
+margin: 5px 10px;
+}
+
+header > h1 {
+float: left;
+margin: 15px 10% 5px 0px;
 }
 
 #control {
-position: fixed;
-left: 300px;
-top: 0;
+position: relative;
+float: left;
+top: -5px;
 padding: 10px;
 border-bottom-right-radius: 4px;
 border-bottom-left-radius: 4px;
@@ -20,4 +50,109 @@ padding: 5px 10px;
 #controlLog {
 color: white;
 text-align: center;
+display: inline;
+}
+
+.clear {
+clear: both;
+}
+
+.tabBox {
+
+}
+
+.tabBox > nav {
+padding: 10px;
+background-color: #EBEFF9;
+border: 1px solid #B5C7DE;
+border-right-color: #B5C7DE;
+border-bottom-color: #B5C7DE;
+}
+
+.tabBox.horizontalTabs > nav {
+padding-top: 3px;
+padding-bottom: 3px;
+border-left-width: 0;
+border-right-width: 0;
+}
+
+.tabBox.verticalTabs > nav {
+padding-left: 3px;
+padding-right: 3px;
+border-top-width: 0;
+border-bottom-width: 0;
+float: left;
+}
+
+.tabBox.horizontalTabs > nav:first-child {
+padding-bottom: 0;
+}
+
+.tabBox.verticalTabs > nav:first-child {
+padding-right: 0;
+}
+
+.tabBox > nav *[tab] {
+padding: 5px 10px;
+margin: 2px;
+cursor: pointer;
+display: block;
+}
+
+.tabBox.horizontalTabs > nav *[tab] {
+float: left;
+margin-top: 0;
+margin-bottom: 0;
+}
+
+.tabBox.verticalTabs > nav *[tab] {
+margin-left: 0;
+margin-right: 0;
+}
+
+.tabBox.horizontalTabs > nav:first-child *[tab] {
+border-bottom-width: 0;
+}
+
+.tabBox.verticalTabs > nav:first-child *[tab] {
+border-right-width: 0;
+}
+
+.tabBox.verticalTabs > nav *[tab] {
+display: block;
+}
+
+.tabBox > nav > a[tab] {
+background-color: #F0F0F0;
+border: 1px solid #B5C7DE;
+text-decoration: none;
+color: inherit;
+}
+
+.tabBox > nav > a[tab][selected] {
+background-color: white;
+}
+
+.tabBox.horizontalTabs > nav:first-child > a[tab][selected] {
+position: relative;
+top: 1px;
+}
+
+.tabBox.verticalTabs > nav:first-child > a[tab][selected] {
+position: relative;
+left: 1px;
+}
+
+.tabBox > section[tab] {
+display: none;
+padding: 10px;
+/*background-color: #F4F6FC;*/
+}
+
+.tabBox > section[tab][selected] {
+display: block;
+}
+
+.tabBox.verticalTabs > section[tab] {
+float: left;
 }

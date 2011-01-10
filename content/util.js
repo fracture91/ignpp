@@ -183,6 +183,17 @@ function getNextByTagName(el, name) {
 	if(el.tagName==name.toUpperCase()) return el;
 	return getNextByTagName(el, name);
 	}
+
+function getChildrenBy(el, func) {
+
+	var children = el.childNodes, arr=[];
+	for(var i=0, len=children.length; i<len; i++) {
+		var thisChild = children[i];
+		if(func(thisChild, i)) arr.push(thisChild);
+		}
+	return arr.length>0 ? arr : null;
+	
+	}
 	
 function getChildByClassName(el, name) {
 	var children = el.childNodes;

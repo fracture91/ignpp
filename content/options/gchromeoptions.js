@@ -89,7 +89,7 @@ PreferenceView.prototype = {
 	
 	make: function() {
 		
-		this.container = document.createElement("li");
+		this.container = document.createElement("div");
 		this.name = document.createElement("h6");
 		this.name.textContent = this.model.name;
 		
@@ -258,3 +258,40 @@ function controlButtonHandler(e) {
 	}
 	
 document.addEventListener("click", controlButtonHandler, true);
+
+
+
+function tabHandler(e) {
+	
+	function hasTab(el) { return el.hasAttribute && el.hasAttribute("tab") }
+	
+	var tab = e.target;
+	if(!hasTab(tab)) tab = getParentBy(e.target, hasTab);
+	if(!tab) return;
+	
+	if(tab.tagName=="SECTION") return;
+	
+	var tabNav = getParentByTagName(e.target, "nav");
+	if(!tabNav) return;
+	
+	var tabBox = getParentByClassName(tabNav, "tabBox");
+	if(!tabBox) return;
+	
+	var tabName = tab.getAttribute("tab");
+	
+	setSelected = function(el, i) {
+		if(hasTab(el)) {
+			if(el.getAttribute && el.getAttribute("tab") == tabName) el.setAttribute("selected", true);
+			else el.removeAttribute("selected");
+			return true;
+			}
+		}
+	
+	var sections = getChildrenBy(tabBox, setSelected);
+	var tabs = getChildrenBy(tabNav, setSelected);
+		
+	e.preventDefault();
+	
+	}
+
+document.addEventListener("click", tabHandler, true);

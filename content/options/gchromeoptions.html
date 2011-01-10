@@ -2,26 +2,101 @@
 
 <head>
 	<title>IGN++ Options</title>
-
+	<link rel="stylesheet" href="/content/options/gchromeoptions.css" type="text/css">
 	<script src="/content/gchromewrap.js"></script>
 	<script src="/content/util.js"></script>
 	<script src="/content/options/gchromeoptions.js"></script>
 	<script src="/defaults/preferences/defaults.js"></script>
-	<link rel="stylesheet" href="/content/options/gchromeoptions.css" type="text/css">
 </head>
 
 <body>
 	
-	<h1>IGN++ Options</h1>
-	<div id="control">
-		<input type="submit" value="Save" id="saveButton">
-		<input type="submit" value="Close" id="closeButton">
-		<div id="controlLog"></div>
+	<header>
+		<h1>IGN++ Options</h1>
+		<div id="control">
+			<input type="submit" value="Save" id="saveButton">
+			<input type="submit" value="Close" id="closeButton">
+			<div id="controlLog"></div>
+		</div>
+		<div class="clear"></div>
+	</header>
+	
+	<div class="tabBox horizontalTabs">
+		<nav>
+			<a tab="usercolors" href selected="true">Usercolors</a>
+			<a tab="postSettings" href>Post Settings</a>
+			<a tab="displaySettings" href>Display Settings</a>
+			<a tab="miscellaneous" href>Miscellaneous</a>
+			<div class="clear"></div>
+		</nav>
+		<section tab="usercolors" selected="true">
+			
+		</section>
+		<section tab="postSettings">
+			<div class="tabBox verticalTabs">
+				<nav>
+					<a tab="general" href selected="true">General</a>
+					<a tab="linkHijacking" href>Link Hijacking</a>
+					<a tab="redirection" href>Redirection</a>
+					<a tab="integration" href>Integration</a>
+					<a tab="autocensor" href>Autocensor</a>
+					<a tab="wysiwyg" href>WYSIWYG</a>
+					<a tab="pretext" href>Pretext</a>
+					<a tab="selectionQuote" href>Selection Quote</a>
+					<div class="clear"></div>
+				</nav>
+				<section tab="general" selected="true"></section>
+				<section tab="linkHijacking"></section>
+				<section tab="redirection"></section>
+				<section tab="integration"></section>
+				<section tab="autocensor"></section>
+				<section tab="wysiwyg"></section>
+				<section tab="pretext"></section>
+				<section tab="selectionQuote"></section>
+			</div>
+			<div class="clear"></div>
+		</section>
+		<section tab="displaySettings">
+			<div class="tabBox verticalTabs">
+				<nav>
+					<a tab="position" href selected="true">Position</a>
+					<a tab="autorefresh" href>Autorefresh</a>
+					<a tab="wuls" href>WULs</a>
+					<a tab="ignore" href>Ignore</a>
+					<a tab="integratedTools" href>Integrated Tools</a>
+					<a tab="kbBrowsing" href>KB Browsing</a>
+					<a tab="miscellaneous" href>Miscellaneous</a>
+					<div class="clear"></div>
+				</nav>
+				<section tab="position" selected="true"></section>
+				<section tab="autorefresh"></section>
+				<section tab="wuls"></section>
+				<section tab="ignore"></section>
+				<section tab="integratedTools"></section>
+				<section tab="kbBrowsing"></section>
+				<section tab="miscellaneous"></section>
+			</div>
+			<div class="clear"></div>
+		</section>
+		<section tab="miscellaneous">
+			<div class="tabBox verticalTabs">
+				<nav>
+					<a tab="eula" href selected="true">EULA</a>
+					<a tab="credits" href>Credits</a>
+					<a tab="dev" href>Dev</a>
+					<div class="clear"></div>
+				</nav>
+				<section tab="eula" selected="true"></section>
+				<section tab="credits"></section>
+				<section tab="dev"></section>
+			</div>
+			<div class="clear"></div>
+		</section>
 	</div>
 	
-	<ul id="generatedPrefs">
-	
-	</ul>
+	<div id="generatedPrefs">
+		
+	</div>
 
 </body>
 
