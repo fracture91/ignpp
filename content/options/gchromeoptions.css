@@ -53,6 +53,15 @@ text-align: center;
 display: inline;
 }
 
+.preference {
+margin: 5px;
+padding: 5px;
+}
+
+.preference > h6 {
+margin: 5px;
+}
+
 .clear {
 clear: both;
 }

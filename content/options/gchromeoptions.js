@@ -90,6 +90,9 @@ PreferenceView.prototype = {
 	make: function() {
 		
 		this.container = document.createElement("div");
+		this.container.id = "pref_" + this.model.name;
+		this.container.className = "preference";
+		
 		this.name = document.createElement("h6");
 		this.name.textContent = this.model.name;
 		
@@ -98,8 +101,8 @@ PreferenceView.prototype = {
 			if(this.model.type == "boolean") {
 				this.input.type = "checkbox";
 				}
-			else {
-				this.input.type = "text";
+			else if(this.model.type == "number") {
+				this.input.type = "number";
 				}
 			}
 		else {
@@ -166,7 +169,9 @@ Preferences = new function() {
 		
 		if(!this.prefs[name]) {
 			this.prefs[name] = new PreferenceView(new Preference(name, def));
-			this.masterContainer.appendChild(this.prefs[name].container);
+			var pointer = document.getElementById("pref_" + name);
+			if(pointer) pointer.parentNode.replaceChild(this.prefs[name].container, pointer);
+			else this.masterContainer.appendChild(this.prefs[name].container);
 			}
 		
 		}
