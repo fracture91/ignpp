@@ -31,6 +31,14 @@
 		</nav>
 		<section tab="usercolors" selected="true">
 			<div id="pref_applyUsercolors"></div>
+			<div class="hidden">
+				<div id="pref_UCcolor"></div>
+				<div id="pref_UCbgcolor"></div>
+				<div id="pref_UCbordercolor"></div>
+				<div id="pref_UCweight"></div>
+				<div id="pref_UCstyle"></div>
+				<div id="pref_UCdecoration"></div>
+			</div>
 		</section>
 		<section tab="postSettings">
 			<div class="tabBox verticalTabs">
@@ -49,37 +57,119 @@
 					<div id="pref_autoClose"></div>
 					<div id="pref_scrollToPanels"></div>
 				</section>
-				<section tab="linkHijacking"></section>
-				<section tab="redirection"></section>
-				<section tab="integration"></section>
-				<section tab="autocensor"></section>
-				<section tab="wysiwyg"></section>
-				<section tab="pretext"></section>
-				<section tab="selectionQuote"></section>
+				<section tab="linkHijacking">
+					<div id="pref_topicHijacking"></div>
+					<div id="pref_replyHijacking"></div>
+					<div id="pref_quoteHijacking"></div>
+					<div id="pref_PMHijacking"></div>
+					<div id="pref_editHijacking"></div>
+				</section>
+				<section tab="redirection">
+					<div id="pref_topicRedirection"></div>
+					<div id="pref_replyRedirection"></div>
+					<div id="pref_replyWERedirection"></div>
+					<div id="pref_editRedirection"></div>
+					<div id="pref_goHome"></div>
+				</section>
+				<section tab="integration">
+					<div id="pref_topicIntegration"></div>
+					<div id="pref_replyIntegration"></div>
+					<div id="pref_PMIntegration"></div>
+					<div id="pref_panelFollow"></div>
+				</section>
+				<section tab="autocensor">
+					<div id="pref_autocensorPosts"></div>
+					<div id="pref_autocensorPMs"></div>
+					<div id="pref_autocensorContextual"></div>
+					<div id="pref_autocensorAsterisks"></div>
+				</section>
+				<section tab="wysiwyg">
+					<div id="pref_wysiwygDefault"></div>
+					<div id="pref_overlayWysiwyg"></div>
+				</section>
+				<section tab="pretext">
+					<div id="pref_pretextStart"></div>
+					<div id="pref_pretextBefore"></div>
+					<div id="pref_pretextAfter"></div>
+					<div id="pref_pretextEnd"></div>
+					<div id="pref_pretextEdit"></div>
+				</section>
+				<section tab="selectionQuote">
+					<div id="pref_selectionQuote"></div>
+					<div id="pref_strictSelectionQuote"></div>
+					<div id="pref_strictSelectionQuoteAuthor"></div>
+				</section>
 			</div>
 			<div class="clear"></div>
+			<div class="hidden">
+				<div id="pref_deletePanels"></div>
+				<div id="pref_uid"></div>
+				<div id="pref_username"></div>
+			</div>
 		</section>
 		<section tab="displaySettings">
 			<div class="tabBox verticalTabs">
 				<nav>
-					<a tab="position" href selected="true">Position</a>
-					<a tab="autorefresh" href>Autorefresh</a>
+					<a tab="autorefresh" href selected="true">Autorefresh</a>
 					<a tab="wuls" href>WULs</a>
 					<a tab="ignore" href>Ignore</a>
+					<a tab="position" href>Position</a>
 					<a tab="integratedTools" href>Integrated Tools</a>
 					<a tab="kbBrowsing" href>KB Browsing</a>
 					<a tab="miscellaneous" href>Miscellaneous</a>
 					<div class="clear"></div>
 				</nav>
-				<section tab="position" selected="true"></section>
-				<section tab="autorefresh"></section>
-				<section tab="wuls"></section>
-				<section tab="ignore"></section>
-				<section tab="integratedTools"></section>
-				<section tab="kbBrowsing"></section>
-				<section tab="miscellaneous"></section>
+				<section tab="autorefresh" selected="true">
+					<div id="pref_autorefreshTopics"></div>
+					<div id="pref_autorefreshTopicsInt"></div>
+					<div id="pref_autorefreshReplies"></div>
+					<div id="pref_autorefreshRepliesInt"></div>
+					<div id="pref_autorefreshRepliesAfterPosting"></div>
+					<div id="pref_autorefreshEdits"></div>
+					<div id="pref_autorefreshPolls"></div>
+					<div id="pref_autorefreshRecent"></div>
+					<div id="pref_autorefreshPMCount"></div>
+					<div id="pref_autorefreshPMCountInt"></div>
+				</section>
+				<section tab="wuls">
+					<div id="pref_WULLinks"></div>
+					<div id="pref_autoWUL"></div>
+				</section>
+				<section tab="ignore">
+					<div id="pref_ignoreReplies"></div>
+					<div id="pref_ignoreTopics"></div>
+					<div id="pref_ignoreList"></div>
+					<div id="pref_ignoreLinks"></div>
+				</section>
+				<section tab="position">
+					<div id="pref_floatX"></div>
+					<div id="pref_floatY"></div>
+					<div id="pref_floatXT"></div>
+					<div id="pref_floatYT"></div>
+				</section>
+				<section tab="integratedTools">
+					<div id="pref_integrateControls"></div>
+					<div id="pref_vestiWikiSearch"></div>
+					<div id="pref_googleSearch"></div>
+					<div id="pref_searchInTab"></div>
+					<div id="pref_extraBoardOptions"></div>
+				</section>
+				<section tab="kbBrowsing">
+					<div id="pref_keyboardBrowsing"></div>
+				</section>
+				<section tab="miscellaneous">
+					<div id="pref_missingLinks"></div>
+					<div id="pref_wikiLinks"></div>
+					<div id="pref_replyNumbers"></div>
+					<div id="pref_scrollToReplyOnLoad"></div>
+					<div id="pref_scrollToReplyOnClick"></div>
+				</section>
 			</div>
 			<div class="clear"></div>
+			<section class="hidden">
+				<div id="pref_showUsercolorsQuickstats"></div>
+				<div id="pref_showUsercolorsPeopleLinks"></div>
+			</section>
 		</section>
 		<section tab="miscellaneous">
 			<div class="tabBox verticalTabs">
@@ -89,15 +179,23 @@
 					<a tab="dev" href>Dev</a>
 					<div class="clear"></div>
 				</nav>
-				<section tab="eula" selected="true"></section>
-				<section tab="credits"></section>
-				<section tab="dev"></section>
+				<section tab="eula" selected="true">
+					<iframe src="/content/eula.html"></iframe>
+				</section>
+				<section tab="credits">
+					<iframe src="/content/credits.html"></iframe>
+				</section>
+				<section tab="dev">
+					<div id="pref_devConsole"></div>
+					<div id="pref_performanceProfiling"></div>
+					<div id="pref_logMessages"></div>
+				</section>
 			</div>
 			<div class="clear"></div>
 		</section>
 	</div>
 	
-	<div id="generatedPrefs">
+	<div id="uncategorizedPrefs">
 		
 	</div>
 

@@ -231,7 +231,7 @@ function pref(name, def) {
 	
 window.onload = function(e) {
 	
-	Preferences.masterContainer = document.getElementById("generatedPrefs");
+	Preferences.masterContainer = document.getElementById("uncategorizedPrefs");
 	Preferences.saveButton = document.getElementById("saveButton");
 	Preferences.closeButton = document.getElementById("closeButton");
 	Preferences.controlLog = document.getElementById("controlLog");

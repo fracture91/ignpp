@@ -66,6 +66,10 @@ margin: 5px;
 clear: both;
 }
 
+.hidden {
+display: none;
+}
+
 .tabBox {
 
 }
