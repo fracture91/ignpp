@@ -39,7 +39,6 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 PreferenceView = function(model) {
 	
 	this.model = model;
-	this.multiline = this.model.name.indexOf("pretext") != -1;
 	this.make();
 	this.load();
 	
@@ -96,7 +95,7 @@ PreferenceView.prototype = {
 		this.name = document.createElement("h6");
 		this.name.textContent = this.model.name;
 		
-		if(!this.multiline) {
+		if(!this.model.multiline) {
 			this.input = document.createElement("input");
 			if(this.model.type == "boolean") {
 				this.input.type = "checkbox";
@@ -121,6 +120,7 @@ Preference = function(name, def) {
 	this.name = name;
 	this.def = def;
 	this.type = typeof this.def;
+	this.multiline = this.name.indexOf("pretext") != -1;
 	this.lastSavedValue = undefined;
 	
 	}
@@ -157,14 +157,30 @@ Preference.prototype = {
 	
 	}
 
+/*
+Manages preferences on the options page
+*/
 Preferences = new function() {
 	
+	this.unsavedChanges = "You have unsaved changes - are you sure you want to close the Options tab?";
+	this.notAllValid = "Some preferences were not valid and, consequently, not saved.";
+	
+	/*
+	Holds all managed PreferenceView, indexed by preference name
+	*/
 	this.prefs = {};
 	
+	/*
+	Call add using the pairs of values from obj as name: default
+	*/
 	this.addFromObject = function(obj) {
 		for(var i in obj) this.add(i, obj[i]);
 		}
 	
+	/*
+	Add this preference to the options page, replacing a pointer if present, otherwise appending to masterContainer
+	Pointers are elements with the id "pref_preferenceName"
+	*/
 	this.add = function(name, def) {
 		
 		if(!this.prefs[name]) {
@@ -175,29 +191,41 @@ Preferences = new function() {
 			}
 		
 		}
-		
+	
+	/*
+	Call some function for each managed preference
+	Function is passed the PreferenceView, the preference name, and all managed preferences
+	If the function returns false, the loop stops
+	*/
 	this.forEachPref = function(func) {
 		for(var i in this.prefs) if(func(this.prefs[i], i, this.prefs)===false) return false;
 		}
-		
+	
+	/*
+	Save each managed preference if it has been changed and is valid
+	Returns true if all preferences were valid, false otherwise
+	*/
 	this.save = function() {
 		
-		var someInvalid = false;
+		var allValid = true;
 		this.forEachPref(function(e, i, a) {
 			if(e.changed) {
 				if(e.validate()) {
 					e.save();
 					}
 				else {
-					someInvalid = true;
+					allValid = false;
 					}
 				}
 			});
 			
-		return someInvalid;
+		return allValid;
 		
 		}
 		
+	/*
+	Returns true if any managed preference has been changed, false otherwise
+	*/
 	this.__defineGetter__("anyChanges", function() {
 		var changes = false;
 		this.forEachPref(function(e, i, a) {
@@ -209,6 +237,10 @@ Preferences = new function() {
 		return changes;
 		});
 		
+	/*
+	If called with a number of milliseconds, set controlLog textContent to empty after that amount of time
+	Otherwise, clear it immediately
+	*/
 	this.clearLog = function(time) {
 		
 		if(typeof time != "number") return this.controlLog.textContent = "";
@@ -231,6 +263,8 @@ function pref(name, def) {
 	
 window.onload = function(e) {
 	
+	//need to set this stuff up when the DOM is available
+	
 	Preferences.masterContainer = document.getElementById("uncategorizedPrefs");
 	Preferences.saveButton = document.getElementById("saveButton");
 	Preferences.closeButton = document.getElementById("closeButton");
@@ -240,12 +274,14 @@ window.onload = function(e) {
 		
 	}
 
+//handles all the buttons in the #control element
 function controlButtonHandler(e) {
 	
 	if(e.target == Preferences.saveButton) {
 		
-		var someInvalid = Preferences.save();
-		if(someInvalid) alert("Some preferences were not valid and, consequently, not saved.");
+		var allValid = Preferences.save();
+		//if the preferences weren't all valid, warn the user
+		if(!allValid) alert(Preferences.notAllValid);
 		Preferences.controlLog.textContent = "Saved!";
 		Preferences.clearLog(2000);
 		
@@ -253,8 +289,9 @@ function controlButtonHandler(e) {
 	
 	else if(e.target == Preferences.closeButton) {
 		
+		//warn the user about unsaved changes before closing the tab
 		if(!Preferences.anyChanges ||
-			confirm("You have unsaved changes - are you sure you want to close the Options tab?")) {
+			confirm(Preferences.unsavedChanges)) {
 				window.close();
 			}
 		
@@ -264,8 +301,32 @@ function controlButtonHandler(e) {
 	
 document.addEventListener("click", controlButtonHandler, true);
 
+//warn the user about unsaved changes before unload
+window.onbeforeunload = function(e) {
+	if(Preferences.anyChanges) {
+		if(e) e.returnValue = Preferences.unsavedChanges;
+		return Preferences.unsavedChanges;
+		}
+	}
 
+/*
+All tabBoxes are controlled from here
+A functional tabBox should have:
+	a containing element with class "tabBox"
+		if you want styling to be properly assigned, 
+		it should also have class "horizontalTabs" or "verticalTabs"
+	a nav element that is a descendant of the tabBox
+	"tab selection" elements that are children of the nav element which also have a tab attribute (usually anchors)
+	"tab content" elements that are children of the tabBox element which also have a tab attribute (usually sections)
+	the tab attributes of the selection and content elements should correspond to each other
+	
+Clicking on a tab selection element will add the "selected" attribute to all tab content/selection elements which have a matching tab attribute,
+and will remove the "selected" attribute from tab content/selection elements without a matching tab attribute
 
+The default styling will make these selected elements visible, and unselected elements hidden
+
+Additional tabBoxes can be nested within content elements without interfering with ones above it
+*/
 function tabHandler(e) {
 	
 	function hasTab(el) { return el.hasAttribute && el.hasAttribute("tab") }
@@ -292,6 +353,7 @@ function tabHandler(e) {
 			}
 		}
 	
+	//just using getChildrenBy to iterate over children, basically
 	var sections = getChildrenBy(tabBox, setSelected);
 	var tabs = getChildrenBy(tabNav, setSelected);
 		
