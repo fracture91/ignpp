@@ -42,9 +42,25 @@ Must be given a PreferenceModel to work off of (or some equivalent)
 PreferenceView = function(model) {
 	
 	this.model = model;
+	
+	/*
+	Controls appearance of validity - nothing is actually checked here
+	*/
+	var valid = true;
+	this.__defineGetter__("valid", function() { return valid; });
+	this.__defineSetter__("valid", function(b) {
+		//only add/removeClass if state has changed
+		if(b!=valid) {
+			if(!b) addClass(this.container, "invalid");
+			else removeClass(this.container, "invalid");
+			valid = b;
+			}
+		return valid;
+		});
+	
 	this.make();
 	this.load();
-	
+
 	}
 	
 PreferenceView.prototype = {
@@ -67,6 +83,8 @@ PreferenceView.prototype = {
 		if(this.model.type=="boolean") {
 			return this.input.checked = v;
 			}
+		//since it has been cleaned...
+		this.valid = true;
 		return this.input.value = v;
 		},
 	
@@ -81,7 +99,8 @@ PreferenceView.prototype = {
 	Returns true if the current input is valid, false otherwise
 	*/
 	validate: function() {
-		return this.clean == this.value;
+		if(this.clean != this.value) return this.valid = false;
+		return this.valid = true;
 		},
 		
 	/*
@@ -122,8 +141,8 @@ PreferenceView.prototype = {
 		this.container.id = "pref_" + this.model.name;
 		this.container.className = "preference";
 		
-		this.name = document.createElement("h6");
-		this.name.textContent = this.model.name;
+		this.label = document.createElement("label");
+		this.label.textContent = this.model.name;
 		
 		if(!this.model.multiline) {
 			this.input = document.createElement("input");
@@ -138,7 +157,7 @@ PreferenceView.prototype = {
 			this.input = document.createElement("textarea");
 			}
 		
-		this.container.appendChild(this.name);
+		this.container.appendChild(this.label);
 		this.container.appendChild(this.input);
 		
 		}
@@ -285,6 +304,8 @@ Preferences = new function() {
 					allValid = false;
 					}
 				}
+			//saved values are assumed to be valid
+			else e.valid = true;
 			});
 			
 		return allValid;
@@ -342,6 +363,18 @@ window.onload = function(e) {
 		
 	}
 
+//validate whatever preference this input is from
+function validateInputHandler(e) {
+	var parent = getParentByClassName(e.target, "preference");
+	if(parent && parent.id.slice(0,5)=="pref_") {
+		var pref = Preferences.prefs[parent.id.substring(5)];
+		if(pref) pref.validate();
+		}
+	}
+	
+document.addEventListener("keyup", validateInputHandler, true);
+document.addEventListener("change", validateInputHandler, true);
+
 //handles all the buttons in the #control element
 function controlButtonHandler(e) {
 	
@@ -360,6 +393,7 @@ function controlButtonHandler(e) {
 		//warn the user about unsaved changes before closing the tab
 		if(!Preferences.anyChanges ||
 			confirm(Preferences.unsavedChanges)) {
+				Preferences.confirmedClose = true;
 				window.close();
 			}
 		
@@ -371,10 +405,13 @@ document.addEventListener("click", controlButtonHandler, true);
 
 //warn the user about unsaved changes before unload
 window.onbeforeunload = function(e) {
-	if(Preferences.anyChanges) {
-		if(e) e.returnValue = Preferences.unsavedChanges;
-		return Preferences.unsavedChanges;
+	if(!Preferences.confirmedClose) {
+		if(Preferences.anyChanges) {
+			if(e) e.returnValue = Preferences.unsavedChanges;
+			return Preferences.unsavedChanges;
+			}
 		}
+	else Preferences.confirmedClose = false;
 	}
 
 /*

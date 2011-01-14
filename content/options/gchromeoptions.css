@@ -53,13 +53,46 @@ text-align: center;
 display: inline;
 }
 
+iframe {
+min-width: 400px;
+min-height: 300px;
+}
+
+section[tab="eula"] > iframe {
+min-width: 500px;
+}
+
+section[tab="credits"] > iframe {
+min-width: 300px;
+}
+
 .preference {
 margin: 5px;
 padding: 5px;
 }
 
-.preference > h6 {
+.preference > label {
 margin: 5px;
+font-size: 0.67em;
+font-weight: bold;
+}
+
+.preference > input,
+.preference > textarea {
+display: block;
+}
+
+.preference > input[type="checkbox"] {
+float: left;
+}
+
+.preference.invalid > label {
+color: red;
+}
+
+.preference.invalid > input, 
+.preference.invalid > textarea {
+outline: 1px solid red;
 }
 
 .clear {
