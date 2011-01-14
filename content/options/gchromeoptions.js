@@ -35,7 +35,10 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	});
 
 	
-	
+/*
+Handles the interface for a PreferenceModel
+Must be given a PreferenceModel to work off of (or some equivalent)
+*/
 PreferenceView = function(model) {
 	
 	this.model = model;
@@ -46,6 +49,9 @@ PreferenceView = function(model) {
 	
 PreferenceView.prototype = {
 	
+	/*
+	The value currently inputted
+	*/
 	get value() {
 		if(this.model.type=="boolean") {
 			return this.input.checked;
@@ -53,6 +59,9 @@ PreferenceView.prototype = {
 		return this.input.value;
 		},
 		
+	/*
+	Set the currently inputted value, the given value is cleaned beforehand
+	*/
 	set value(v) {
 		v = this.model.clean(v);
 		if(this.model.type=="boolean") {
@@ -60,32 +69,53 @@ PreferenceView.prototype = {
 			}
 		return this.input.value = v;
 		},
-		
+	
+	/*
+	The currently inputted value, but cleaned
+	*/
 	get clean() {
 		return this.model.clean(this.value);
 		},
 		
+	/*
+	Returns true if the current input is valid, false otherwise
+	*/
 	validate: function() {
 		return this.clean == this.value;
 		},
 		
+	/*
+	Save the currently inputted value to the model
+	*/
 	save: function() {
 		this.model.value = this.value;
 		},
 		
+	/*
+	Load the currently inputted value from the model
+	*/
 	load: function() {
 		this.value = this.model.value;
 		},
 		
+	/*
+	True if clean is different from the model's value, false otherwise
+	*/
 	get changed() {
 		return this.model.value != this.clean;
 		},
 		
+	/*
+	True if clean is different from the last value saved to the model, false otherwise
+	*/
 	get changedFromLastSaved() {
 		return this.model.lastSavedValue != this.clean;
 		},
 		
-	
+	/*
+	Make the necessary interface out of DOM elements, contained by container
+	The container is a div with id pref_preferenceName and className preference
+	*/
 	make: function() {
 		
 		this.container = document.createElement("div");
@@ -115,22 +145,50 @@ PreferenceView.prototype = {
 	
 	}
 
-Preference = function(name, def) {
+/*
+A model for a preference
+Given the preference's name (as used in GM_(s/g)etValue) and its default value
+The preference is assumed to only be able to hold values of the same type as its default value
+*/
+PreferenceModel = function(name, def) {
 	
 	this.name = name;
+	
+	/*
+	This preference's default value
+	*/
 	this.def = def;
+	
 	this.type = typeof this.def;
+	
+	/*
+	True if this preference is a string that accepts multiline input, false otherwise
+	*/
 	this.multiline = this.name.indexOf("pretext") != -1;
+	
+	/*
+	The last saved value of this preference
+	Is set if the value getter is called and it's currently undefined or when the value setter is called.
+	Should also be set when an outside change to the preference is detected, but that is not the model's responsibility.
+	*/
 	this.lastSavedValue = undefined;
+	//call the getter to set lastSavedValue
+	this.value;
 	
 	}
 	
-Preference.prototype = {
+PreferenceModel.prototype = {
 	
-	clean: function(val, type) {
+	/*
+	Clean a given value, i.e. convert it so that it makes sense for a model of the given type to use
+	If a value or type are not given, they default to this model's value and type
+	Returns null if type is not recognized
+	*/
+	clean: function(val, type, multiline) {
 		
-		if(!defined(type)) type = this.type;
 		if(!defined(val)) val = this.value;
+		if(!defined(type)) type = this.type;
+		if(!defined(multiline)) multiline = this.multiline;
 		
 		switch(type) {
 			case "number":
@@ -138,19 +196,27 @@ Preference.prototype = {
 			case "boolean":
 				return !!val;
 			case "string":
-				return val+"";
+				val = val+"";
+				if(!multiline) val = val.replace("\n", "");
+				return val;
 			}
 			
 		return null;
 		
 		},
 	
+	/*
+	Get the value associated with this preference (calls GM_getValue)
+	*/
 	get value() {
 		var val = GM_getValue(this.name, this.def);
 		if(!defined(this.lastSavedValue)) this.lastSavedValue = val;
 		return val;
 		},
 		
+	/*
+	Set the value associated with this preference (calls GM_setValue)
+	*/
 	set value(val) {
 		return this.lastSavedValue = GM_setValue(this.name, this.clean(val));
 		}
@@ -161,6 +227,8 @@ Preference.prototype = {
 Manages preferences on the options page
 */
 Preferences = new function() {
+	
+	//relevant strings
 	
 	this.unsavedChanges = "You have unsaved changes - are you sure you want to close the Options tab?";
 	this.notAllValid = "Some preferences were not valid and, consequently, not saved.";
@@ -184,7 +252,7 @@ Preferences = new function() {
 	this.add = function(name, def) {
 		
 		if(!this.prefs[name]) {
-			this.prefs[name] = new PreferenceView(new Preference(name, def));
+			this.prefs[name] = new PreferenceView(new PreferenceModel(name, def));
 			var pointer = document.getElementById("pref_" + name);
 			if(pointer) pointer.parentNode.replaceChild(this.prefs[name].container, pointer);
 			else this.masterContainer.appendChild(this.prefs[name].container);
@@ -252,7 +320,7 @@ Preferences = new function() {
 	
 	}
 
-	
+//holds caught preferences
 prefsCatcher = {};
 
 //catch calls to this previously imaginary function from defaults.js for use later
