@@ -98,7 +98,7 @@ function XHRDockHag(details) {
 		});
 		
 	this.abort = function() {
-		this.port.disconnect();
+		that.port.disconnect();
 		//which will trigger the corresponding dock hag's disconnect listener,
 		//which will call gynecologist.abort
 		}

@@ -8,6 +8,7 @@ function vestitools_xmlhttpRequester(unsafeContentWin, chromeWindow, originUrl) 
 	this.unsafeContentWin = unsafeContentWin;
 	this.chromeWindow = chromeWindow;
 	this.originUrl = originUrl;
+	this.aborted = false;
 }
 
 // this function gets called by user scripts in content security scope to
@@ -47,8 +48,9 @@ vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 			case "http":
 			case "https":
 			case "ftp":
+				var req = new this.chromeWindow.XMLHttpRequest();
 				this.chromeWindow.setTimeout(
-					vestitools_gmCompiler.hitch(this, "chromeStartRequest", url, details), 0);
+					vestitools_gmCompiler.hitch(this, "chromeStartRequest", url, details, req), 0);
 				break;
 			default:
 				throw new Error("Invalid url: " + url);
@@ -56,12 +58,18 @@ vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 		
 		}
 		
-	////Chrome will just call this directly
-	else this.chromeStartRequest(url, details);
+	////Chrome will just call chromeStartRequest directly
+	else {
+		var req = new this.chromeWindow.XMLHttpRequest();
+		this.chromeStartRequest(url, details, req);
+		}
+	
+	var that = this;
 	
 	return {
 		abort: function() {
-			//if(req) req.abort();
+			that.aborted = true;
+			req.abort();
 		}
 	};
 	
@@ -69,8 +77,7 @@ vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 
 // this function is intended to be called in chrome's security context, so
 // that it can access other domains without security warning
-vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, details) {
-	var req = new this.chromeWindow.XMLHttpRequest();
+vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, details, req) {
 
 	this.setupRequestEvent(this.unsafeContentWin, req, "onload", details);
 	this.setupRequestEvent(this.unsafeContentWin, req, "onerror", details);
@@ -102,6 +109,12 @@ vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 	} else {
 		req.send(body);
 	}
+	
+	if(this.aborted) {
+		//abort has already been called, but it was called before the request was sent
+		//abort the request now
+		req.abort();
+		}
 
 }
 
