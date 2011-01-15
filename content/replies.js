@@ -403,25 +403,32 @@ Reply.prototype = {
 		if(n<inputs.length-1 && inputs[n]) inputs[n].checked = true;
 		},
 		
-	addWULLinks: function() {
-		
-		var thisUID;
+	get uid() {
 		
 		//TODO: move into method of Reply
 		if(I.layout.fresh) {
 			//only place you can find the UID is in a script tag in the reply
 			var script = this.ref.getElementsByTagName("SCRIPT")[0].innerHTML;
-			thisUID = script.slice(script.indexOf('usr=')+4, script.indexOf('">'));
+			return script.slice(script.indexOf('usr=')+4, script.indexOf('">'));
 			}
 		else {
 			//TODO: this is dumb and breaks easily, fix it
-			var history = this.rows[2].getElementsByTagName("A")[3].href;
-			thisUID = history.split("=")[1];
+			var td = this.rows[2].getElementsByTagName("td")[0];
+			if(!td) return -1;
+			var candidates = getChildrenBy(td, function(e, i) {
+				return e.href && e.href.indexOf("usr=") != -1;
+				});
+			if(candidates) return candidates[0].href.split("usr=")[1].split("&")[0];
+			return -1;
 			}
 		
+		},
+		
+	addWULLinks: function() {
+
 		var temp = document.createDocumentFragment();
 		var link = createElementX("a", {
-			href: 'http://boards.ign.com/UserPages/WatchedUsers.aspx?usr=' + thisUID + '&action=update',
+			href: 'http://boards.ign.com/UserPages/WatchedUsers.aspx?usr=' + this.uid + '&action=update',
 			title: 'Add this user to your Watched User List',
 			innerHTML: "WUL"
 			});
