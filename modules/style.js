@@ -15,8 +15,39 @@ var vestitools_style = new function vt_Style() {
 	var ios = Cc["@mozilla.org/network/io-service;1"]
 				.getService(Components.interfaces.nsIIOService);
 	
-	var colorsFileUri = "chrome://vestitools/skin/usercolors.css";
-	var mainFileUri = "chrome://vestitools/skin/main.css";
+	this.colorsFileUri = "chrome://vestitools/skin/usercolors.css";
+	this.objectFileUri = "chrome://vestitools/skin/usercolors.json";
+	this.mainFileUri = "chrome://vestitools/skin/main.css";
+	
+	//defaulted to undefined to indicate object has not been read from disk
+	//JSON.parse can't handle undefined, so we'll never get that value from the file
+	var _colorsObject = undefined;
+	
+	this.__defineGetter__("colorsObject", function() {
+		
+		if(typeof _colorsObject == "undefined") {
+			var theFile = vestitools_files.readFile(this.objectFileUri);
+			//if something went wrong reading the file, default the object to an empty array
+			if(theFile === null) {
+				_colorsObject = [];
+				}
+			else _colorsObject = JSON.parse(theFile);
+			}
+			
+		return _colorsObject;
+		
+		});
+	
+	//no validation, doesn't save to disk(!)
+	this.__defineSetter__("colorsObject", function(o) {
+		_colorsObject = o;
+		});
+		
+	this.saveColorsObject = function() {
+		//stringify here will add some spacing so the file's pretty
+		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
+		return vestitools_files.writeFile(JSON.stringify(this.colorsObject, null, " "), this.objectFileUri);
+		}
 	
 	//because file contents can change, we need to keep track of the data: uri so we can successfully
 	//unregister/re-register a changed stylesheet
@@ -70,7 +101,7 @@ var vestitools_style = new function vt_Style() {
 	//apply the main.css stylesheet to the browser
 	this.applyMain = function() {
 	
-		var temp = vestitools_files.readFile(mainFileUri);
+		var temp = vestitools_files.readFile(this.mainFileUri);
 		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
 		//also need to fix chrome-extension URIs
 		if(temp) mainDataUri = ios.newURI(
@@ -114,7 +145,7 @@ var vestitools_style = new function vt_Style() {
 		if(	GM_getValue("applyUsercolors", true) && 
 			(!oldSheet || (force && oldSheetReg) || !sss.sheetRegistered(colorsDataUri, sss.USER_SHEET)) ) {
 			
-			var temp = vestitools_files.readFile(colorsFileUri);
+			var temp = vestitools_files.readFile(this.colorsFileUri);
 			if(temp) colorsDataUri = ios.newURI("data:text/css," + temp.replace(/\n/g, "%0A"), null, null);
 			else return 0; //file wasn't read correctly
 			sss.loadAndRegisterSheet(colorsDataUri, sss.USER_SHEET);
@@ -180,7 +211,7 @@ var vestitools_style = new function vt_Style() {
 		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
 									.createInstance(Components.interfaces.nsIXMLHttpRequest) : new XMLHttpRequest();
 		xhr.open("GET", 
-					(name ? "http://derekdev.com/mozilla/ignbq/getcolors.php?username=" + name : 'http://derekdev.com/mozilla/ignbq/colors.php'),
+					(name ? "http://derekdev.com/mozilla/ignbq/getcolors.php?username=" + name : 'http://derekdev.com/mozilla/ignbq/colors.new.php'),
 					true);
 					
 		xhrHeaders(xhr, {"Pragma": "no-cache",
@@ -190,15 +221,21 @@ var vestitools_style = new function vt_Style() {
 			if(xhr.readyState==4 && xhr.status==200) {
 				
 				if(!name) {
-					var usercolorStyle = t.correctColors(xhr.responseText);
-
-					//Security: If we got bad data, a naughty stylesheet could be added that, for example, hides the body of every page
-					//however, that can be fixed by simply disabling the extension or turning off usercolors
-					//and this is a pretty trusted location we're getting colors from
-					vestitools_files.writeFile(usercolorStyle, "chrome://vestitools/skin/usercolors.css");
+					//var usercolorStyle = t.correctColors(xhr.responseText);
+					t.colorsObject = JSON.parse(xhr.responseText);
+					var usercolorStyle = t.createStyle(t.colorsObject);
 					
-					t.applyColors(true);
-					GM_setValue("lastUsercolorCheck", Math.floor((new Date()).getTime() / 3600000));
+					if(t.saveColorsObject() == 1) {
+						//only write to the colors file if saving was successful
+						vestitools_files.writeFile(usercolorStyle, t.colorsFileUri);
+					
+						//Security: If we got bad data, a naughty stylesheet could be added that, for example, hides the body of every page
+						//however, that can be fixed by simply disabling the extension or turning off usercolors
+						//and this is a pretty trusted location we're getting colors from
+						//parsing from JSON will also validate things, so this is pretty much impossible to do
+						t.applyColors(true);
+						GM_setValue("lastUsercolorCheck", Math.floor((new Date()).getTime() / 3600000));
+						}
 					
 					callback(xhr);
 					
@@ -216,7 +253,97 @@ var vestitools_style = new function vt_Style() {
 		return 0;
 		
 		}
+	
+	var validUsernameExp = /^[\w.\-]{3,20}$/i;
+	var validColorExp = /^[\da-f]{6}$/i;
+	var styleElements = {
+		color: {prop: "color", exp: validColorExp},
+		bgcolor: {prop: "background-color", exp: validColorExp},
+		bordercolor: {prop: "border", exp: validColorExp},
+		weight: {prop: "font-weight", exp: /^(normal|bold)$/i},
+		style: {prop: "font-style", exp: /^(normal|italic)$/i},
+		decoration: {prop: "text-decoration", exp: /^(underline|overline|line\-through)$/i}
+		};
+	
+	var mozDocument = '@-moz-document domain(boards.ign.com), domain(betaboards.ign.com),\ndomain(vnboards.ign.com), domain(forums.ign.com) {\n'
+	
+	var profileLinkUrl = "http://club.ign.com/b/about?username=";
+	var peopleLinkUrl = "http://people.ign.com/";
+	
+	var profileLinkSelector = ['a', '[href^="', profileLinkUrl, 'unknown', '"]'];
+	var peopleLinkSelector = profileLinkSelector.slice(0); //copy array
+	peopleLinkSelector[2] = peopleLinkUrl;
+	peopleLinkSelector[1] = '[href="';
+	var linkSelectorUsernameLoc = 3;
+	
+	var importantEnding = " !important;\n";
+	
+	/*
+	return a string of css that obj (intended to be this.colorsObject) represents
+	intended to end up in usercolors.css
+	all data used from obj is validated
+	*/
+	this.createStyle = function(obj) {
 		
+		/*
+		Since we're probably handling hundreds of users, we're going to push substrings into
+		this array and join the array into a string at the end, rather than performing tons of
+		concatenations all over.  This should be much faster.
+		*/
+		var buf = [];
+		
+		function selectorPusher(e, i) {
+			//push the username where "unknown" would be located
+			if(i==linkSelectorUsernameLoc && validUsernameExp.test(e)) {
+				buf.push(user.username);
+				}
+			else buf.push(e);
+			}
+		
+		buf.push(mozDocument);
+		
+		//the object should be an array of users
+		for(var i=0, len=obj.length; i<len; i++) {
+			
+			var user = obj[i];
+			var normalWeight = false;
+			
+			profileLinkSelector.forEach(selectorPusher);
+				
+			if(GM_getValue("showUsercolorsPeopleLinks", false)) {
+				buf.push(",\n");
+				peopleLinkSelector.forEach(selectorPusher);
+				}
+				
+			buf.push(" {\n");
+			
+			var styles = user.styles;
+			if(styles) {
+				
+				for(var j in styleElements) {
+					//Validate the style.  If valid, push into buf.
+					if(typeof styles[j] == "string" && styleElements[j].exp.test(styles[j])) {
+						buf.push(styleElements[j].prop, ": ");
+						if(j == "bordercolor") buf.push("1px solid ");
+						if(/color|bgcolor|bordercolor/.test(j)) buf.push("#"); //push hash for colors
+						buf.push(styles[j], importantEnding);
+						}
+					}
+				
+				}
+				
+			buf.push("}\n");
+			
+			//todo: normal weight
+			
+			}
+			
+		buf.push("}\n"); //end of @-moz-document
+			
+		return buf.join("");
+		
+		}
+	
 	//change a few things in the style so it's formatted correctly
 	this.correctColors = function(text) {
 		
