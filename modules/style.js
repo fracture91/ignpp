@@ -291,6 +291,7 @@ var vestitools_style = new function vt_Style() {
 		concatenations all over.  This should be much faster.
 		*/
 		var buf = [];
+		var showUsercolorsPeopleLinks = GM_getValue("showUsercolorsPeopleLinks", false);
 		
 		function selectorPusher(e, i) {
 			//push the username where "unknown" would be located
@@ -310,7 +311,7 @@ var vestitools_style = new function vt_Style() {
 			
 			profileLinkSelector.forEach(selectorPusher);
 				
-			if(GM_getValue("showUsercolorsPeopleLinks", false)) {
+			if(showUsercolorsPeopleLinks) {
 				buf.push(",\n");
 				peopleLinkSelector.forEach(selectorPusher);
 				}
@@ -327,6 +328,7 @@ var vestitools_style = new function vt_Style() {
 						if(j == "bordercolor") buf.push("1px solid ");
 						if(/color|bgcolor|bordercolor/.test(j)) buf.push("#"); //push hash for colors
 						buf.push(styles[j], importantEnding);
+						if(j == "weight" && styles[j] == "normal") normalWeight = true;
 						}
 					}
 				
@@ -334,7 +336,16 @@ var vestitools_style = new function vt_Style() {
 				
 			buf.push("}\n");
 			
-			//todo: normal weight
+			if(normalWeight) {
+				profileLinkSelector.forEach(selectorPusher);
+				buf.push(" > b");
+				if(showUsercolorsPeopleLinks) {
+					buf.push(",\n");
+					peopleLinkSelector.forEach(selectorPusher);
+					buf.push(" > b");
+					}
+				buf.push(" {\nfont-weight: inherit", importantEnding, "}\n");
+				}
 			
 			}
 			
