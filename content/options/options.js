@@ -24,7 +24,14 @@ function GM_deleteValue(name) {
 
 var defaultColors = ["#000099", "transparent", "transparent"];
 
-var ids = ["colorField", "bgcolorField", "bordercolorField", "weightSelect", "styleSelect", "decorationSelect"];
+var ids = {
+	color: "colorField", 
+	bgcolor: "bgcolorField",
+	bordercolor: "bordercolorField",
+	weight: "weightSelect",
+	style: "styleSelect",
+	decoration: "decorationSelect"
+	}
 
 function isValidColor(color) {
 	return (typeof color == "string") && (/^[\da-f]{6}$/i.test(color));
@@ -54,9 +61,9 @@ function refreshColors(e) {
 	document.getElementById("refreshButton").parentNode.getElementsByClassName("log")[0].value = 
 			"Getting all colors from the server...";
 	
-	vestitools_style.getColors(function(d) {
+	vestitools_style.getColors(function(xhr, success) {
 		document.getElementById("refreshButton").parentNode.getElementsByClassName("log")[0].value = 
-			"All colors successfully found, saved, and applied.";
+			success ? "All colors successfully found, saved, and applied." : ("Server error: " + xhr.responseText);
 		});
 		
 	}
@@ -166,26 +173,24 @@ function initOptions() {
 		document.getElementById("getButton").parentNode.getElementsByClassName("log")[0].value = 
 				"Getting your colors from the server...";
 		
-		vestitools_style.getColors(GM_getValue("username", "unknown"), function(d, uArray) {
+		var getRv = vestitools_style.getColors(GM_getValue("username", "unknown"), function(xhr, styles, success) {
 
-			for(var i=0, len=ids.length; i<len; i++) {
-				thisu = uArray[i];
-				if(i<3) document.getElementById(ids[i]).value = isValidColor(thisu) ? thisu : "";
-				else document.getElementById(ids[i]).selectedIndex = 
-					(thisu=="normal") || (thisu=="none") ? 0 : 
-					(thisu=="bold") || (thisu=="italic") || (thisu=="overline") ? 1 :
-					(thisu=="underline") ? 2 :
-					(thisu=="line-through") ? 3 :
-					(thisu=="null") && (i==3) ? 1 : 0;
+			for(var i in ids) {
+				document.getElementById(ids[i]).value = styles[i] + "";
 				}
 				
 			document.getElementById("getButton").parentNode.getElementsByClassName("log")[0].value = 
-				(uArray.length > 6) ? "You have no colors on the server, using defaults." :
-										"Colors successfully found and saved.";
+				success ? "Personal colors successfully found and saved." :
+							"No personal colors found on the server (" + xhr.responseText + "), using defaults.";
 				
 			updatePreview();
 			
 			});
+			
+		if(getRv < 0) {
+			document.getElementById("getButton").parentNode.getElementsByClassName("log")[0].value = 
+				"getColors error: " + getRv;
+			}
 		
 		}, false);
 		
@@ -193,27 +198,25 @@ function initOptions() {
 		
 	document.getElementById("postButton").addEventListener("command", function(e) {
 		
+		var styles = {};
+		for(var i in vestitools_style.styleElements) {
+				styles[i] = document.getElementById(ids[i]).value;
+				}
+				
 		document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
 				"Posting colors to the server...";
 		
-		var u = "";
-		
-		vestitools_style.postColors(GM_getValue("username", "unknown"), 
-			[
-			isValidColor(u = document.getElementById("colorField").value) ? u : "null",
-			isValidColor(u = document.getElementById("bgcolorField").value) ? u : "null",
-			isValidColor(u = document.getElementById("bordercolorField").value) ? u : "null",
-			document.getElementById("weightSelect").selectedItem.value,
-			document.getElementById("styleSelect").selectedItem.value,
-			document.getElementById("decorationSelect").selectedItem.value,
-			], 
-			function(d) {
-				var fail = !!d.responseText.match(/false/);
+		//this will handle validation as well
+		var postRv = vestitools_style.postColors(GM_getValue("username", "unknown"), styles, function(xhr, success) {
 				document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
-					!fail ? "Colors successfully posted." : "Server error.";
+					success ? "Colors successfully posted." : ("Server error: " + xhr.responseText);
 				refreshColors(e);
-				}
-			);
+				});
+				
+		if(postRv < 0) {
+			document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
+				"postColors error: " + postRv;
+			}
 		
 		}, false);
 		

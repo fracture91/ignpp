@@ -1,3 +1,4 @@
+//todo: Chrome compatibility
 // vestitools_PrefManager singleton
 Components.utils.import("resource://modules/prefman.js");
 // vestitools_files singleton
@@ -23,24 +24,39 @@ var vestitools_style = new function vt_Style() {
 	//JSON.parse can't handle undefined, so we'll never get that value from the file
 	var _colorsObject = undefined;
 	
+	/*
+	_colorsObject will look something like this, as should the response from the server in getColors()
+	null styles indicate that the user has not set them, so we should use the default
+	[{
+		"username": "yab",
+		"styles": {
+			"color": "FFFFFF",
+			"bgcolor": "000000",
+			"bordercolor": "FF0000",
+			"weight": null,
+			"style": "normal",
+			"decoration": "none"
+		}
+	},
+	... (more users)
+	]
+	*/
+	
 	this.__defineGetter__("colorsObject", function() {
 		
 		if(typeof _colorsObject == "undefined") {
-			var theFile = vestitools_files.readFile(this.objectFileUri);
-			//if something went wrong reading the file, default the object to an empty array
-			if(theFile === null) {
-				_colorsObject = [];
-				}
-			else _colorsObject = JSON.parse(theFile);
+			_colorsObject = this.validateUsers(JSON.parse(
+									vestitools_files.readFile(this.objectFileUri)
+									));
 			}
 			
 		return _colorsObject;
 		
 		});
 	
-	//no validation, doesn't save to disk(!)
+	//doesn't save to disk(!)
 	this.__defineSetter__("colorsObject", function(o) {
-		_colorsObject = o;
+		_colorsObject = this.validateUsers(o);
 		});
 		
 	this.saveColorsObject = function() {
@@ -156,21 +172,26 @@ var vestitools_style = new function vt_Style() {
 		
 		}
 		
-	//post the usercolors in uArray as the colors of the user with the given name
-	//save colors and call callback if xhr goes through
-	this.postColors = function(name, uArray, callback) {
+	/*
+	Post the usercolors in style object as the colors of the user with the given name.
+	Save colors and call callback if xhr goes through.
+	Styles is always validated.
+	*/
+	this.postColors = function(name, styles, callback) {
+	
+		styles = this.validateStyles(styles);
 		
-		if(!name || !uArray || uArray.length < 6) return -1;
+		if(typeof name != "string" || !validUsernameExp.test(name)) {
+			return -1;
+			}
 		
 		if(typeof callback != "function") callback = function(d) {};
 		
-		var _data = "username=" + name + 
-					"&color=" + uArray[0] + 
-					"&bgcolor=" + uArray[1] + 
-					"&bordercolor=" + uArray[2] + 
-					"&weight=" + uArray[3] + 
-					"&style=" + uArray[4] + 
-					"&decoration=" + uArray[5];
+		var _data = "username=" + name;
+		//add the style fields and values to the data string
+		for(var i in styles) {
+			_data += "&" + i + "=" + styles[i];
+			}
 					
 		var t = this;
 		
@@ -180,8 +201,10 @@ var vestitools_style = new function vt_Style() {
 		xhrHeaders(xhr, {'Content-Type': 'application/x-www-form-urlencoded'});
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState==4 && xhr.status==200) {
-				t.saveColors(uArray);
-				callback(xhr);
+				var success = !xhr.responseText.match(/^(null|false)$/i);
+				//todo: remove this, use as callback
+				t.saveStyles(styles);
+				callback(xhr, success);
 				}
 			}
 			
@@ -190,10 +213,16 @@ var vestitools_style = new function vt_Style() {
 		return 0;
 		
 		}
-		
-	//both parameters are optional
-	//if given a username, the function will find the colors for that user and save them
-	//if not given a username, the function will get the entire usercolor list and write it to usercolors.css
+	
+	this.colorsListUrl = 'http://derekdev.com/mozilla/ignbq/colors.new.php';
+	this.colorsUserUrl = 'http://derekdev.com/mozilla/ignbq/getcolors.php?JSON&username=';
+	
+	/*
+	Both parameters are optional.
+	If given a username, the function will find the colors for that user and save them.
+	If not given a username, the function will get the entire usercolor list and write it to usercolors.css.
+	Returns 0 if successful in sending the request, -1 if the name isn't valid (and was provided).
+	*/
 	this.getColors = function(name, callback) {
 		
 		if((typeof name == "function") && (typeof callback != "function")) {
@@ -206,22 +235,31 @@ var vestitools_style = new function vt_Style() {
 			name = null;
 			}
 		
-		var t = this;
+		//check for a bad name
+		if(name && (typeof name != "string" || !validUsernameExp.test(name))) {
+			return -1;
+			}
 		
 		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
 									.createInstance(Components.interfaces.nsIXMLHttpRequest) : new XMLHttpRequest();
 		xhr.open("GET", 
-					(name ? "http://derekdev.com/mozilla/ignbq/getcolors.php?username=" + name : 'http://derekdev.com/mozilla/ignbq/colors.new.php'),
+					(name ? this.colorsUserUrl + name
+							: this.colorsListUrl),
 					true);
 					
 		xhrHeaders(xhr, {"Pragma": "no-cache",
 						"Cache-Control": "no-cache"});
-						
+		
+		var t = this;
+		
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState==4 && xhr.status==200) {
 				
+				var success = !xhr.responseText.match(/^(null|false)$/i);
+				
 				if(!name) {
-					//var usercolorStyle = t.correctColors(xhr.responseText);
+					
+					//todo: move this saving action into a public function that could be used as callback
 					t.colorsObject = JSON.parse(xhr.responseText);
 					var usercolorStyle = t.createStyle(t.colorsObject);
 					
@@ -236,14 +274,17 @@ var vestitools_style = new function vt_Style() {
 						t.applyColors(true);
 						GM_setValue("lastUsercolorCheck", Math.floor((new Date()).getTime() / 3600000));
 						}
-					
-					callback(xhr);
+						
+					callback(xhr, success);
 					
 					}
 				else {
-					colors = t.parseColors(xhr.responseText);
-					t.saveColors(colors);
-					callback(xhr, colors);
+					var user = JSON.parse(xhr.responseText);
+					t.validateUser(user);
+					var styles = user.styles;
+					//todo: remove this, use as callback
+					if(success) t.saveStyles(styles);
+					callback(xhr, styles, success);
 					}
 				
 				}
@@ -256,14 +297,123 @@ var vestitools_style = new function vt_Style() {
 	
 	var validUsernameExp = /^[\w.\-]{3,20}$/i;
 	var validColorExp = /^[\da-f]{6}$/i;
+	//properties that must be in the style object (prop and exp are required)
 	var styleElements = {
 		color: {prop: "color", exp: validColorExp},
 		bgcolor: {prop: "background-color", exp: validColorExp},
 		bordercolor: {prop: "border", exp: validColorExp},
 		weight: {prop: "font-weight", exp: /^(normal|bold)$/i},
 		style: {prop: "font-style", exp: /^(normal|italic)$/i},
-		decoration: {prop: "text-decoration", exp: /^(underline|overline|line\-through)$/i}
+		decoration: {prop: "text-decoration", exp: /^(none|underline|overline|line\-through)$/i}
 		};
+	this.__defineGetter__("styleElements", function(){ return styleElements });
+	
+	/*
+	Take in a type (color, weight, etc.) and a value for that style type.
+	Return null if val is invalid (null is a valid value).
+	Otherwise, return val.
+	*/
+	this.validateStyle = function(type, val) {
+		
+		if(val === null || styleElements[type] && typeof val == "string" && styleElements[type].exp.test(val)) {
+			//it's valid
+			}
+		else {
+			val = null;
+			}
+			
+		return val;
+		
+		}
+	
+	/*
+	Take in a styles object (one that's gotten from the usercolors server).
+	If any properties are invalid (or the object itself is), set them to default value (null).
+	If there are any unrecognized properties, delete them.
+	Styles object will always end up with all properties of styleElements.
+	Returns validated styles object.
+	*/
+	this.validateStyles = function(styles) {
+		
+		if(styles === null || typeof styles != "object") {
+			styles = {};
+			}
+		
+		for(var i in styleElements) {
+			styles[i] = this.validateStyle(i, styles[i])
+			}
+		
+		for(var i in styles) {
+			if(!styleElements[i]) {
+				//if this property isn't in styleElements, delete it
+				delete styles[i];
+				}
+			}
+		
+		return styles;
+		
+		}
+		
+	/*
+	Take in a user object (one that's gotten from usercolors server).
+	If any properties are invalid (or the object itself is), set them to some default value.
+	If there are any unrecognized properties, delete them.
+	User object will always end up with a username and styles property.
+	Returns validated user object.
+	*/
+	this.validateUser = function(user) {
+		
+		if(user === null || typeof user != "object") {
+			user = {};
+			}
+		
+		if(typeof user.username != "string" || !validUsernameExp.test(user.username)) {
+			user.username = "";
+			}
+			
+		user.styles = this.validateStyles(user.styles);
+					
+		for(var i in user) {
+			if(i == "username" || i == "styles") {
+				//do nothing, they have been validated
+				}
+			else {
+				//some property that shouldn't exist
+				delete user[i];
+				}
+			}
+		
+		return user;
+		
+		}
+	
+	/*
+	Take in an array of user (one that's gotten from usercolors server).
+	If the users array itself is not an array, set to an empty array.
+	Validate all contained users - if there are any invalid users, delete them.
+	Return the valid users array.
+	*/
+	this.validateUsers = function(users) {
+		
+		// https://developer.mozilla.org/web-tech/2010/07/26/determining-with-absolute-accuracy-whether-or-not-a-javascript-object-is-an-array/
+		//isArray isn't available before FF 3.6 - other solution is yucky, but works
+		if((Array.isArray && !Array.isArray(users)) || 
+			(!Array.isArray && Object.prototype.toString.call(users) !== "[object Array]")) {
+			users = [];
+			}
+		
+		for(var i=0, len=users.length; i<len; i++) {
+			users[i] = this.validateUser(users[i]);
+			if(!users[i].username) {
+				//no point in keeping a user with an invalid username
+				users.splice(i, 1);
+				i--; len--;
+				}
+			}
+		
+		return users;
+		
+		}
 	
 	var mozDocument = '@-moz-document domain(boards.ign.com), domain(betaboards.ign.com),\ndomain(vnboards.ign.com), domain(forums.ign.com) {\n'
 	
@@ -278,10 +428,11 @@ var vestitools_style = new function vt_Style() {
 	
 	var importantEnding = " !important;\n";
 	
+	
 	/*
-	return a string of css that obj (intended to be this.colorsObject) represents
-	intended to end up in usercolors.css
-	all data used from obj is validated
+	Return a string of css that obj (intended to be this.colorsObject) represents
+	Intended to end up in usercolors.css
+	Assumes that all data used from obj is validated (by validateUsers)
 	*/
 	this.createStyle = function(obj) {
 		
@@ -295,12 +446,13 @@ var vestitools_style = new function vt_Style() {
 		
 		function selectorPusher(e, i) {
 			//push the username where "unknown" would be located
-			if(i==linkSelectorUsernameLoc && validUsernameExp.test(e)) {
+			if(i==linkSelectorUsernameLoc) {
 				buf.push(user.username);
 				}
 			else buf.push(e);
 			}
 		
+		//only apply to select domains
 		buf.push(mozDocument);
 		
 		//the object should be an array of users
@@ -309,8 +461,10 @@ var vestitools_style = new function vt_Style() {
 			var user = obj[i];
 			var normalWeight = false;
 			
+			//add the selector for this user's profile link
 			profileLinkSelector.forEach(selectorPusher);
-				
+			
+			//and select the user's people link as well if preferred
 			if(showUsercolorsPeopleLinks) {
 				buf.push(",\n");
 				peopleLinkSelector.forEach(selectorPusher);
@@ -319,24 +473,22 @@ var vestitools_style = new function vt_Style() {
 			buf.push(" {\n");
 			
 			var styles = user.styles;
-			if(styles) {
-				
-				for(var j in styleElements) {
-					//Validate the style.  If valid, push into buf.
-					if(typeof styles[j] == "string" && styleElements[j].exp.test(styles[j])) {
-						buf.push(styleElements[j].prop, ": ");
-						if(j == "bordercolor") buf.push("1px solid ");
-						if(/color|bgcolor|bordercolor/.test(j)) buf.push("#"); //push hash for colors
-						buf.push(styles[j], importantEnding);
-						if(j == "weight" && styles[j] == "normal") normalWeight = true;
-						}
+			
+			//add relevant CSS declarations provided by styles
+			for(var j in styles) {
+				if(styles[j] !== null) {
+					buf.push(styleElements[j].prop, ": ");
+					if(j == "bordercolor") buf.push("1px solid ");
+					if(/color|bgcolor|bordercolor/.test(j)) buf.push("#"); //push hash for colors
+					buf.push(styles[j], importantEnding);
+					if(j == "weight" && styles[j] == "normal") normalWeight = true;
 					}
-				
 				}
 				
 			buf.push("}\n");
 			
 			if(normalWeight) {
+				//need to make sure child b elements inherit font-weight
 				profileLinkSelector.forEach(selectorPusher);
 				buf.push(" > b");
 				if(showUsercolorsPeopleLinks) {
@@ -378,14 +530,21 @@ var vestitools_style = new function vt_Style() {
 					
 		
 		}
+	
+	/*
+	Given a styles object, save it to prefs as the user's last usercolors.
+	Also validates styles and returns it.
+	*/
+	this.saveStyles = function(styles) {
 		
-	this.saveColors = function(uArray) {
+		styles = this.validateStyles(styles);
 		
-		prefs = ["UCcolor", "UCbgcolor", "UCbordercolor", "UCweight", "UCstyle", "UCdecoration"];
+		//now styles only contains properties that must be saved with prefix "UC"
 		
-		for(var i=0, len=prefs.length; i<len; i++)
-			if(uArray[i].length < 100) //since the colors may be gotten from an untrusted place, limit length of prefs to prevent bulky prefs.js file
-				GM_setValue(prefs[i], uArray[i]);
+		for(var i in styles)
+				GM_setValue("UC" + i, styles[i] + "");
+		
+		return styles;
 		
 		}
 		
