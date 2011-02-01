@@ -20,6 +20,10 @@ var vestitools_style = new function vt_Style() {
 	this.objectFileUri = "chrome://vestitools/skin/usercolors.json";
 	this.mainFileUri = "chrome://vestitools/skin/main.css";
 	
+	this.colorsListUrl = "http://derekdev.com/mozilla/ignbq/colors.new.php";
+	this.colorsUserUrl = "http://derekdev.com/mozilla/ignbq/getcolors.php?JSON&username=";
+	this.colorsSubmitUrl = "http://derekdev.com/mozilla/ignbq/submitcolors.php";
+	
 	//defaulted to undefined to indicate object has not been read from disk
 	//JSON.parse can't handle undefined, so we'll never get that value from the file
 	var _colorsObject = undefined;
@@ -41,29 +45,6 @@ var vestitools_style = new function vt_Style() {
 	... (more users)
 	]
 	*/
-	
-	this.__defineGetter__("colorsObject", function() {
-		
-		if(typeof _colorsObject == "undefined") {
-			_colorsObject = this.validateUsers(JSON.parse(
-									vestitools_files.readFile(this.objectFileUri)
-									));
-			}
-			
-		return _colorsObject;
-		
-		});
-	
-	//doesn't save to disk(!)
-	this.__defineSetter__("colorsObject", function(o) {
-		_colorsObject = this.validateUsers(o);
-		});
-		
-	this.saveColorsObject = function() {
-		//stringify here will add some spacing so the file's pretty
-		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
-		return vestitools_files.writeFile(JSON.stringify(this.colorsObject, null, " "), this.objectFileUri);
-		}
 	
 	//because file contents can change, we need to keep track of the data: uri so we can successfully
 	//unregister/re-register a changed stylesheet
@@ -95,7 +76,7 @@ var vestitools_style = new function vt_Style() {
 		
 		if(GM_getValue("applyUsercolors", true)) {
 
-			var currentTime = Math.floor((new Date()).getTime() / 3600000);
+			var currentTime = this.getTimeInHours();
 			//Number of hours since January 1, 1970
 
 			//if if hasn't been updated in x hours, update it
@@ -197,13 +178,11 @@ var vestitools_style = new function vt_Style() {
 		
 		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
 									.createInstance(Components.interfaces.nsIXMLHttpRequest) : new XMLHttpRequest();
-		xhr.open("POST", "http://derekdev.com/mozilla/ignbq/submitcolors.php", true);
+		xhr.open("POST", this.colorsSubmitUrl, true);
 		xhrHeaders(xhr, {'Content-Type': 'application/x-www-form-urlencoded'});
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState==4 && xhr.status==200) {
 				var success = !xhr.responseText.match(/^(null|false)$/i);
-				//todo: remove this, use as callback
-				t.saveStyles(styles);
 				callback(xhr, success);
 				}
 			}
@@ -214,8 +193,37 @@ var vestitools_style = new function vt_Style() {
 		
 		}
 	
-	this.colorsListUrl = 'http://derekdev.com/mozilla/ignbq/colors.new.php';
-	this.colorsUserUrl = 'http://derekdev.com/mozilla/ignbq/getcolors.php?JSON&username=';
+	/*
+	Returns the current time as hours passed since the epoch (floored).
+	*/
+	this.getTimeInHours = function() {
+		return Math.floor((new Date()).getTime() / 3600000);
+		}
+	
+	/*
+	Set lastUsercolorCheck to the given time.
+	If no time is given, set to the current time in hours (this.getTimeInHours).
+	*/
+	this.setLastUsercolorCheck = function(time) {
+		return GM_setValue("lastUsercolorCheck", (typeof time != "number" ? this.getTimeInHours() : time));
+		}
+	
+	/*
+	Save colors object to disk, make a style out of it, write it to disk, and apply the new style.
+	You'll want to call this after changing the colors object when you want the user to see changes
+	(which they will assume are persistent, i.e. saved to disk).
+	*/
+	this.synchronizeColors = function() {
+		
+		var usercolorStyle = this.createStyle(this.colorsObject);
+		
+		if(this.saveColorsObject() == 1) {
+			//only write to the colors file and apply if saving was successful
+			vestitools_files.writeFile(usercolorStyle, this.colorsFileUri);
+			this.applyColors(true);
+			}
+		
+		}
 	
 	/*
 	Both parameters are optional.
@@ -258,33 +266,16 @@ var vestitools_style = new function vt_Style() {
 				var success = !xhr.responseText.match(/^(null|false)$/i);
 				
 				if(!name) {
-					
-					//todo: move this saving action into a public function that could be used as callback
-					t.colorsObject = JSON.parse(xhr.responseText);
-					var usercolorStyle = t.createStyle(t.colorsObject);
-					
-					if(t.saveColorsObject() == 1) {
-						//only write to the colors file if saving was successful
-						vestitools_files.writeFile(usercolorStyle, t.colorsFileUri);
-					
-						//Security: If we got bad data, a naughty stylesheet could be added that, for example, hides the body of every page
-						//however, that can be fixed by simply disabling the extension or turning off usercolors
-						//and this is a pretty trusted location we're getting colors from
-						//parsing from JSON will also validate things, so this is pretty much impossible to do
-						t.applyColors(true);
-						GM_setValue("lastUsercolorCheck", Math.floor((new Date()).getTime() / 3600000));
-						}
-						
+					//note that colorsObject is not modified, nothing is changed
+					//the callback must handle everything
 					callback(xhr, success);
-					
 					}
 				else {
 					var user = JSON.parse(xhr.responseText);
 					t.validateUser(user);
 					var styles = user.styles;
-					//todo: remove this, use as callback
-					if(success) t.saveStyles(styles);
-					callback(xhr, styles, success);
+					//this will only parse out styles for the callback - does not save them
+					callback(xhr, success, styles);
 					}
 				
 				}
@@ -293,6 +284,77 @@ var vestitools_style = new function vt_Style() {
 		
 		return 0;
 		
+		}
+	
+	this.__defineGetter__("colorsObject", function() {
+		
+		if(typeof _colorsObject == "undefined") {
+			_colorsObject = this.validateUsers(JSON.parse(
+									vestitools_files.readFile(this.objectFileUri)
+									));
+			}
+			
+		return _colorsObject;
+		
+		});
+	
+	//doesn't save to disk(!)
+	this.__defineSetter__("colorsObject", function(o) {
+		_colorsObject = this.validateUsers(o);
+		});
+	
+	/*
+	Given a name, return the user in colorsObject with that username.
+	Returns null if not found (username is not validated).
+	*/
+	this.findUser = function(name) {
+		
+		//make sure this has been read from disk if necessary
+		var dummy = this.colorsObject;
+		
+		for(var i=0, len = _colorsObject.length; i<len; i++)
+			if(_colorsObject[i].username == name)
+				return _colorsObject[i];
+				
+		return null;
+		
+		}
+	
+	/*
+	Find the user with the given username in colorsObject and set its styles to given styles.
+	If the user doesn't exist, it will be created and pushed into colorsObject.
+	User is validated after being modified or before being added.
+	Returns -1 if username is bad, 0 if user was found and changed, 1 if user had to be created.
+	*/
+	this.setUserStyles = function(name, styles) {
+		
+		if(typeof name != "string" || !validUsernameExp.test(name)) {
+			return -1;
+			}
+		
+		var user = this.findUser(name);
+		var noUser = user === null;
+		
+		if(noUser) {
+			user = {};
+			user.username = name;
+			}
+			
+		user.styles = styles;
+		user = this.validateUser(user);
+		
+		if(noUser) {
+			_colorsObject.push(user);
+			}
+			
+		return noUser ? 1 : 0;
+		
+		}
+		
+	this.saveColorsObject = function() {
+		//stringify here will add some spacing so the file's pretty
+		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
+		return vestitools_files.writeFile(JSON.stringify(this.colorsObject, null, " "), this.objectFileUri);
 		}
 	
 	var validUsernameExp = /^[\w.\-]{3,20}$/i;

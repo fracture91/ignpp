@@ -41,6 +41,18 @@ function validateColor(color, i) {
 	return isValidColor(color) ? "#" + color : defaultColors[i];
 	}
 	
+function getStylesInput() {
+	var styles = {};
+	for(var i in vestitools_style.styleElements)
+		styles[i] = document.getElementById(ids[i]).value;
+	return styles;
+	}
+	
+function setStylesInput(styles) {
+	for(var i in ids) 
+		document.getElementById(ids[i]).value = styles[i] + "";
+	}
+	
 function updatePreview() {
 
 	var username = document.getElementById("username");
@@ -62,6 +74,11 @@ function refreshColors(e) {
 			"Getting all colors from the server...";
 	
 	vestitools_style.getColors(function(xhr, success) {
+	
+		vestitools_style.colorsObject = JSON.parse(xhr.responseText);
+		vestitools_style.synchronizeColors();
+		vestitools_style.setLastUsercolorCheck();
+	
 		document.getElementById("refreshButton").parentNode.getElementsByClassName("log")[0].value = 
 			success ? "All colors successfully found, saved, and applied." : ("Server error: " + xhr.responseText);
 		});
@@ -173,16 +190,19 @@ function initOptions() {
 		document.getElementById("getButton").parentNode.getElementsByClassName("log")[0].value = 
 				"Getting your colors from the server...";
 		
-		var getRv = vestitools_style.getColors(GM_getValue("username", "unknown"), function(xhr, styles, success) {
-
-			for(var i in ids) {
-				document.getElementById(ids[i]).value = styles[i] + "";
+		var getRv = vestitools_style.getColors(GM_getValue("username", "unknown"), function(xhr, success, styles) {
+			
+			setStylesInput(styles);
+			
+			if(success) {
+				//save styles as user's usercolors
+				vestitools_style.saveStyles(styles);
 				}
-				
+			
 			document.getElementById("getButton").parentNode.getElementsByClassName("log")[0].value = 
 				success ? "Personal colors successfully found and saved." :
 							"No personal colors found on the server (" + xhr.responseText + "), using defaults.";
-				
+			
 			updatePreview();
 			
 			});
@@ -198,21 +218,35 @@ function initOptions() {
 		
 	document.getElementById("postButton").addEventListener("command", function(e) {
 		
-		var styles = {};
-		for(var i in vestitools_style.styleElements) {
-				styles[i] = document.getElementById(ids[i]).value;
-				}
-				
+		var styles = getStylesInput();
+		var username = GM_getValue("username", "unknown");
+		
 		document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
 				"Posting colors to the server...";
 		
-		//this will handle validation as well
-		var postRv = vestitools_style.postColors(GM_getValue("username", "unknown"), styles, function(xhr, success) {
+		//this will handle validation of styles as well
+		var postRv = vestitools_style.postColors(username, styles, function(xhr, success) {
 				document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
 					success ? "Colors successfully posted." : ("Server error: " + xhr.responseText);
-				refreshColors(e);
-				});
 				
+				if(success) {
+					/*
+					assume that the server handled everything correctly and the colors will now show up on the main list
+					update our local list and style to reflect assumed changes
+					this is better than just refreshing normally because in that case you might just get a cached copy
+					which doesn't reflect your changes and often makes people think the post didn't go through
+					*/
+					vestitools_style.setUserStyles(username, styles);
+					vestitools_style.synchronizeColors();
+					vestitools_style.saveStyles(styles);
+					//don't setLastUsercolorCheck though, since this wasn't a true refresh
+					}
+				
+				});
+		
+		//set the inputs to the now-validated values
+		setStylesInput(styles);
+		
 		if(postRv < 0) {
 			document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
 				"postColors error: " + postRv;
