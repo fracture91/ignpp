@@ -507,30 +507,6 @@ var vestitools_style = new function vt_Style() {
 		
 		}
 	
-	//change a few things in the style so it's formatted correctly
-	this.correctColors = function(text) {
-		
-		text = text.replace("-moz-outline: 2px outset black;", " ") //no ugly outline
-					.replace(/a\.AuthorLink/g, "a") //apply to all links
-					.replace("domain(vnboards.ign.com)", "domain(vnboards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com)") //apply to more domains
-					//many anchor elements contain a bold element that forces usernames to be bold
-					//for colors that are font-weight:normal, add another rule after that forces the b element to inherit font weight
-					.replace(/(a\[href\^="http:\/\/club\.ign\.com\/b\/about\?username=([^"]*)"],[^}]*font\-weight:normal[^}]*})/gim,
-					'$1 a[href^="http://club.ign.com/b/about?username=$2"] > b, a[href^="/ASP/admin/userportal.asp?usr=$2"] > b { font-weight:inherit !important; }');
-		
-		if(GM_getValue("showUsercolorsPeopleLinks", false)) {
-		
-			//color people.ign.com links as well
-			text = text.replace(/(a\[href\^="http:\/\/club\.ign\.com\/b\/about\?username=([^"]*)"]( > b)?,)/gi,
-					'$1 a[href="http://people.ign.com/$2"]$3,');
-			
-			}
-					
-		return text.replace(/(\{|\}|\;|\,)/g, "$1\n"); //add line breaks so the file's pretty
-					
-		
-		}
-	
 	/*
 	Given a styles object, save it to prefs as the user's last usercolors.
 	Also validates styles and returns it.
@@ -545,24 +521,6 @@ var vestitools_style = new function vt_Style() {
 				GM_setValue("UC" + i, styles[i] + "");
 		
 		return styles;
-		
-		}
-		
-	//construct uArray from getColors for single user response
-	this.parseColors = function(text) {
-		
-		//new Array('f8f8f8', '6a758d', 'f8f8f8', 'bold', 'normal', 'overline');
-		//null
-		
-		//if the user doesn't have any colors, add an extra element so the caller knows
-		if(text=="null") return ["", "", "", "bold", "normal", "none", 0];
-		
-		text = text.replace("new Array(", "")
-				.replace(");", "")
-				.replace(/\'/g, "")
-				.replace(/\, /g, ",");
-				
-		return text.split(",");
 		
 		}
 		
