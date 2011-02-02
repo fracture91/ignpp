@@ -42,10 +42,21 @@ width: 60px;
 width: 75px;
 }
 
+/*default styles for username preview*/
 #username {
-border: 1px solid transparent;
 font-family: Arial,Helvetica,sans-serif;
 font-size: 13.3333px;
+color: #000099;
+background-color: transparent;
+border: 1px solid #b1b3bc;
+font-weight: bold;
+font-style: normal;
+text-decoration: none;
+}
+
+/*default color for the text color preview - others are transparent*/
+#colorPreview {
+background-color: #000099;
 }
 
 #preview {

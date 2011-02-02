@@ -162,9 +162,8 @@ var vestitools_style = new function vt_Style() {
 	
 		styles = this.validateStyles(styles);
 		
-		if(typeof name != "string" || !validUsernameExp.test(name)) {
-			return -1;
-			}
+		name = this.validateUsername(name);
+		if(!name) return -1;
 		
 		if(typeof callback != "function") callback = function(d) {};
 		
@@ -244,8 +243,9 @@ var vestitools_style = new function vt_Style() {
 			}
 		
 		//check for a bad name
-		if(name && (typeof name != "string" || !validUsernameExp.test(name))) {
-			return -1;
+		if(name) {
+			name = this.validateUsername(name);
+			if(!name) return -1;
 			}
 		
 		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
@@ -328,9 +328,8 @@ var vestitools_style = new function vt_Style() {
 	*/
 	this.setUserStyles = function(name, styles) {
 		
-		if(typeof name != "string" || !validUsernameExp.test(name)) {
-			return -1;
-			}
+		name = this.validateUsername(name);
+		if(!name) return -1;
 		
 		var user = this.findUser(name);
 		var noUser = user === null;
@@ -369,6 +368,8 @@ var vestitools_style = new function vt_Style() {
 		decoration: {prop: "text-decoration", exp: /^(none|underline|overline|line\-through)$/i}
 		};
 	this.__defineGetter__("styleElements", function(){ return styleElements });
+	this.__defineGetter__("validUsernameExp", function(){ return validUsernameExp });
+	this.__defineGetter__("validColorExp", function(){ return validColorExp });
 	
 	/*
 	Take in a type (color, weight, etc.) and a value for that style type.
@@ -415,7 +416,18 @@ var vestitools_style = new function vt_Style() {
 		return styles;
 		
 		}
-		
+	
+	/*
+	If the username is valid, return username.
+	Otherwise, return an empty string.
+	*/
+	this.validateUsername = function(username) {
+		if(typeof username != "string" || !validUsernameExp.test(username)) {
+			username = "";
+			}
+		return username;
+		}
+	
 	/*
 	Take in a user object (one that's gotten from usercolors server).
 	If any properties are invalid (or the object itself is), set them to some default value.
@@ -429,10 +441,7 @@ var vestitools_style = new function vt_Style() {
 			user = {};
 			}
 		
-		if(typeof user.username != "string" || !validUsernameExp.test(user.username)) {
-			user.username = "";
-			}
-			
+		user.username = this.validateUsername(user.username);
 		user.styles = this.validateStyles(user.styles);
 					
 		for(var i in user) {
@@ -490,6 +499,9 @@ var vestitools_style = new function vt_Style() {
 	
 	var importantEnding = " !important;\n";
 	
+	var colorStyleExp = /color|bgcolor|bordercolor/;
+	this.__defineGetter__("colorStyleExp", function(){ return colorStyleExp });
+	
 	
 	/*
 	Return a string of css that obj (intended to be this.colorsObject) represents
@@ -541,7 +553,7 @@ var vestitools_style = new function vt_Style() {
 				if(styles[j] !== null) {
 					buf.push(styleElements[j].prop, ": ");
 					if(j == "bordercolor") buf.push("1px solid ");
-					if(/color|bgcolor|bordercolor/.test(j)) buf.push("#"); //push hash for colors
+					if(colorStyleExp.test(j)) buf.push("#"); //push hash for colors
 					buf.push(styles[j], importantEnding);
 					if(j == "weight" && styles[j] == "normal") normalWeight = true;
 					}
