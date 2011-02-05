@@ -472,6 +472,7 @@
 									<hbox align="right" id="colorPreview">Text: #<textbox id="colorField" preference="pref_UCcolor" tooltiptext="Text color" maxlength="6"/></hbox>
 									<menulist id="weightSelect" preference="pref_UCweight" tooltiptext="Font weight">
 										<menupopup>
+											<menuitem label="Default" value="null"/>
 											<menuitem label="Normal" value="normal"/>
 											<menuitem label="Bold" value="bold"/>
 										</menupopup>
@@ -481,6 +482,7 @@
 									<hbox id="bgcolorPreview">Back: #<textbox id="bgcolorField" preference="pref_UCbgcolor" tooltiptext="Background color" maxlength="6"/></hbox>
 									<menulist id="styleSelect" preference="pref_UCstyle" tooltiptext="Font style">
 										<menupopup>
+											<menuitem label="Default" value="null"/>
 											<menuitem label="Normal" value="normal"/>
 											<menuitem label="Italics" value="italic"/>
 										</menupopup>
@@ -490,6 +492,7 @@
 									<hbox id="bordercolorPreview">Bord: #<textbox id="bordercolorField" preference="pref_UCbordercolor" tooltiptext="Border color" maxlength="6"/></hbox>
 									<menulist id="decorationSelect" preference="pref_UCdecoration" tooltiptext="Font decoration">
 										<menupopup>
+											<menuitem label="Default" value="null"/>
 											<menuitem label="None" value="none"/>
 											<menuitem label="Over" value="overline"/>
 											<menuitem label="Under" value="underline"/>
