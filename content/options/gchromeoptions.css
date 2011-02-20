@@ -27,9 +27,14 @@ header {
 margin: 5px 10px;
 }
 
+header > img {
+margin-right: 20px;
+float: left;
+}
+
 header > h1 {
 float: left;
-margin: 15px 10% 5px 0px;
+margin: 11px 10% 5px 0px;
 }
 
 #control {
