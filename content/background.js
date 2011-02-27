@@ -5,43 +5,50 @@
 function vlog(t){ 
 	console.log("IGN++: " + t);
 	}
-
-function openFile(path, callback) {
-	
-	if(typeof callback != "function") callback = function(){};
-	
-	var url = chrome.extension.getURL(path);
-	
-	var iframe = document.createElement("iframe");
-	iframe.src = url;
-	iframe.onload = callback;
-	document.body.appendChild(iframe);
-	
-	}
 	
 function readFile(path, callback) {
 	
 	if(typeof callback != "function") callback = function(){};
 	
-	openFile(path, function(e){
-		callback(e.target.contentDocument.body.innerHTML);
-		});
-	
-	}
-	
-function otherReadFileTest(path) {
-	
 	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function(){
+	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4) {
-            if (xhr.status == 200) {
-				vlog("XHR file protocol NOT broken!? Response: " + xhr.responseText);
+			//note that chrome will give you a status of 0 for some reason, even when successful
+			if(xhr.responseText == "") {
+				vlog("Warning, responseText for " + path + " is empty");
 				}
-			else vlog("XHR file protocol still broken, status: " + xhr.status);
+			callback(xhr.responseText);
 			}
 		}
 	xhr.open("GET", chrome.extension.getURL(path), true);
 	xhr.send();
+	
+	}
+	
+function writeFile(path, content, callback) {
+	
+	if(typeof callback != "function") callback = function(){};
+	
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+            callback(xhr);
+			}
+		}
+	xhr.open("POST", chrome.extension.getURL(path), true);
+	xhr.send(content);
+	
+	}
+	
+function writeFileTest(path) {
+	
+	var testText = "hello world!";
+	
+	writeFile(path, testText, function(xhr) {
+		readFile(path, function(content) {
+			vlog("write file test content: " + content + "\n" + (content == testText ? "it works" : "it's broken"));
+			});
+		});
 	
 	}
 	
@@ -126,7 +133,7 @@ window.onload = function(e){
 		});
 	
 	//test to see if this works yet
-	otherReadFileTest('/content/panel.html');
+	//writeFileTest('test.txt');
 	
 	}
 
