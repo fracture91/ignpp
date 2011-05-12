@@ -233,6 +233,11 @@ function nextElementSibling(el) {
 	if(el.nodeType!=1) return nextElementSibling(el);
 	return el;
 	}
+	
+function isContentEditableOrChild(el) {
+	function isContentEditable(e) { return e.contentEditable == "true" }
+	return isContentEditable(el) || getParentBy(el, isContentEditable);
+	}
 
 function customEvent(el, name, data) {
 	if(!el || !name) return null;
@@ -867,6 +872,10 @@ var Listeners = new function() {
 		
 	this.isMouse = function(e) {
 		return /^((dbl)?click|mouse(down|up|over|out|move))$/i.test(e.type);
+		}
+		
+	this.elementAcceptsInput = function(el) {
+		return el.tagName == "INPUT" || el.tagName == "TEXTAREA" || isContentEditableOrChild(el)==true;
 		}
 
 	}

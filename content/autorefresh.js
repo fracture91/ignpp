@@ -383,20 +383,21 @@ var Autorefresh = new function Autorefresh_Obj() {
 			
 			}
 		
-		Listeners.add(document, 'keydown', function(e) {
+		Listeners.add(document, 'keyup', function(e) {
 	
-			if(!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+			if(e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+			if(e.which!=65 && e.which!=82) return;
+			if(Listeners.elementAcceptsInput(e.target)) return;
 			
-			//`~
-			if(e.which==192) {
-				e.preventDefault();
+			e.preventDefault();
+			
+			//a
+			if(e.which==65) {
 				Autorefresh.page.dontRefresh = !Autorefresh.page.dontRefresh;
 				Autorefresh.page.outlinee.style.outlineColor = (Autorefresh.page.dontRefresh) ? "red" : "transparent"; 
 				}
-
-			//F5
-			if(e.which==116) {
-				e.preventDefault();
+			//r
+			else if(e.which==82) {
 				Autorefresh.page.action(true);
 				}
 			
