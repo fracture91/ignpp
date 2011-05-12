@@ -152,13 +152,14 @@ Listeners.add(document, 'click', function(event) {
 	
 	}, true);
 	
-Listeners.add(document, "keydown", function(e) {
+Listeners.add(document, "keyup", function(e) {
 	
-	if(e.altKey || e.shiftKey || e.metaKey) return;
+	if(e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
 	
-	//control + backspace
-	if(e.ctrlKey && e.which==8 && I.url.pageType=="topic") {
+	//b
+	if(e.which==66 && I.url.pageType=="topic") {
 	
+		if(Listeners.elementAcceptsInput(e.target)) return;
 		window.location.href = 'http://' + I.url.host + '/' + I.url.boardName + '/b' + I.url.boardNumber + '/p1';
 	
 		}
