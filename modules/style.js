@@ -102,15 +102,15 @@ var vestitools_style = new function vt_Style() {
 		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
 		//also need to fix chrome-extension URIs
 		if(temp) mainDataUri = ios.newURI(
-		"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
-		temp.replace(/\n/g, "%0A")
-			.replace(/chrome-extension:\/\//g, "chrome://")
-			//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
-			//http://code.google.com/p/chromium/issues/detail?id=39899
-			.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
-			.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
-		" }",
-		null, null);
+			"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
+			temp.replace(/\n/g, "%0A")
+				.replace(/chrome-extension:\/\//g, "chrome://")
+				//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
+				//http://code.google.com/p/chromium/issues/detail?id=39899
+				.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
+				.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
+			" }",
+			null, null);
 		else return 0; //file wasn't read correctly
 		
 		//if it's not registered already, load and register it

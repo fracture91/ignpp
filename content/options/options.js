@@ -33,7 +33,7 @@ var Options = new function() {
 		decoration: "decorationSelect"
 		}
 	
-	//just a convenient wrapper
+	//just a convenient alias
 	var styleElements = vestitools_style.styleElements;
 	
 	//and another
