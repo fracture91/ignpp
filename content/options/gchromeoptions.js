@@ -142,9 +142,23 @@ PreferenceView.prototype = {
 		this.container.className = "preference";
 		
 		this.label = document.createElement("label");
-		this.label.textContent = this.model.name;
+		this.label.textContent = this.model.displayName;
 		
-		if(!this.model.multiline) {
+		if(Array.isArray(this.model.selections)) {
+			this.input = document.createElement("select");
+			this.model.selections.forEach(function(e, i, a) {
+				var option = document.createElement("option");
+				if(Array.isArray(e)) {
+					option.textContent = e[0];
+					option.value = e[1];
+					}
+				else {
+					option.textContent = e;
+					}
+				this.input.appendChild(option);
+				}, this);
+			}
+		else if(!this.model.multiline) {
 			this.input = document.createElement("input");
 			if(this.model.type == "boolean") {
 				this.input.type = "checkbox";
@@ -155,6 +169,16 @@ PreferenceView.prototype = {
 			}
 		else {
 			this.input = document.createElement("textarea");
+			}
+			
+		if(this.model.pattern instanceof RegExp) {
+			this.input.pattern = this.model.pattern.source;
+			}
+		if(typeof this.model.min == "number") {
+			this.input.min = this.model.min;
+			}
+		if(typeof this.model.max == "number") {
+			this.input.max = this.model.max;
 			}
 		
 		this.container.appendChild(this.label);
@@ -194,9 +218,44 @@ PreferenceModel = function(name, def) {
 	//call the getter to set lastSavedValue
 	this.value;
 	
+	
+	/*
+	The below is stuff that a rule is meant to change.
+	*/
+	
+	/*
+	A separate display name.
+	*/
+	var displayName;
+	this.__defineGetter__("displayName", function() {
+		if(!defined(displayName)) displayName = this.camelToProper(this.name);
+		return displayName;
+	});
+	this.__defineSetter__("displayName", function(s) {
+		displayName = s;
+	});
+	
+	/*
+	Minimum and maximum values for numbers.
+	*/
+	this.max;
+	this.min;
+	/*
+	A regular expression the pref must match.
+	*/
+	this.pattern;
+	/*
+	An array of selections for select inputs.
+	*/
+	this.selections;
+	
 	}
 	
 PreferenceModel.prototype = {
+	
+	camelToProper: function(s) {
+		return s;
+	},
 	
 	/*
 	Clean a given value, i.e. convert it so that it makes sense for a model of the given type to use
@@ -211,18 +270,48 @@ PreferenceModel.prototype = {
 		
 		switch(type) {
 			case "number":
-				return val/1;
+				val = val/1;
+				break;
 			case "boolean":
-				return !!val;
+				val = !!val;
+				break;
 			case "string":
 				val = val+"";
 				if(!multiline) val = val.replace("\n", "");
-				return val;
+				break;
+			default:
+				return null;
 			}
-			
-		return null;
+		
+		if(this.rangeOverflow(val)) val = this.max;
+		if(this.rangeUnderflow(val)) val = this.min;
+		if(this.patternMismatch(val) || this.selectionMismatch(val)) val = this.def;
+		
+		return val;
 		
 		},
+	
+	rangeOverflow: function(val) {
+		if(!defined(val)) val = this.value;
+		return typeof this.max == "number" && val > this.max;
+	},
+	
+	rangeUnderflow: function(val) {
+		if(!defined(val)) val = this.value;
+		return typeof this.min == "number" && val < this.min;
+	},
+	
+	patternMismatch: function(val) {
+		if(!defined(val)) val = this.value;
+		return this.pattern instanceof RegExp && !val.match(this.pattern);
+	},
+	
+	selectionMismatch: function(val) {
+		if(!defined(val)) val = this.value;
+		return Array.isArray(this.selections) && !this.selections.some(function(e, i, a) {
+			return e == val || Array.isArray(e) && e[1] == val;
+			}, this);
+	},
 	
 	/*
 	Get the value associated with this preference (calls GM_getValue)
@@ -260,18 +349,21 @@ Preferences = new function() {
 	/*
 	Call add using the pairs of values from obj as name: default
 	*/
-	this.addFromObject = function(obj) {
-		for(var i in obj) this.add(i, obj[i]);
+	this.addFromObject = function(obj, rules) {
+		for(var i in obj) this.add(i, obj[i], rules[i]);
 		}
 	
 	/*
 	Add this preference to the options page, replacing a pointer if present, otherwise appending to masterContainer
 	Pointers are elements with the id "pref_preferenceName"
 	*/
-	this.add = function(name, def) {
+	this.add = function(name, def, rule) {
 		
 		if(!this.prefs[name]) {
-			this.prefs[name] = new PreferenceView(new PreferenceModel(name, def));
+			var model = new PreferenceModel(name, def);
+			//everything in the rule gets stuck onto the model
+			for(var i in rule) model[i] = rule[i];
+			this.prefs[name] = new PreferenceView(model);
 			var pointer = document.getElementById("pref_" + name);
 			if(pointer) pointer.parentNode.replaceChild(this.prefs[name].container, pointer);
 			else this.masterContainer.appendChild(this.prefs[name].container);
@@ -359,7 +451,7 @@ window.onload = function(e) {
 	Preferences.closeButton = document.getElementById("closeButton");
 	Preferences.controlLog = document.getElementById("controlLog");
 	
-	Preferences.addFromObject(prefsCatcher);
+	Preferences.addFromObject(prefsCatcher, rules);
 		
 	}
 
@@ -373,6 +465,7 @@ function validateInputHandler(e) {
 	}
 	
 document.addEventListener("keyup", validateInputHandler, true);
+document.addEventListener("click", validateInputHandler, true);
 document.addEventListener("change", validateInputHandler, true);
 
 //handles all the buttons in the #control element
