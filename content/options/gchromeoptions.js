@@ -228,7 +228,7 @@ PreferenceModel = function(name, def) {
 	*/
 	var displayName;
 	this.__defineGetter__("displayName", function() {
-		if(!defined(displayName)) displayName = this.camelToProper(this.name);
+		if(!defined(displayName)) displayName = this.camelToTitle(this.name);
 		return displayName;
 	});
 	this.__defineSetter__("displayName", function(s) {
@@ -253,8 +253,9 @@ PreferenceModel = function(name, def) {
 	
 PreferenceModel.prototype = {
 	
-	camelToProper: function(s) {
-		return s;
+	camelToTitle: function(s) {
+		s = s.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/([A-Z])([A-Z][a-z])/g, "$1 $2");
+		return s.substring(0,1).toUpperCase() + s.substring(1);
 	},
 	
 	/*
