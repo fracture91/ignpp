@@ -194,6 +194,12 @@ PreferenceView.prototype = {
 		if(typeof this.model.max == "number") {
 			this.input.max = this.model.max;
 			}
+		if(typeof this.model.step == "number") {
+			this.input.step = this.model.step;
+			}
+		if(typeof this.model.maxLength == "number") {
+			this.input.maxLength = this.model.maxLength;
+			}
 		
 		this.container.appendChild(this.label);
 		this.container.appendChild(this.input);
@@ -217,11 +223,6 @@ PreferenceModel = function(name, def) {
 	this.def = def;
 	
 	this.type = typeof this.def;
-	
-	/*
-	True if this preference is a string that accepts multiline input, false otherwise
-	*/
-	this.multiline = this.name.indexOf("pretext") != -1;
 	
 	/*
 	The last saved value of this preference
@@ -263,6 +264,11 @@ PreferenceModel = function(name, def) {
 	*/
 	this.selections;
 	
+	/*
+	True if this preference is a string that accepts multiline input, false otherwise
+	*/
+	this.multiline = false;
+	
 	}
 	
 PreferenceModel.prototype = {
@@ -300,6 +306,8 @@ PreferenceModel.prototype = {
 		
 		if(this.rangeOverflow(val)) val = this.max;
 		if(this.rangeUnderflow(val)) val = this.min;
+		if(this.stepMismatch(val)) val = this.roundNearest(val, this.step);
+		if(this.tooLong(val)) val = val.substr(0, this.maxLength);
 		if(this.patternMismatch(val) || this.selectionMismatch(val)) val = this.def;
 		
 		return val;
@@ -316,6 +324,16 @@ PreferenceModel.prototype = {
 		return typeof this.min == "number" && val < this.min;
 	},
 	
+	stepMismatch: function(val) {
+		if(!defined(val)) val = this.value;
+		return typeof this.step == "number" && val % this.step != 0;
+	},
+	
+	tooLong: function(val) {
+		if(!defined(val)) val = this.value;
+		return typeof this.maxLength == "number" && val.length > this.maxLength;
+	},
+	
 	patternMismatch: function(val) {
 		if(!defined(val)) val = this.value;
 		return this.pattern instanceof RegExp && !val.match(this.pattern);
@@ -326,6 +344,15 @@ PreferenceModel.prototype = {
 		return Array.isArray(this.selections) && !this.selections.some(function(e, i, a) {
 			return e == val || Array.isArray(e) && e[1] == val;
 			}, this);
+	},
+	
+	// http://www.hashbangcode.com/blog/javascript-round-nearest-number-367.html
+	roundNearest: function roundNearest(num, acc){
+		if ( acc < 0 ) {
+			return Math.round(num*acc)/acc;
+		} else {
+			return Math.round(num/acc)*acc;
+		}
 	},
 	
 	/*
