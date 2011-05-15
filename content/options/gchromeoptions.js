@@ -42,6 +42,9 @@ Must be given a PreferenceModel to work off of (or some equivalent)
 PreferenceView = function(model) {
 	
 	this.model = model;
+	this.container;
+	this.label;
+	this.input;
 	
 	/*
 	Controls appearance of validity - nothing is actually checked here
@@ -58,8 +61,19 @@ PreferenceView = function(model) {
 		return valid;
 		});
 	
-	this.make();
-	this.load();
+	/*
+	Title that overrides model's title.
+	*/
+	var title;
+	this.__defineGetter__("title", function() {
+		return defined(title) ? title : this.model.title;
+		});
+	this.__defineSetter__("title", function(s) {
+		title = s;
+		if(this.label) {
+			this.label.textContent = this.title;
+			}
+		});
 
 	}
 	
@@ -142,7 +156,7 @@ PreferenceView.prototype = {
 		this.container.className = "preference";
 		
 		this.label = document.createElement("label");
-		this.label.textContent = this.model.displayName;
+		this.label.textContent = this.title;
 		
 		if(Array.isArray(this.model.selections)) {
 			this.input = document.createElement("select");
@@ -224,15 +238,15 @@ PreferenceModel = function(name, def) {
 	*/
 	
 	/*
-	A separate display name.
+	A separate title to display instead of name.
 	*/
-	var displayName;
-	this.__defineGetter__("displayName", function() {
-		if(!defined(displayName)) displayName = this.camelToTitle(this.name);
-		return displayName;
+	var title;
+	this.__defineGetter__("title", function() {
+		if(!defined(title)) title = this.camelToTitle(this.name);
+		return title;
 	});
-	this.__defineSetter__("displayName", function(s) {
-		displayName = s;
+	this.__defineSetter__("title", function(s) {
+		title = s;
 	});
 	
 	/*
@@ -361,13 +375,28 @@ Preferences = new function() {
 	this.add = function(name, def, rule) {
 		
 		if(!this.prefs[name]) {
+			
 			var model = new PreferenceModel(name, def);
+			var view = this.prefs[name] = new PreferenceView(model);
 			//everything in the rule gets stuck onto the model
 			for(var i in rule) model[i] = rule[i];
-			this.prefs[name] = new PreferenceView(model);
+			
 			var pointer = document.getElementById("pref_" + name);
-			if(pointer) pointer.parentNode.replaceChild(this.prefs[name].container, pointer);
-			else this.masterContainer.appendChild(this.prefs[name].container);
+			//title of pointer overrides title in rule
+			if(pointer && pointer.hasAttribute("title")) {
+				view.title = pointer.title;
+				}
+			
+			view.make();
+			view.load();
+			
+			if(pointer) {
+				pointer.parentNode.replaceChild(view.container, pointer);
+				}
+			else {
+				this.masterContainer.appendChild(view.container);
+				}
+			
 			}
 		
 		}

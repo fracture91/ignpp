@@ -1,12 +1,12 @@
 var rules = {};
 
 rules.UCcolor = {
-	displayName: "Text",
+	title: "Text",
 	pattern: /test/
 }
 
 rules.UCweight = {
-	displayName: "Weight",
+	title: "Weight",
 	selections: [["Default", "null"], ["Normal", "normal"], ["Bold", "bold"]]
 }
 
