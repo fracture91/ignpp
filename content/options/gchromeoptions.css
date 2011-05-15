@@ -79,6 +79,13 @@ fieldset > legend {
 font-weight: bold;
 }
 
+p {
+margin-left: 20px;
+max-width: 600px;
+min-width: 305px;
+font-size: 0.9em;
+}
+
 .preference {
 margin: 5px;
 padding: 5px;
@@ -86,7 +93,7 @@ padding: 5px;
 
 .preference > label {
 margin: 5px;
-font-size: 0.67em;
+font-size: 0.8em;
 font-weight: bold;
 }
 
@@ -98,6 +105,8 @@ display: block;
 
 .preference > input[type="checkbox"] {
 float: left;
+position: relative;
+top: -1px;
 }
 
 .preference.invalid > label {
@@ -208,7 +217,13 @@ display: none;
 padding: 10px;
 position: relative;
 overflow: auto;
+max-width: 1000px;
+min-width: 365px;
 /*background-color: #F4F6FC;*/
+}
+
+body > .tabBox > section[tab] {
+min-width: 375px;
 }
 
 .tabBox > section[tab][selected] {
@@ -217,6 +232,7 @@ display: block;
 
 .tabBox.verticalTabs > section[tab] {
 float: left;
+width: 70%;
 }
 
 #usercolorsDisabled {
@@ -231,4 +247,5 @@ text-align: center;
 padding: 3em 1em;
 font-weight: bold;
 font-size: 1em;
+z-index: 1;
 }

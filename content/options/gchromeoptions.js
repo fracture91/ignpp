@@ -419,6 +419,9 @@ Preferences = new function() {
 			
 			if(pointer) {
 				pointer.parentNode.replaceChild(view.container, pointer);
+				while(pointer.firstChild) {
+					view.container.appendChild(pointer.firstChild);
+					}
 				}
 			else {
 				this.masterContainer.appendChild(view.container);
