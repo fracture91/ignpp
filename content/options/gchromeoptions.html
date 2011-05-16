@@ -60,62 +60,88 @@
 					<a tab="redirection" href>Redirection</a>
 					<a tab="integration" href>Integration</a>
 					<a tab="autocensor" href>Autocensor</a>
-					<a tab="wysiwyg" href>WYSIWYG</a>
+					<a tab="editors" href>Editors</a>
 					<a tab="pretext" href>Pretext</a>
 					<a tab="selectionQuote" href>Selection Quote</a>
 					<div class="clear"></div>
 				</nav>
 				<section tab="general" selected="true">
-					<div id="pref_autoClose">
-						<p>Automatically close panels after posting.  Content is lost.</p>
-					</div>
-					<div id="pref_scrollToPanels"></div>
+					<fieldset>
+						<legend>General</legend>
+						<div id="pref_autoClose">
+							<p>Automatically close panels after successfully posting.  The content of the panel is deleted.</p>
+						</div>
+						<div id="pref_scrollToPanels">
+							<p>If you open a panel that is not entirely visible, this will scroll to the panel so it is visible.</p>
+						</div>
+					</fieldset>
 				</section>
 				<section tab="linkHijacking">
-					<div id="pref_topicHijacking"></div>
-					<div id="pref_replyHijacking"></div>
-					<div id="pref_quoteHijacking"></div>
-					<div id="pref_PMHijacking"></div>
-					<div id="pref_editHijacking"></div>
+					<fieldset>
+						<legend>Link Hijacking</legend>
+						<div id="pref_topicHijacking"></div>
+						<div id="pref_replyHijacking"></div>
+						<div id="pref_quoteHijacking"></div>
+						<div id="pref_PMHijacking"></div>
+						<div id="pref_editHijacking"></div>
+					</fieldset>
 				</section>
 				<section tab="redirection">
-					<div id="pref_topicRedirection"></div>
-					<div id="pref_replyRedirection"></div>
-					<div id="pref_replyWERedirection"></div>
-					<div id="pref_editRedirection"></div>
-					<div id="pref_goHome"></div>
+					<fieldset>
+						<legend>Redirection</legend>
+						<div id="pref_topicRedirection"></div>
+						<div id="pref_replyRedirection"></div>
+						<div id="pref_replyWERedirection"></div>
+						<div id="pref_editRedirection"></div>
+						<div id="pref_goHome"></div>
+					</fieldset>
 				</section>
 				<section tab="integration">
-					<div id="pref_topicIntegration"></div>
-					<div id="pref_replyIntegration"></div>
-					<div id="pref_PMIntegration"></div>
-					<div id="pref_panelFollow"></div>
+					<fieldset>
+						<legend>Integration</legend>
+						<div id="pref_topicIntegration"></div>
+						<div id="pref_replyIntegration"></div>
+						<div id="pref_PMIntegration"></div>
+						<div id="pref_panelFollow"></div>
+					</fieldset>
 				</section>
 				<section tab="autocensor">
-					<div id="pref_autocensorPosts"></div>
-					<div id="pref_autocensorPMs"></div>
-					<div id="pref_autocensorContextual"></div>
-					<div id="pref_autocensorAsterisks"></div>
+					<fieldset>
+						<legend>Autocensor</legend>
+						<div id="pref_autocensorPosts"></div>
+						<div id="pref_autocensorPMs"></div>
+						<div id="pref_autocensorContextual"></div>
+						<div id="pref_autocensorAsterisks"></div>
+					</fieldset>
 				</section>
-				<section tab="wysiwyg">
-					<div id="pref_wysiwygDefault"></div>
-					<div id="pref_overlayWysiwyg"></div>
-					<div class="hidden">
-						<div id="pref_lastHighlightWysiwyg"></div>
-						<div id="pref_lastColorWysiwyg"></div>
-					</div>
+				<section tab="editors">
+					<fieldset>
+						<legend>Editors</legend>
+						<div id="pref_wysiwygDefault"></div>
+						<div id="pref_overlayWysiwyg"></div>
+						<div class="hidden">
+							<div id="pref_lastHighlightWysiwyg"></div>
+							<div id="pref_lastColorWysiwyg"></div>
+						</div>
+					</fieldset>
 				</section>
 				<section tab="pretext">
-					<div id="pref_pretextStart"></div>
-					<div id="pref_pretextBefore"></div>
-					<div id="pref_pretextAfter"></div>
-					<div id="pref_pretextEnd"></div>
-					<div id="pref_pretextEdit"></div>
+					<fieldset>
+						<legend>Pretext</legend>
+						<div id="pref_pretextStart"></div>
+						<div id="pref_pretextBefore"></div>
+						<div id="pref_pretextAfter"></div>
+						<div id="pref_pretextEnd"></div>
+						<div id="pref_pretextEdit"></div>
+					</fieldset>
 				</section>
 				<section tab="selectionQuote">
-					<div id="pref_selectionQuote"></div>
-					<div id="pref_strictSelectionQuote"></div>
-					<div id="pref_strictSelectionQuoteAuthor"></div>
+					<fieldset>
+						<legend>Selection Quote</legend>
+						<div id="pref_selectionQuote"></div>
+						<div id="pref_strictSelectionQuote"></div>
+						<div id="pref_strictSelectionQuoteAuthor"></div>
+					</fieldset>
 				</section>
 			</div>
 			<div class="clear"></div>
@@ -138,52 +164,73 @@
 					<div class="clear"></div>
 				</nav>
 				<section tab="autorefresh" selected="true">
-					<div id="pref_autorefreshTopics"></div>
-					<div id="pref_autorefreshTopicsInt"></div>
-					<div id="pref_autorefreshReplies"></div>
-					<div id="pref_autorefreshRepliesInt"></div>
-					<div id="pref_autorefreshRepliesAfterPosting"></div>
-					<div id="pref_autorefreshEdits"></div>
-					<div id="pref_autorefreshPolls"></div>
-					<div id="pref_autorefreshRecent"></div>
-					<div id="pref_autorefreshPMCount"></div>
-					<div id="pref_autorefreshPMCountInt"></div>
+					<fieldset>
+						<legend>Autorefresh</legend>
+						<div id="pref_autorefreshTopics"></div>
+						<div id="pref_autorefreshTopicsInt"></div>
+						<div id="pref_autorefreshReplies"></div>
+						<div id="pref_autorefreshRepliesInt"></div>
+						<div id="pref_autorefreshRepliesAfterPosting"></div>
+						<div id="pref_autorefreshEdits"></div>
+						<div id="pref_autorefreshPolls"></div>
+						<div id="pref_autorefreshRecent"></div>
+						<div id="pref_autorefreshPMCount"></div>
+						<div id="pref_autorefreshPMCountInt"></div>
+					</fieldset>
 				</section>
 				<section tab="wuls">
-					<div id="pref_WULLinks"></div>
-					<div id="pref_autoWUL"></div>
+					<fieldset>
+						<legend>WULs</legend>
+						<div id="pref_WULLinks"></div>
+						<div id="pref_autoWUL"></div>
+					</fieldset>
 				</section>
 				<section tab="ignore">
-					<div id="pref_ignoreReplies"></div>
-					<div id="pref_ignoreTopics"></div>
-					<div id="pref_ignoreList"></div>
-					<div id="pref_ignoreLinks"></div>
+					<fieldset>
+						<legend>Ignore Users</legend>
+						<div id="pref_ignoreReplies"></div>
+						<div id="pref_ignoreTopics"></div>
+						<div id="pref_ignoreList"></div>
+						<div id="pref_ignoreLinks"></div>
+					</fieldset>
 				</section>
 				<section tab="position">
-					<div id="pref_floatX"></div>
-					<div id="pref_floatY"></div>
-					<div id="pref_floatXT"></div>
-					<div id="pref_floatYT"></div>
+					<fieldset>
+						<legend>Position</legend>
+						<div id="pref_floatX"></div>
+						<div id="pref_floatY"></div>
+						<div id="pref_floatXT"></div>
+						<div id="pref_floatYT"></div>
+					</fieldset>
 				</section>
 				<section tab="integratedTools">
-					<div id="pref_integrateControls"></div>
-					<div id="pref_vestiWikiSearch"></div>
-					<div id="pref_googleSearch"></div>
-					<div id="pref_searchInTab"></div>
-					<div id="pref_extraBoardOptions"></div>
+					<fieldset>
+						<legend>Integrated Tools</legend>
+						<div id="pref_integrateControls"></div>
+						<div id="pref_vestiWikiSearch"></div>
+						<div id="pref_googleSearch"></div>
+						<div id="pref_searchInTab"></div>
+						<div id="pref_extraBoardOptions"></div>
+					</fieldset>
 				</section>
 				<section tab="kbBrowsing">
-					<div id="pref_keyboardBrowsing"></div>
+					<fieldset>
+						<legend>Keyboard Browsing</legend>
+						<div id="pref_keyboardBrowsing"></div>
+					</fieldset>
 				</section>
 				<section tab="miscellaneous">
-					<div id="pref_missingLinks"></div>
-					<div id="pref_wikiLinks"></div>
-					<div id="pref_replyNumbers"></div>
-					<div class="hidden">
-						<div id="pref_postsPerPage"></div>
-					</div>
-					<div id="pref_scrollToReplyOnLoad"></div>
-					<div id="pref_scrollToReplyOnClick"></div>
+					<fieldset>
+						<legend>Miscellaneous</legend>
+						<div id="pref_missingLinks"></div>
+						<div id="pref_wikiLinks"></div>
+						<div id="pref_replyNumbers"></div>
+						<div class="hidden">
+							<div id="pref_postsPerPage"></div>
+						</div>
+						<div id="pref_scrollToReplyOnLoad"></div>
+						<div id="pref_scrollToReplyOnClick"></div>
+					</fieldset>
 				</section>
 			</div>
 			<div class="clear"></div>
@@ -203,9 +250,12 @@
 					<iframe src="/content/credits.html"></iframe>
 				</section>
 				<section tab="dev">
-					<div id="pref_devConsole"></div>
-					<div id="pref_performanceProfiling"></div>
-					<div id="pref_logMessages"></div>
+					<fieldset>
+						<legend>Dev</legend>
+						<div id="pref_devConsole"></div>
+						<div id="pref_performanceProfiling"></div>
+						<div id="pref_logMessages"></div>
+					</fieldset>
 				</section>
 			</div>
 			<div class="clear"></div>
