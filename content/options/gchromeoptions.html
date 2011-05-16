@@ -79,46 +79,112 @@
 				<section tab="linkHijacking">
 					<fieldset>
 						<legend>Link Hijacking</legend>
-						<div id="pref_topicHijacking"></div>
-						<div id="pref_replyHijacking"></div>
-						<div id="pref_quoteHijacking"></div>
-						<div id="pref_PMHijacking"></div>
-						<div id="pref_editHijacking"></div>
+							<p>Clicking on links makes a panel appear instead of going to the normal post form.
+							Note that disabling these preferences will prevent you from accessing the core
+							functionality of IGN++.  The "Quick" Reply and Quote buttons, which open up
+							IGN's default quick reply, are never hijacked.</p>
+						<div id="pref_topicHijacking">
+							<p>The "Post New Topic" link on boards opens a topic panel.</p>
+						</div>
+						<div id="pref_replyHijacking">
+							<p>The "Reply" links below posts and the main "Post Reply" link in threads open reply panels.</p>
+						</div>
+						<div id="pref_quoteHijacking">
+							<p>The "Quote" links below posts open reply panels with the post quoted inside.
+							Links are also subject to Selection Quote rules.</p>
+						</div>
+						<div id="pref_PMHijacking">
+							<p>On the Classic theme, "Private Message" links below posts open PM panels.
+							On other themes, you can hover over the user's icon to reach this link instead.
+							"Reply" links below PMs also open PM panels.</p>
+						</div>
+						<div id="pref_editHijacking">
+							<p>"Edit" links below posts open edit panels.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="redirection">
 					<fieldset>
 						<legend>Redirection</legend>
-						<div id="pref_topicRedirection"></div>
-						<div id="pref_replyRedirection"></div>
-						<div id="pref_replyWERedirection"></div>
-						<div id="pref_editRedirection"></div>
-						<div id="pref_goHome"></div>
+							<p>This refers to bringing you to the page that IGN would normally bring
+							you to after posting something.  Only applies to actions performed by panels.
+							It's not a good idea to enable redirection if you open multiple panels
+							at once, since the content of any open panels is lost upon redirection.</p>
+						<div id="pref_topicRedirection">
+							<p>After posting a topic, you are brought to the topic's page.</p>
+						</div>
+						<div id="pref_replyRedirection">
+							<p>After posting a reply, you are brought to the page which that reply appears on.</p>
+						</div>
+						<div id="pref_replyWERedirection" title="Reply Without Entering Redirection">
+							<p>After posting a reply without entering the thread, do the same thing reply redirection does.</p>
+						</div>
+						<div id="pref_editRedirection">
+							<p>After posting an edit, you are brought to the page which your edit appears on.</p>
+						</div>
+						<div id="pref_goHome">
+							<p>For each of the above, redirect to the target page's board instead.
+							For example, if Topic redirection is on and you post a topic to the Vesti,
+							then you will be redirected to the Vesti.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="integration">
 					<fieldset>
 						<legend>Integration</legend>
-						<div id="pref_topicIntegration"></div>
-						<div id="pref_replyIntegration"></div>
-						<div id="pref_PMIntegration"></div>
-						<div id="pref_panelFollow"></div>
+							<p>Integration refers to the placement of panels within the page as opposed to floating
+							above it.  If integration is disabled, panels will float above the page at the position
+							determined by the Position preferences.  Edit panels are always integrated so you can
+							easily determine which post you are editing.  PM panels opened on PM pages are always floating, as are Reply Without Entering panels.</p>
+						<div id="pref_topicIntegration">
+							<p>Panels opened via Topic Hijacking are integrated.</p>
+						</div>
+						<div id="pref_replyIntegration">
+							<p>Panels opened via Reply Hijacking are integrated.</p>
+						</div>
+						<div id="pref_PMIntegration">
+							<p>Panels opened via PM Hijacking are integrated.</p>
+						</div>
+						<div id="pref_panelFollow">
+							<p>When you quote multiple people, the open panel moves so it's under the quoted post.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="autocensor">
 					<fieldset>
 						<legend>Autocensor</legend>
-						<div id="pref_autocensorPosts"></div>
-						<div id="pref_autocensorPMs"></div>
-						<div id="pref_autocensorContextual"></div>
-						<div id="pref_autocensorAsterisks"></div>
+							<p>The autocensor will automatically censor bannable words in your text.
+							Censoring occurs when the Post button in a panel is focused (in other words,
+							when you tab over to it or click it).</p>
+							<p>The censor is not perfect.  You are responsible for what you post.</p>
+						<div id="pref_autocensorPosts" title="Censor Posts">
+							<p>Autocensor posts (Topics, Replies, Edits).</p>
+						</div>
+						<div id="pref_autocensorPMs" title="Censor PMs"></div>
+						<div id="pref_autocensorContextual" title="Censor Contextually">
+							<p>Try to censor words which are only bannable in certain contexts.</p>
+						</div>
+						<div id="pref_autocensorAsterisks" title="Use Asterisks">
+							<p>Use asterisks to censor the letters of bannable words.
+							If disabled, IGN++ will instead replace bannable words with similar but non-bannable words.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="editors">
 					<fieldset>
 						<legend>Editors</legend>
-						<div id="pref_wysiwygDefault"></div>
-						<div id="pref_overlayWysiwyg"></div>
+							<p>Editors are the areas in panels which include the formatting buttons, faces, and WYSIWYG/Code inputs.</p>
+						<div id="pref_wysiwygDefault" title="Use WYSIWYG Mode By Default">
+							<p>If this is enabled, editors will, by default, use the What-You-See-Is-What-You-Get view.
+							In this view, you see your post as it will appear when you post it - images and formatting
+							are visible, etc.  If this is disabled, editors will instead use the Code view.  In the Code
+							view you can see the raw boardcode that will be posted.  This allows finer control of the
+							content of your post, but isn't as easy to use.  Note that you can switch between the views
+							freely - this preference just controls the default state.</p>
+						</div>
+						<div id="pref_overlayWysiwyg" title="Overlay Editors">
+							<p>If enabled, IGN++ will add its editor to the standard IGN post forms.</p>
+						</div>
 						<div class="hidden">
 							<div id="pref_lastHighlightWysiwyg"></div>
 							<div id="pref_lastColorWysiwyg"></div>
@@ -128,19 +194,42 @@
 				<section tab="pretext">
 					<fieldset>
 						<legend>Pretext</legend>
-						<div id="pref_pretextStart"></div>
-						<div id="pref_pretextBefore"></div>
-						<div id="pref_pretextAfter"></div>
-						<div id="pref_pretextEnd"></div>
-						<div id="pref_pretextEdit"></div>
+							<p>Pretext refers to content which IGN++ can add to editors for you.
+							You can use the [cursor] tag to indicate where the cursor should be placed after inserting text.
+							You can use the [author] tag in the Before and After fields to refer to the author of the quoted post.</p>
+						<div id="pref_pretextStart" title="Start">
+							<p>This text will be added to the start of every post.</p>
+						</div>
+						<div id="pref_pretextEnd" title="End">
+							<p>This text will be added to the end of every post.  IGN++ will also try to
+							keep it at the end when you quote people.</p>
+						</div>
+						<div id="pref_pretextBefore" title="Before">
+							<p>This text is added before quoted text.  [quote] tags are not included implicitly!</p>
+						</div>
+						<div id="pref_pretextAfter" title="After">
+							<p>This text is added after quoted text.  [/quote] tags are not included implicitly!</p>
+						</div>
+						<div id="pref_pretextEdit" title="Edit">
+							<p>This text will be added at the end of your post when you edit it.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="selectionQuote">
 					<fieldset>
-						<legend>Selection Quote</legend>
-						<div id="pref_selectionQuote"></div>
-						<div id="pref_strictSelectionQuote"></div>
-						<div id="pref_strictSelectionQuoteAuthor"></div>
+						<legend><div id="pref_selectionQuote"></div></legend>
+							<p>If you click "Quote" under a post when part of the post is selected, only the selected part is quoted.  Note that you can make multiple selections by holding Control.
+							IGN++ will quote each selection.</p>
+						<div id="pref_strictSelectionQuote" title="Strict Selection">
+							<p>If this is enabled, you can only select inside the post you are trying to quote.
+							If a selection is made outside of the post and you try to quote it, the full post
+							is quoted as if Selection Quote were off.</p>
+						</div>
+						<div id="pref_strictSelectionQuoteAuthor" title="Strict Author">
+							<p>If Strict Selection is off and you select outside of the post you're quoting,
+							IGN++ will always try to use the correct username as the author.  If this is disabled,
+							IGN++ will just use the author of the post whose button you're clicking.</p>
+						</div>
 					</fieldset>
 				</section>
 			</div>

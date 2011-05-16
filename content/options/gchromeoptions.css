@@ -73,10 +73,15 @@ min-width: 300px;
 
 fieldset {
 float: left;
+border-color: #B5C7DE;
+border-style: solid;
+border-width: 1px;
 }
 
-fieldset > legend {
+fieldset > legend ,
+fieldset > legend > .preference > label {
 font-weight: bold;
+font-size: 1em;
 }
 
 p {
@@ -84,6 +89,18 @@ margin-left: 20px;
 max-width: 600px;
 min-width: 305px;
 font-size: 0.9em;
+opacity: 0.75;
+}
+
+fieldset > p {
+margin-bottom: 2em;
+}
+
+textarea {
+margin: 2px !important;
+width: 300px;
+height: 50px;
+max-width: 90%;
 }
 
 .preference {
