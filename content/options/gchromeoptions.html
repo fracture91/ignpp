@@ -255,70 +255,158 @@
 				<section tab="autorefresh" selected="true">
 					<fieldset>
 						<legend>Autorefresh</legend>
-						<div id="pref_autorefreshTopics"></div>
-						<div id="pref_autorefreshTopicsInt"></div>
-						<div id="pref_autorefreshReplies"></div>
-						<div id="pref_autorefreshRepliesInt"></div>
-						<div id="pref_autorefreshRepliesAfterPosting"></div>
-						<div id="pref_autorefreshEdits"></div>
-						<div id="pref_autorefreshPolls"></div>
-						<div id="pref_autorefreshRecent"></div>
-						<div id="pref_autorefreshPMCount"></div>
-						<div id="pref_autorefreshPMCountInt"></div>
+						<p>Automatically refresh the content of the page.
+						Refreshes occur after some interval, measured in milliseconds.
+						Autorefresh can be temporarily disabled on a page by pressing 'A'.
+						A refresh can be triggered by pressing 'R'.
+						Most refreshes are indicated by a green border around the page.</p>
+						<fieldset>
+							<legend><div id="pref_autorefreshTopics" title="Topics"></div></legend>
+							<p>Automatically refresh the topics on a board.
+							If you hover your mouse over the topics area, it won't refresh.</p>
+							<div id="pref_autorefreshTopicsInt" title="Interval"></div>
+						</fieldset>
+						<fieldset>
+							<legend><div id="pref_autorefreshReplies" title="Replies"></div></legend>
+							<p>Automatically refresh the replies in a topic.
+							New replies will have a yellow gradient on the top.</p>
+							<div id="pref_autorefreshRepliesInt" title="Interval"></div>
+							<div id="pref_autorefreshRepliesAfterPosting" title="Refresh After Posting">
+								<p>After successfully posting, trigger a refresh so you can see your reply immediately.</p>
+							</div>
+							<div id="pref_autorefreshEdits" title="Show Edits">
+								<p>If a post is edited, show the new post content.
+								Edited posts have a blue gradient on the top.</p>
+							</div>
+							<div id="pref_autorefreshPolls" title="Refresh Polls">
+								<p>If a poll is on the page, refresh its contents so you can see changes as they occur.</p>
+							</div>
+						</fieldset>
+						<fieldset>
+							<legend><div id="pref_autorefreshPMCount" title="PM Count"></div></legend>
+							<p>Refresh the unread Private Message count which appears over your icon towards the top of the page.</p>
+							<div id="pref_autorefreshPMCountInt" title="Interval"></div>
+						</fieldset>
+						<div id="pref_autorefreshRecent" title="Recent Posts">
+							<p>Refresh the contents of the Recent Posts area at the bottom of the page.
+							Refreshes at the same interval that topics or replies refresh at (depending on what page you're on).</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="wuls">
 					<fieldset>
 						<legend>WULs</legend>
-						<div id="pref_WULLinks"></div>
-						<div id="pref_autoWUL"></div>
+						<p>Stands for Watched User List.  WULs are the de facto currency of the boards.
+						Adding a user to your Watched User List (i.e. WULing them or giving them a WUL)
+						is also used as a sign of respect or thanks.</p>
+						<div id="pref_WULLinks">
+							<p>Show links to WUL the author below posts in threads.</p>
+						</div>
+						<div id="pref_autoWUL">
+							<p>Automate the WULing process when you click on a WUL link.
+							The link background will turn white, then yellow, then green.
+							When it's green, WULing is complete.  Don't leave the page before then.
+							You can De-WUL somebody by Alt + clicking a WUL link.
+							The link border is blue if you're WULing, purple if De-WULing.
+							The border is dashed if this action will not change anything (i.e. you're WULing someone you've already WUL'd).</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="ignore">
 					<fieldset>
 						<legend>Ignore Users</legend>
-						<div id="pref_ignoreReplies"></div>
-						<div id="pref_ignoreTopics"></div>
-						<div id="pref_ignoreList"></div>
-						<div id="pref_ignoreLinks"></div>
+						<p>IGN++ lets you ignore users so you don't see their replies and/or, optionally, their topics.
+						You can add/remove users from your ignore list with the links below a user's post
+						or by manually editing the list below.</p>
+						<div id="pref_ignoreReplies">
+							<p>Hide replies posted by users on your ignore list.</p>
+						</div>
+						<div id="pref_ignoreTopics">
+							<p>Hide topics posted by users on your ignore list.</p>
+						</div>
+						<div id="pref_ignoreList">
+							<p>This shows you which users are on your ignore list.  It is a comma-separated list of usernames.
+							Usernames are 3-20 characters long and can contain letters, numbers, underscores, periods, and dashes.</p>
+						</div>
+						<div id="pref_ignoreLinks">
+							<p>Show links to Ignore/Unignore and Show/Hide posts.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="position">
 					<fieldset>
 						<legend>Position</legend>
-						<div id="pref_floatX"></div>
-						<div id="pref_floatY"></div>
-						<div id="pref_floatXT"></div>
-						<div id="pref_floatYT"></div>
+						<p>The position of floating panels measured by the distance, in pixels, between the bottom left corner
+						of the screen and the bottom left corner of the panel.</p>
+						<fieldset>
+							<legend>Within Topics</legend>
+							<p>The position when on a topic page.</p>
+							<div id="pref_floatXT" title="Horizontal"></div>
+							<div id="pref_floatYT" title="Vertical"></div>
+						</fieldset>
+						<fieldset>
+							<legend>Elsewhere</legend>
+							<p>The position when on all other pages.</p>
+							<div id="pref_floatX" title="Horizontal"></div>
+							<div id="pref_floatY" title="Vertical"></div>
+						</fieldset>
 					</fieldset>
 				</section>
 				<section tab="integratedTools">
 					<fieldset>
 						<legend>Integrated Tools</legend>
-						<div id="pref_integrateControls"></div>
-						<div id="pref_vestiWikiSearch"></div>
-						<div id="pref_googleSearch"></div>
-						<div id="pref_searchInTab"></div>
-						<div id="pref_extraBoardOptions"></div>
+						<div id="pref_integrateControls">
+							<p>Add controls for opening panels to the Boards drop-down menu in the navigation area of the page.</p>
+						</div>
+						<div id="pref_vestiWikiSearch">
+							<p>Add a
+							<a href="http://vestiwiki.yabd.org/wiki/index.php?title=Main_Page" target="_blank">Vesti Wiki</a>
+							search button to the board search area.</p>
+						</div>
+						<div id="pref_googleSearch">
+							<p>Redirect all board searches to a site-specific Google search.</p>
+						</div>
+						<div id="pref_searchInTab">
+							<p>Open all search results in a new tab.</p>
+						</div>
+						<div id="pref_extraBoardOptions">
+							<p>Add a number of helpful links to the Boards drop-down menu.</p>
+						</div>
 					</fieldset>
 				</section>
 				<section tab="kbBrowsing">
 					<fieldset>
-						<legend>Keyboard Browsing</legend>
-						<div id="pref_keyboardBrowsing"></div>
+						<legend><div id="pref_keyboardBrowsing"></div></legend>
+						<p>Lets you browse the boards without a mouse.
+						This feature is incomplete and broken in many ways.  It will probably be removed in a later version.</p>
 					</fieldset>
 				</section>
 				<section tab="miscellaneous">
 					<fieldset>
 						<legend>Miscellaneous</legend>
-						<div id="pref_missingLinks"></div>
-						<div id="pref_wikiLinks"></div>
-						<div id="pref_replyNumbers"></div>
+						<div id="pref_missingLinks" title="Restore Missing Links">
+							<p>If the reply, quote, or edit links are missing from a post, like in a locked thread, 
+							then add them back in with a lighter color and dashed border.
+							The links may not work, but can be useful for quoting a post in a locked thread.</p>
+						</div>
+						<div id="pref_wikiLinks">
+							<p>Show links to a user's Vesti Wiki page below their post.</p>
+						</div>
+						<div id="pref_replyNumbers">
+							<p>Show ordinal numbers for each reply in a thread.</p>
+						</div>
 						<div class="hidden">
 							<div id="pref_postsPerPage"></div>
 						</div>
-						<div id="pref_scrollToReplyOnLoad"></div>
-						<div id="pref_scrollToReplyOnClick"></div>
+						<div id="pref_scrollToReplyOnLoad">
+							<p>If you have arrived on a page whose URL contains a reply ID (.../r1234567/),
+							scroll to the reply with the given ID if it exists.</p>
+						</div>
+						<div id="pref_scrollToReplyOnClick">
+							<p>If you click on a link to the thread you are currently in, and the link contains
+							a reply ID, and the reply with the given ID exists on the page you're viewing,
+							then scroll to the reply with the given ID instead of navigating to the URL.</p>
+						</div>
 					</fieldset>
 				</section>
 			</div>

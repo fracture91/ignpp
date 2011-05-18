@@ -21,6 +21,7 @@ body {
 margin-top: 0;
 padding-top: 0;
 font-family: Arial, sans-serif;
+min-width: 542px;
 }
 
 header {
@@ -78,6 +79,10 @@ border-style: solid;
 border-width: 1px;
 }
 
+fieldset:not(:last-child) {
+margin-bottom: 2em;
+}
+
 fieldset > legend ,
 fieldset > legend > .preference > label {
 font-weight: bold;
@@ -94,6 +99,10 @@ opacity: 0.75;
 
 fieldset > p {
 margin-bottom: 2em;
+}
+
+section[tab="position"] > fieldset > fieldset > p {
+min-width: 200px;
 }
 
 textarea {
