@@ -1,7 +1,8 @@
 var rules = {};
 
 rules.lastUsercolorCheck = {
-	min: 0
+	min: 0,
+	step: 1
 }
 
 rules.UCcolor = rules.UCbgcolor = rules.UCbordercolor = {
@@ -27,7 +28,8 @@ rules.pretextStart = rules.pretextEnd = rules.pretextBefore = rules.pretextAfter
 }
 
 rules.autorefreshTopicsInt = rules.autorefreshRepliesInt = autorefreshPMCountInt = {
-	min: 1000
+	min: 1000,
+	step: 1
 }
 
 rules.ignoreList = {
@@ -36,7 +38,7 @@ rules.ignoreList = {
 		val = val.split(",");
 		for(var i=0, len=val.length; i<len; i++) {
 			if(!val[i].match(this.customPattern)) {
-				return '"' + val[i] + '" is not a valid username (must match ' + this.customPattern.source + " )";
+				return '"' + val[i] + '" is not a valid username (must match ' + this.customPattern + " ).";
 			}
 		}
 		return false;

@@ -45,6 +45,18 @@ PreferenceView = function(model) {
 	this.container;
 	this.label;
 	this.input;
+	this.controls;
+	this.errorOutput;
+	
+	/*
+	The errors that the input currently has.
+	*/
+	var errors = {};
+	this.__defineGetter__("errors", function() { return errors; });
+	this.__defineSetter__("errors", function(o) {
+		this.handleErrors(o);
+		errors = o;
+		});
 	
 	/*
 	Controls appearance of validity - nothing is actually checked here
@@ -93,17 +105,18 @@ PreferenceView.prototype = {
 	Set the currently inputted value, the given value is cleaned beforehand
 	*/
 	set value(v) {
-		v = this.model.clean(v);
+		v = this.model.clean(v).value;
 		if(this.model.type=="boolean") {
 			return this.input.checked = v;
 			}
 		//since it has been cleaned...
 		this.valid = true;
+		this.errors = {};
 		return this.input.value = v;
 		},
 	
 	/*
-	The currently inputted value, but cleaned
+	This view's model's clean method called with the currently inputted value.
 	*/
 	get clean() {
 		return this.model.clean(this.value);
@@ -113,8 +126,10 @@ PreferenceView.prototype = {
 	Returns true if the current input is valid, false otherwise
 	*/
 	validate: function() {
-		if(this.clean != this.value) return this.valid = false;
-		return this.valid = true;
+		var clean = this.clean;
+		var valid = clean.value == this.value
+		this.errors = valid ? {} : clean.errors;
+		return this.valid = valid;
 		},
 		
 	/*
@@ -135,14 +150,14 @@ PreferenceView.prototype = {
 	True if clean is different from the model's value, false otherwise
 	*/
 	get changed() {
-		return this.model.value != this.clean;
+		return this.model.value != this.clean.value;
 		},
 		
 	/*
 	True if clean is different from the last value saved to the model, false otherwise
 	*/
 	get changedFromLastSaved() {
-		return this.model.lastSavedValue != this.clean;
+		return this.model.lastSavedValue != this.clean.value;
 		},
 		
 	/*
@@ -200,9 +215,67 @@ PreferenceView.prototype = {
 		if(typeof this.model.maxLength == "number") {
 			this.input.maxLength = this.model.maxLength;
 			}
+			
+		this.errorOutput = document.createElement("ul");
+		this.errorOutput.className = "errors";
 		
 		this.container.appendChild(this.label);
 		this.container.appendChild(this.input);
+		this.container.appendChild(this.errorOutput);
+		
+		},
+	
+	/*
+	Fill this.errorOutput with error messages based on the object passed in.
+	*/
+	handleErrors: function(errors) {
+		//make must be called beforehand
+		if(!defined(this.errorOutput)) return;
+		
+		var out = document.createElement("ul");
+		
+		function onErr(t) {
+			var li = document.createElement("li");
+			li.textContent = t;
+			out.appendChild(li);
+			}
+		
+		for(var i in errors) {
+			switch(i) {
+				case "rangeOverflow":
+					onErr("Number must be less than or equal to " + errors[i] + ".");
+					break;
+				case "rangeUnderflow":
+					onErr("Number must be greater than or equal to " + errors[i] + ".");
+					break;
+				case "stepMismatch":
+					onErr("Number must be a multiple of " + errors[i] + ".");
+					break;
+				case "tooLong":
+					onErr("Must be less than or equal to " + errors[i] + " characters long.");
+					break;
+				case "patternMismatch":
+					onErr("Must match pattern " + errors[i] + ".");
+					break;
+				case "selectionMismatch":
+					onErr("Must be one of: " + errors[i].map(function(e, i, a) {
+							return Array.isArray(e) ? e[0] : e;
+						}).join(", ") + ".");
+					break;
+				case "customError":
+					onErr(errors[i]);
+					break;
+				}
+			}
+		
+		if(out.childElementCount == 0 && this.errorOutput.childElementCount == 0) {
+			//don't bother
+			}
+		else {
+			out.className = this.errorOutput.className;
+			this.errorOutput.parentNode.replaceChild(out, this.errorOutput);
+			this.errorOutput = out;
+			}
 		
 		}
 	
@@ -311,16 +384,40 @@ PreferenceModel.prototype = {
 				if(!multiline) val = val.replace("\n", "");
 				break;
 			default:
-				return null;
+				rv.errors.unrecognizedType = type;
+				return rv;
 			}
 		
-		if(this.rangeOverflow(val)) val = this.max;
-		if(this.rangeUnderflow(val)) val = this.min;
-		if(this.stepMismatch(val)) val = this.roundNearest(val, this.step);
-		if(this.tooLong(val)) val = val.substr(0, this.maxLength);
-		if(this.patternMismatch(val) || this.selectionMismatch(val) || this.customError(val)) val = this.def;
+		var cerr;
 		
-		return val;
+		if(this.rangeOverflow(val)) {
+			val = rv.errors.rangeOverflow = this.max;
+			}
+		if(this.rangeUnderflow(val)) {
+			val = rv.errors.rangeUnderflow = this.min;
+			}
+		if(this.stepMismatch(val)) {
+			val = this.roundNearest(val, rv.errors.stepMismatch = this.step);
+			}
+		if(this.tooLong(val)) {
+			val = val.substr(0, rv.errors.tooLong = this.maxLength);
+			}
+		if(this.patternMismatch(val)) {
+			val = this.def;
+			rv.errors.patternMismatch = this.pattern;
+			}
+		if(this.selectionMismatch(val)) {
+			val = this.def;
+			rv.errors.selectionMismatch = this.selections;
+			}
+		if(cerr = this.customError(val)) {
+			val = this.def;
+			rv.errors.customError = cerr;
+			}
+		
+		rv.value = val;
+		
+		return rv;
 		
 		},
 	
@@ -386,7 +483,7 @@ PreferenceModel.prototype = {
 	Set the value associated with this preference (calls GM_setValue)
 	*/
 	set value(val) {
-		return this.lastSavedValue = GM_setValue(this.name, this.clean(val));
+		return this.lastSavedValue = GM_setValue(this.name, this.clean(val).value);
 		}
 	
 	}

@@ -144,6 +144,12 @@ color: red;
 outline: 1px solid red;
 }
 
+.preference.invalid > .errors > li {
+color: red;
+list-style-type: asterisks;
+font-size: 0.9em;
+}
+
 .clear {
 clear: both;
 }
