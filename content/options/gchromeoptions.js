@@ -255,10 +255,12 @@ PreferenceModel = function(name, def) {
 	*/
 	this.max;
 	this.min;
+	
 	/*
 	A regular expression the pref must match.
 	*/
 	this.pattern;
+	
 	/*
 	An array of selections for select inputs.
 	*/
@@ -268,6 +270,11 @@ PreferenceModel = function(name, def) {
 	True if this preference is a string that accepts multiline input, false otherwise
 	*/
 	this.multiline = false;
+	
+	/*
+	A function that consumes a value and returns an error message if there is an error, false otherwise.
+	*/
+	this.customErrorFunc;
 	
 	}
 	
@@ -281,13 +288,16 @@ PreferenceModel.prototype = {
 	/*
 	Clean a given value, i.e. convert it so that it makes sense for a model of the given type to use
 	If a value or type are not given, they default to this model's value and type
-	Returns null if type is not recognized
+	Value is null if type is not recognized
+	Returns an object with value and errors properties.
 	*/
 	clean: function(val, type, multiline) {
 		
 		if(!defined(val)) val = this.value;
 		if(!defined(type)) type = this.type;
 		if(!defined(multiline)) multiline = this.multiline;
+		
+		var rv = {value: null, errors: {}};
 		
 		switch(type) {
 			case "number":
@@ -308,7 +318,7 @@ PreferenceModel.prototype = {
 		if(this.rangeUnderflow(val)) val = this.min;
 		if(this.stepMismatch(val)) val = this.roundNearest(val, this.step);
 		if(this.tooLong(val)) val = val.substr(0, this.maxLength);
-		if(this.patternMismatch(val) || this.selectionMismatch(val)) val = this.def;
+		if(this.patternMismatch(val) || this.selectionMismatch(val) || this.customError(val)) val = this.def;
 		
 		return val;
 		
@@ -344,6 +354,14 @@ PreferenceModel.prototype = {
 		return Array.isArray(this.selections) && !this.selections.some(function(e, i, a) {
 			return e == val || Array.isArray(e) && e[1] == val;
 			}, this);
+	},
+	
+	customError: function(val) {
+		if(!defined(val)) val = this.value;
+		if(typeof this.customErrorFunc == "function") {
+			return this.customErrorFunc(val);
+			}
+		return false;
 	},
 	
 	// http://www.hashbangcode.com/blog/javascript-round-nearest-number-367.html

@@ -31,7 +31,16 @@ rules.autorefreshTopicsInt = rules.autorefreshRepliesInt = autorefreshPMCountInt
 }
 
 rules.ignoreList = {
-	pattern: /^((\,[\w.\-]{3,20})*)$/
+	customPattern: /^([\w.\-]{3,20})$/,
+	customErrorFunc: function(val) {
+		val = val.split(",");
+		for(var i=0, len=val.length; i<len; i++) {
+			if(!val[i].match(this.customPattern)) {
+				return '"' + val[i] + '" is not a valid username (must match ' + this.customPattern.source + " )";
+			}
+		}
+		return false;
+	}
 }
 
 rules.postsPerPage = {
@@ -42,7 +51,7 @@ rules.postsPerPage = {
 }
 
 rules.username = {
-	pattern: /^[\w.\-]{3,20}$/,
+	pattern: rules.ignoreList.customPattern,
 	maxLength: 20
 }
 
