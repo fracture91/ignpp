@@ -144,6 +144,10 @@ color: red;
 outline: 1px solid red;
 }
 
+.preference > .errors:empty {
+display: none;
+}
+
 .preference.invalid > .errors > li {
 color: red;
 list-style-type: asterisks;

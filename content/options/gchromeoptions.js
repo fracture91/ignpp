@@ -50,6 +50,7 @@ PreferenceView = function(model) {
 	
 	/*
 	The errors that the input currently has.
+	When set, calls this.handleErrors.
 	*/
 	var errors = {};
 	this.__defineGetter__("errors", function() { return errors; });
@@ -116,18 +117,29 @@ PreferenceView.prototype = {
 		},
 	
 	/*
-	This view's model's clean method called with the currently inputted value.
+	This view's model's clean method called with the currently inputted value or the one passed to it.
 	*/
-	get clean() {
-		return this.model.clean(this.value);
+	clean: function(val) {
+		return this.model.clean(defined(val) ? val : this.value);
 		},
 		
 	/*
-	Returns true if the current input is valid, false otherwise
+	Returns true if this.clean().value == this.value, false otherwise.
 	*/
-	validate: function() {
-		var clean = this.clean;
-		var valid = clean.value == this.value
+	isValid: function(cleanVal, val) {
+		val = defined(val) ? val : this.value;
+		cleanVal = defined(cleanVal) ? cleanVal : this.clean(val).value;
+		return cleanVal == val;
+		},
+		
+	/*
+	Returns true if the current input isValid, false otherwise.
+	Has the side effect of displaying any errors.
+	*/
+	validate: function(clean, val) {
+		val = defined(val) ? val : this.value;
+		clean = defined(clean) ? clean : this.clean(val);
+		var valid = this.isValid(clean.value, val);
 		this.errors = valid ? {} : clean.errors;
 		return this.valid = valid;
 		},
@@ -145,19 +157,52 @@ PreferenceView.prototype = {
 	load: function() {
 		this.value = this.model.value;
 		},
-		
+	
 	/*
-	True if clean is different from the model's value, false otherwise
+	True if the currently inputted value is changed from oldVal, false otherwise
 	*/
-	get changed() {
-		return this.model.value != this.clean.value;
+	isChangedFrom: function(oldVal, newVal, cleanVal) {
+		newVal = defined(newVal) ? newVal : this.value;
+		cleanVal = defined(cleanVal) ? cleanVal : this.clean(newVal).value;
+		//if newVal is invalid, the value is definitely changed since oldVal cannot be invalid (theoretically)
+		return !this.isValid(cleanVal, newVal) || oldVal != cleanVal;
+		},
+	
+	/*
+	True if the currently inputted value is different from the model's value, false otherwise.
+	Has the side effect of applying the "changed" class to this.container.
+	*/
+	checkChanged: function(val, cleanVal) {
+		var changed = this.isChangedFrom(this.model.value, val, cleanVal);
+		if(changed) {
+			addClass(this.container, "changed");
+			}
+		else {
+			removeClass(this.container, "changed");
+			}
+		return changed;
 		},
 		
 	/*
-	True if clean is different from the last value saved to the model, false otherwise
+	True if the currently inputted value is different from the model's default value, false otherwise.
+	Has the side effect of applying the "changedFromDefault" class to this.container.
 	*/
-	get changedFromLastSaved() {
-		return this.model.lastSavedValue != this.clean.value;
+	checkChangedFromDefault: function(val, cleanVal) {
+		var changed = this.isChangedFrom(this.model.def, val, cleanVal);
+		if(changed) {
+			addClass(this.container, "changedFromDefault");
+			}
+		else {
+			removeClass(this.container, "changedFromDefault");
+			}
+		return changed;
+		},
+		
+	/*
+	True if the currently inputted value is different from the model's last saved value, false otherwise.
+	*/
+	isChangedFromLastSaved: function(val, cleanVal) {
+		return this.isChangedFrom(this.model.lastSavedValue, val, cleanVal);
 		},
 		
 	/*
@@ -531,6 +576,7 @@ Preferences = new function() {
 			
 			view.make();
 			view.load();
+			view.checkChangedFromDefault();
 			
 			if(pointer) {
 				pointer.parentNode.replaceChild(view.container, pointer);
@@ -563,9 +609,14 @@ Preferences = new function() {
 		
 		var allValid = true;
 		this.forEachPref(function(e, i, a) {
-			if(e.changed) {
-				if(e.validate()) {
+			
+			var val = e.value;
+			var clean = e.clean(val);
+			if(e.checkChanged(val, clean.value)) {
+				if(e.validate(clean, val)) {
 					e.save();
+					//pref should not be considered changed now, view should reflect that
+					e.checkChanged(val, clean.value);
 					}
 				else {
 					allValid = false;
@@ -573,6 +624,9 @@ Preferences = new function() {
 				}
 			//saved values are assumed to be valid
 			else e.valid = true;
+			
+			e.checkChangedFromDefault(val, clean.value);
+			
 			});
 			
 		return allValid;
@@ -585,7 +639,7 @@ Preferences = new function() {
 	this.__defineGetter__("anyChanges", function() {
 		var changes = false;
 		this.forEachPref(function(e, i, a) {
-			if(e.changed) {
+			if(e.isChangedFrom(e.model.value)) {
 				changes = true;
 				return false;
 				}
@@ -635,7 +689,13 @@ function validateInputHandler(e) {
 	var parent = getParentByClassName(e.target, "preference");
 	if(parent && parent.id.slice(0,5)=="pref_") {
 		var pref = Preferences.prefs[parent.id.substring(5)];
-		if(pref) pref.validate();
+		if(pref) {
+			var val = pref.value;
+			var clean = pref.clean(val);
+			pref.validate(clean, val);
+			pref.checkChanged(val, clean.value);
+			pref.checkChangedFromDefault(val, clean.value);
+			}
 		}
 	}
 	
