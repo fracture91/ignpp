@@ -48,6 +48,7 @@ PreferenceView = function(model) {
 	this.controls;
 	this.errorOutput;
 	
+	
 	/*
 	The errors that the input currently has.
 	When set, calls this.handleErrors.
@@ -91,6 +92,34 @@ PreferenceView = function(model) {
 	}
 	
 PreferenceView.prototype = {
+	
+	/*
+	Add a command to parent or this.controls.
+	*/
+	_addCommand: function(name, parent) {
+		if(!defined(parent)) {
+			parent = this.controls;
+			if(!defined(parent)) return;
+			}
+		var li = document.createElement("li");
+		var a = document.createElement("a");
+		a.textContent = PreferenceModel.prototype.camelToTitle(name);
+		a.href = "";
+		a.className = name + "Control";
+		li.appendChild(a);
+		parent.appendChild(li);
+		},
+	
+	controlsTemplate: null,
+	_makeControlsTemplate: function() {
+		if(!this.controlsTemplate) {
+			var ct = this.controlsTemplate = document.createElement("menu");
+			ct.type = "toolbar";
+			this._addCommand("revert", ct);
+			this._addCommand("default", ct);
+			this._addCommand("save", ct);
+			}
+		},
 	
 	/*
 	The value currently inputted
@@ -148,7 +177,23 @@ PreferenceView.prototype = {
 	Save the currently inputted value to the model
 	*/
 	save: function() {
-		this.model.value = this.value;
+		
+		var rv = {changed: null, valid: null};
+		var val = this.value;
+		var clean = this.clean(val);
+		if(rv.changed = this.checkChanged(val, clean.value)) {
+			if(rv.valid = this.validate(clean, val)) {
+				this.model.value = val;
+				//pref should not be considered changed now, view should reflect that
+				this.checkChanged(val, clean.value);
+				}
+			}
+		//saved values are assumed to be valid
+		else rv.valid = this.valid = true;
+		
+		this.checkChangedFromDefault(val, clean.value);
+		return rv;
+		
 		},
 		
 	/*
@@ -204,7 +249,7 @@ PreferenceView.prototype = {
 	isChangedFromLastSaved: function(val, cleanVal) {
 		return this.isChangedFrom(this.model.lastSavedValue, val, cleanVal);
 		},
-		
+	
 	/*
 	Make the necessary interface out of DOM elements, contained by container
 	The container is a div with id pref_preferenceName and className preference
@@ -217,6 +262,9 @@ PreferenceView.prototype = {
 		
 		this.label = document.createElement("label");
 		this.label.textContent = this.title;
+		
+		this._makeControlsTemplate();
+		this.controls = this.controlsTemplate.cloneNode(true);
 		
 		if(Array.isArray(this.model.selections)) {
 			this.input = document.createElement("select");
@@ -265,6 +313,7 @@ PreferenceView.prototype = {
 		this.errorOutput.className = "errors";
 		
 		this.container.appendChild(this.label);
+		this.container.appendChild(this.controls);
 		this.container.appendChild(this.input);
 		this.container.appendChild(this.errorOutput);
 		
@@ -591,6 +640,18 @@ Preferences = new function() {
 			}
 		
 		}
+		
+	/*
+	Given an element, get the preference associated with it.
+	*/
+	this.get = function(el) {
+		var parent = hasClass(el, "preference") ? el : getParentByClassName(el, "preference");
+		if(parent && parent.id.slice(0,5)=="pref_") {
+			var pref = Preferences.prefs[parent.id.substring(5)];
+			if(pref) return pref;
+			}
+		return null
+		}
 	
 	/*
 	Call some function for each managed preference
@@ -606,31 +667,11 @@ Preferences = new function() {
 	Returns true if all preferences were valid, false otherwise
 	*/
 	this.save = function() {
-		
 		var allValid = true;
 		this.forEachPref(function(e, i, a) {
-			
-			var val = e.value;
-			var clean = e.clean(val);
-			if(e.checkChanged(val, clean.value)) {
-				if(e.validate(clean, val)) {
-					e.save();
-					//pref should not be considered changed now, view should reflect that
-					e.checkChanged(val, clean.value);
-					}
-				else {
-					allValid = false;
-					}
-				}
-			//saved values are assumed to be valid
-			else e.valid = true;
-			
-			e.checkChangedFromDefault(val, clean.value);
-			
+			if(!e.save().valid) allValid = false;
 			});
-			
 		return allValid;
-		
 		}
 		
 	/*
@@ -686,16 +727,13 @@ window.onload = function(e) {
 
 //validate whatever preference this input is from
 function validateInputHandler(e) {
-	var parent = getParentByClassName(e.target, "preference");
-	if(parent && parent.id.slice(0,5)=="pref_") {
-		var pref = Preferences.prefs[parent.id.substring(5)];
-		if(pref) {
-			var val = pref.value;
-			var clean = pref.clean(val);
-			pref.validate(clean, val);
-			pref.checkChanged(val, clean.value);
-			pref.checkChangedFromDefault(val, clean.value);
-			}
+	var pref = Preferences.get(e.target);
+	if(pref) {
+		var val = pref.value;
+		var clean = pref.clean(val);
+		pref.validate(clean, val);
+		pref.checkChanged(val, clean.value);
+		pref.checkChangedFromDefault(val, clean.value);
 		}
 	}
 	
@@ -703,8 +741,34 @@ document.addEventListener("keyup", validateInputHandler, true);
 document.addEventListener("click", validateInputHandler, true);
 document.addEventListener("change", validateInputHandler, true);
 
-//handles all the buttons in the #control element
 function controlButtonHandler(e) {
+	var pref = Preferences.get(e.target);
+	if(pref) {
+	
+		var wasControl = false;
+		if(wasControl = hasClass(e.target, "revertControl")) {
+			pref.value = pref.model.value;
+			}
+		else if(wasControl = hasClass(e.target, "defaultControl")) {
+			pref.value = pref.model.def;
+			}
+		else if(wasControl = hasClass(e.target, "saveControl")) {
+			pref.save();
+			}
+			
+		if(wasControl) {
+			e.preventDefault();
+			pref.checkChanged();
+			pref.checkChangedFromDefault();
+			}
+		
+		}
+	}
+	
+document.addEventListener("click", controlButtonHandler, true);
+
+//handles all the buttons in the #control element
+function mainControlButtonHandler(e) {
 	
 	if(e.target == Preferences.saveButton) {
 		
@@ -729,7 +793,7 @@ function controlButtonHandler(e) {
 	
 	}
 	
-document.addEventListener("click", controlButtonHandler, true);
+document.addEventListener("click", mainControlButtonHandler, true);
 
 //warn the user about unsaved changes before unload
 window.onbeforeunload = function(e) {

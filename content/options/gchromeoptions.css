@@ -123,6 +123,43 @@ font-size: 0.8em;
 font-weight: bold;
 }
 
+.preference > menu {
+display: inline;
+margin: 0;
+padding: 0;
+list-style-type: none;
+font-size: 0.7em;
+}
+
+.preference > menu > li {
+display: inline;
+margin: 0 5px;
+}
+
+/*disabled by default*/
+.preference > menu > li > a {
+color: blue;
+opacity: 0.3;
+pointer-events: none;
+cursor: default;
+text-decoration: none;
+}
+
+.preference > menu > li > a:hover,
+.preference > menu > li > a:focus {
+color: darkBlue;
+}
+
+/*enable*/
+.preference.changed > menu > li > a.revertControl,
+.preference.changed > menu > li > a.saveControl,
+.preference.changedFromDefault > menu > li > a.defaultControl {
+opacity: 0.8;
+pointer-events: auto;
+cursor: auto;
+text-decoration: underline;
+}
+
 .preference > input,
 .preference > textarea,
 .preference > select {
