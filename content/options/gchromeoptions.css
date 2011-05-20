@@ -60,16 +60,13 @@ display: inline;
 }
 
 iframe {
-min-width: 400px;
+min-width: 300px;
 min-height: 300px;
 }
 
 section[tab="eula"] > iframe {
-min-width: 500px;
-}
-
-section[tab="credits"] > iframe {
-min-width: 300px;
+max-width: 500px;
+width: 99%;
 }
 
 fieldset {
