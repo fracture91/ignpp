@@ -121,6 +121,7 @@ padding: 5px;
 margin: 5px;
 font-size: 0.8em;
 font-weight: bold;
+margin-right: 10px;
 }
 
 .preference > menu {
@@ -158,6 +159,17 @@ opacity: 0.8;
 pointer-events: auto;
 cursor: auto;
 text-decoration: underline;
+}
+
+.preference.changed > label:after {
+content: "*";
+position: absolute;
+font-size: larger;
+color: orange;
+}
+
+.preference.changedFromDefault > label {
+color: #040;
 }
 
 .preference > input,
