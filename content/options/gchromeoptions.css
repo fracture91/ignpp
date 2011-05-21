@@ -26,6 +26,7 @@ min-width: 542px;
 
 header {
 margin: 5px 10px;
+min-width: 689px;
 }
 
 header > img {
@@ -315,6 +316,10 @@ display: block;
 .tabBox.verticalTabs > section[tab] {
 float: left;
 width: 70%;
+}
+
+.tabBox.horizontalTabs {
+min-width: 691px;
 }
 
 #usercolorsDisabled {

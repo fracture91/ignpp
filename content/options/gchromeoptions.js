@@ -132,17 +132,45 @@ PreferenceView.prototype = {
 		},
 		
 	/*
-	Set the currently inputted value, the given value is cleaned beforehand
+	Set the currently inputted value, the given value is cleaned beforehand and checked for changes.
 	*/
 	set value(v) {
-		v = this.model.clean(v).value;
+		this.setValue(v);
+		},
+		
+	/*
+	Just like setting this.value, but you can pass false as check to skip checking if
+	the value is changed and changedFromDefault.  Useful if setting many times quickly or
+	if you know you don't need to check some things.
+	*/
+	setValue: function(val, check) {
+	
+		if(!defined(check)) check = true;
+		var clean = this.model.clean(val);
 		if(this.model.type=="boolean") {
-			return this.input.checked = v;
+			this.input.checked = clean.value;
 			}
+		else this.input.value = clean.value;
+		
 		//since it has been cleaned...
 		this.valid = true;
 		this.errors = {};
-		return this.input.value = v;
+		
+		if(check) {
+			this.checkNewValue(val, clean.value);
+			}
+		return val;
+		
+		},
+		
+	/*
+	This is called when this.setValue is called to make sure view classes are up to date
+	*/
+	checkNewValue: function(val, cleanVal) {
+		if(!defined(val)) val = this.value;
+		if(!defined(cleanVal)) cleanVal = this.model.clean(val).value;
+		this.checkChanged(val, cleanVal);
+		this.checkChangedFromDefault(val, cleanVal);
 		},
 	
 	/*
@@ -197,10 +225,27 @@ PreferenceView.prototype = {
 		},
 		
 	/*
-	Load the currently inputted value from the model
+	Load the currently inputted value from the model.
+	Returns true if loaded, false if not because it wasn't changed.
 	*/
 	load: function() {
-		this.value = this.model.value;
+		if(this.checkChanged()) {
+			this.value = this.model.value;
+			return true;
+			}
+		return false;
+		},
+		
+	/*
+	Load the currently inputted value from the model's default.
+	Returns true if loaded, false if not because it wasn't changed from default.
+	*/
+	loadFromDefault: function() {
+		if(this.checkChangedFromDefault()) {
+			this.value = this.model.def;
+			return true;
+			}
+		return false;
 		},
 	
 	/*
@@ -590,6 +635,10 @@ Preferences = new function() {
 	//relevant strings
 	
 	this.unsavedChanges = "You have unsaved changes - are you sure you want to close the Options tab?";
+	this.revertChanges = "Are you sure you want to revert all unsaved preferences to their last saved state?";
+	this.revertToDefault = "Are you sure you want to revert all preferences to their default state?";
+	this.noUnsavedChanges = "You have no unsaved changes.";
+	this.allDefault = "All preferences are already in their default state.";
 	this.notAllValid = "Some preferences were not valid and, consequently, not saved.";
 	
 	/*
@@ -625,7 +674,6 @@ Preferences = new function() {
 			
 			view.make();
 			view.load();
-			view.checkChangedFromDefault();
 			
 			if(pointer) {
 				pointer.parentNode.replaceChild(view.container, pointer);
@@ -663,29 +711,101 @@ Preferences = new function() {
 		}
 	
 	/*
+	Basically shorthand for this pattern:
+	function doSomethingALot() {
+		var all = false;	//<-- def
+		this.forEachPref(function(e, i, a) {
+			//do something	//<-- func
+			all = true;		//<-- func().allVal or func()
+			return false;	//<-- func().returnVal
+			});
+		return all;
+		}
+	func().allVal must be different from def to change all
+	if func().allVal is undefined, all will not change
+	if func().returnVal is undefined, the loop will not stop
+	*/
+	this.delegate = function(func, def) {
+		var all = def = defined(def) ? def : true;
+		//the function passed to forEachPref is all about handling the return value of func
+		this.forEachPref(function(e, i, a) {
+			var rv = func(e, i, a), isObj = typeof rv == "object", allVal;
+			
+			if(isObj) {
+				allVal = defined(rv.allVal) ? rv.allVal : def;
+				}
+			else {
+				allVal = defined(rv) ? !!rv : def;
+				}
+			
+			if(allVal != def) {
+				all = allVal;
+				}
+				
+			if(isObj && defined(rv.returnVal)) {
+				return rv.returnVal;
+				}
+			});
+		return all;
+		}
+	
+	/*
 	Save each managed preference if it has been changed and is valid
 	Returns true if all preferences were valid, false otherwise
 	*/
 	this.save = function() {
-		var allValid = true;
-		this.forEachPref(function(e, i, a) {
-			if(!e.save().valid) allValid = false;
-			});
-		return allValid;
+		return this.delegate(function(e, i, a) {
+			if(!e.save().valid) return false;
+			}, true);
 		}
 		
+	/*
+	Load each managed preference if it has been changed.
+	Returns true if all prefs were loaded, false otherwise.
+	*/
+	this.load = function() {
+		return this.delegate(function(e, i, a) {
+			if(!e.load()) return false;
+			}, true);
+		}
+		
+	/*
+	Load each managed preference from default if it has been changed from default.
+	Returns true if all prefs were loaded, false otherwise.
+	*/
+	this.loadFromDefault = function() {
+		return this.delegate(function(e, i, a) {
+			if(!e.loadFromDefault()) return false;
+			}, true);
+		}
+	
+	/*
+	if pref.isChangedFrom(oldValFunc(e, i, a)) is true for any managed pref, return true.
+	*/
+	this.anyChangesFrom = function(oldValFunc) {
+		return this.delegate(function(e, i, a) {
+			if(e.isChangedFrom(oldValFunc(e, i, a))) {
+				return {allVal: true, returnVal: false};
+				}
+			}, false);
+		}
+	
 	/*
 	Returns true if any managed preference has been changed, false otherwise
 	*/
 	this.__defineGetter__("anyChanges", function() {
-		var changes = false;
-		this.forEachPref(function(e, i, a) {
-			if(e.isChangedFrom(e.model.value)) {
-				changes = true;
-				return false;
-				}
+		return this.anyChangesFrom(function(e, i, a) {
+			return e.model.value;
 			});
-		return changes;
+		});
+		
+	/*
+	Returns true if any managed preference has been changed from default, false otherwise
+	*/
+	this.__defineGetter__("anyChangesFromDefault", function() {
+		return this.anyChangesFrom(function(e, i, a) {
+			return e.model.def;
+			});
 		});
 		
 	/*
@@ -718,6 +838,8 @@ window.onload = function(e) {
 	
 	Preferences.masterContainer = document.getElementById("uncategorizedPrefs");
 	Preferences.saveButton = document.getElementById("saveButton");
+	Preferences.revertButton = document.getElementById("revertButton");
+	Preferences.defaultButton = document.getElementById("defaultButton");
 	Preferences.closeButton = document.getElementById("closeButton");
 	Preferences.controlLog = document.getElementById("controlLog");
 	
@@ -732,8 +854,7 @@ function validateInputHandler(e) {
 		var val = pref.value;
 		var clean = pref.clean(val);
 		pref.validate(clean, val);
-		pref.checkChanged(val, clean.value);
-		pref.checkChangedFromDefault(val, clean.value);
+		pref.checkNewValue(val, clean.value);
 		}
 	}
 	
@@ -747,10 +868,10 @@ function controlButtonHandler(e) {
 	
 		var wasControl = false;
 		if(wasControl = hasClass(e.target, "revertControl")) {
-			pref.value = pref.model.value;
+			pref.load();
 			}
 		else if(wasControl = hasClass(e.target, "defaultControl")) {
-			pref.value = pref.model.def;
+			pref.loadFromDefault();
 			}
 		else if(wasControl = hasClass(e.target, "saveControl")) {
 			pref.save();
@@ -758,8 +879,6 @@ function controlButtonHandler(e) {
 			
 		if(wasControl) {
 			e.preventDefault();
-			pref.checkChanged();
-			pref.checkChangedFromDefault();
 			}
 		
 		}
@@ -772,11 +891,37 @@ function mainControlButtonHandler(e) {
 	
 	if(e.target == Preferences.saveButton) {
 		
-		var allValid = Preferences.save();
-		//if the preferences weren't all valid, warn the user
-		if(!allValid) alert(Preferences.notAllValid);
-		Preferences.controlLog.textContent = "Saved!";
-		Preferences.clearLog(2000);
+		if(Preferences.anyChanges) {
+			if(!Preferences.save()) {
+				//if the preferences weren't all valid, warn the user
+				alert(Preferences.notAllValid);
+				}
+			Preferences.controlLog.textContent = "Saved!";
+			Preferences.clearLog(2000);
+			}
+		else alert(Preferences.noUnsavedChanges);
+		
+		}
+		
+	else if(e.target == Preferences.revertButton) {
+		
+		if(Preferences.anyChanges) {
+			if(confirm(Preferences.revertChanges)) {
+				Preferences.load();
+				}
+			}
+		else alert(Preferences.noUnsavedChanges);
+		
+		}
+		
+	else if(e.target == Preferences.defaultButton) {
+		
+		if(Preferences.anyChangesFromDefault) {
+			if(confirm(Preferences.revertToDefault)) {
+				Preferences.loadFromDefault();
+				}
+			}
+		else alert(Preferences.allDefault);
 		
 		}
 	
@@ -842,7 +987,7 @@ function tabHandler(e) {
 	
 	var tabName = tab.getAttribute("tab");
 	
-	setSelected = function(el, i) {
+	function setSelected(el, i) {
 		if(hasTab(el)) {
 			if(el.getAttribute && el.getAttribute("tab") == tabName) el.setAttribute("selected", true);
 			else el.removeAttribute("selected");
