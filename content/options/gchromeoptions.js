@@ -115,9 +115,9 @@ PreferenceView.prototype = {
 		if(!this.controlsTemplate) {
 			var ct = this.controlsTemplate = document.createElement("menu");
 			ct.type = "toolbar";
+			this._addCommand("save", ct);
 			this._addCommand("revert", ct);
 			this._addCommand("default", ct);
-			this._addCommand("save", ct);
 			}
 		},
 	
