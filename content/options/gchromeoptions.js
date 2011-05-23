@@ -633,13 +633,14 @@ Manages preferences on the options page
 Preferences = new function() {
 	
 	//relevant strings
-	
-	this.unsavedChanges = "You have unsaved changes - are you sure you want to close the Options tab?";
-	this.revertChanges = "Are you sure you want to revert all unsaved preferences to their last saved state?";
-	this.revertToDefault = "Are you sure you want to revert all preferences to their default state?";
-	this.noUnsavedChanges = "You have no unsaved changes.";
-	this.allDefault = "All preferences are already in their default state.";
-	this.notAllValid = "Some preferences were not valid and, consequently, not saved.";
+	this.strings = {
+		unsavedChanges: "You have unsaved changes - are you sure you want to close the Options tab?",
+		revertChanges: "Are you sure you want to revert all unsaved preferences to their last saved state?",
+		revertToDefault: "Are you sure you want to revert all preferences to their default state?",
+		noUnsavedChanges: "You have no unsaved changes.",
+		allDefault: "All preferences are already in their default state.",
+		notAllValid: "Some preferences were not valid and, consequently, not saved."
+		}
 	
 	/*
 	Holds all managed PreferenceView, indexed by preference name
@@ -894,34 +895,34 @@ function mainControlButtonHandler(e) {
 		if(Preferences.anyChanges) {
 			if(!Preferences.save()) {
 				//if the preferences weren't all valid, warn the user
-				alert(Preferences.notAllValid);
+				alert(Preferences.strings.notAllValid);
 				}
 			Preferences.controlLog.textContent = "Saved!";
 			Preferences.clearLog(2000);
 			}
-		else alert(Preferences.noUnsavedChanges);
+		else alert(Preferences.strings.noUnsavedChanges);
 		
 		}
 		
 	else if(e.target == Preferences.revertButton) {
 		
 		if(Preferences.anyChanges) {
-			if(confirm(Preferences.revertChanges)) {
+			if(confirm(Preferences.strings.revertChanges)) {
 				Preferences.load();
 				}
 			}
-		else alert(Preferences.noUnsavedChanges);
+		else alert(Preferences.strings.noUnsavedChanges);
 		
 		}
 		
 	else if(e.target == Preferences.defaultButton) {
 		
 		if(Preferences.anyChangesFromDefault) {
-			if(confirm(Preferences.revertToDefault)) {
+			if(confirm(Preferences.strings.revertToDefault)) {
 				Preferences.loadFromDefault();
 				}
 			}
-		else alert(Preferences.allDefault);
+		else alert(Preferences.strings.allDefault);
 		
 		}
 	
@@ -929,7 +930,7 @@ function mainControlButtonHandler(e) {
 		
 		//warn the user about unsaved changes before closing the tab
 		if(!Preferences.anyChanges ||
-			confirm(Preferences.unsavedChanges)) {
+			confirm(Preferences.strings.unsavedChanges)) {
 				Preferences.confirmedClose = true;
 				window.close();
 			}
@@ -944,8 +945,8 @@ document.addEventListener("click", mainControlButtonHandler, true);
 window.onbeforeunload = function(e) {
 	if(!Preferences.confirmedClose) {
 		if(Preferences.anyChanges) {
-			if(e) e.returnValue = Preferences.unsavedChanges;
-			return Preferences.unsavedChanges;
+			if(e) e.returnValue = Preferences.strings.unsavedChanges;
+			return Preferences.strings.unsavedChanges;
 			}
 		}
 	else Preferences.confirmedClose = false;
