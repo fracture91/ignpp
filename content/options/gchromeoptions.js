@@ -700,7 +700,7 @@ PreferenceViewManager.prototype = {
 	get: function(el) {
 		var parent = hasClass(el, "preference") ? el : getParentByClassName(el, "preference");
 		if(parent && parent.id.slice(0,5)=="pref_") {
-			var pref = Preferences.prefs[parent.id.substring(5)];
+			var pref = this.prefs[parent.id.substring(5)];
 			if(pref) return pref;
 			}
 		return null
@@ -827,22 +827,43 @@ PreferenceViewManager.prototype = {
 		},
 		
 	/*
-	Add all necessary event listeners
+	Just like target.addEventListener(types, func, useCapture) except:
+		func is a string that represents the name of the method to call (this[func])
+		inside func, this refers to this instance instead of target or window
+		types can be an array of types for each of which the listener will be added
+	*/
+	addMyListener: function(target, types, func, useCapture) {
+		if(!Array.isArray(types)) types = [types];
+		func = this[func];
+		var that = this;
+		var listener = function(e){ return func.apply(that, [e]); };
+		for(var i=0, len=types.length; i<len; i++) {
+			target.addEventListener(types[i], listener, useCapture);
+			}
+		},
+		
+	listeners: [
+		[document, ["keyup","click","change"], "validateInputListener", true],
+		[document, "click", "controlButtonListener", true],
+		[document, "click", "mainControlButtonListener", true],
+		[window, "beforeunload", "beforeUnloadListener", true]
+		],
+		
+	/*
+	Add all event listeners described by this.listeners
 	*/
 	addListeners: function() {
-		document.addEventListener("keyup", this.validateInputListener, true);
-		document.addEventListener("click", this.validateInputListener, true);
-		document.addEventListener("change", this.validateInputListener, true);
-		document.addEventListener("click", this.controlButtonListener, true);
-		document.addEventListener("click", this.mainControlButtonListener, true);
-		window.addEventListener("beforeunload", this.beforeUnloadListener, true);
+		for(var i=0, len=this.listeners.length; i<len; i++) {
+			var tlis = this.listeners[i];
+			this.addMyListener(tlis[0], tlis[1], tlis[2], tlis[4]);
+			}
 		},
 	
 	/*
 	Validate whatever preference this input is from
 	*/
 	validateInputListener: function(e) {
-		var pref = Preferences.get(e.target);
+		var pref = this.get(e.target);
 		if(pref) {
 			var val = pref.value;
 			var clean = pref.clean(val);
@@ -855,7 +876,7 @@ PreferenceViewManager.prototype = {
 	Handle the control buttons for individual preferences
 	*/
 	controlButtonListener: function(e) {
-		var pref = Preferences.get(e.target);
+		var pref = this.get(e.target);
 		if(pref) {
 		
 			var wasControl = false;
@@ -881,48 +902,48 @@ PreferenceViewManager.prototype = {
 	*/
 	mainControlButtonListener: function(e) {
 		
-		if(e.target == Preferences.saveButton) {
+		if(e.target == this.saveButton) {
 			
-			if(Preferences.anyChanges) {
-				if(!Preferences.save()) {
+			if(this.anyChanges) {
+				if(!this.save()) {
 					//if the preferences weren't all valid, warn the user
-					alert(Preferences.strings.notAllValid);
+					alert(this.strings.notAllValid);
 					}
-				Preferences.controlLog.textContent = "Saved!";
-				Preferences.clearLog(2000);
+				this.controlLog.textContent = "Saved!";
+				this.clearLog(2000);
 				}
-			else alert(Preferences.strings.noUnsavedChanges);
+			else alert(this.strings.noUnsavedChanges);
 			
 			}
 			
-		else if(e.target == Preferences.revertButton) {
+		else if(e.target == this.revertButton) {
 			
-			if(Preferences.anyChanges) {
-				if(confirm(Preferences.strings.revertChanges)) {
-					Preferences.load();
+			if(this.anyChanges) {
+				if(confirm(this.strings.revertChanges)) {
+					this.load();
 					}
 				}
-			else alert(Preferences.strings.noUnsavedChanges);
+			else alert(this.strings.noUnsavedChanges);
 			
 			}
 			
-		else if(e.target == Preferences.defaultButton) {
+		else if(e.target == this.defaultButton) {
 			
-			if(Preferences.anyChangesFromDefault) {
-				if(confirm(Preferences.strings.revertToDefault)) {
-					Preferences.loadFromDefault();
+			if(this.anyChangesFromDefault) {
+				if(confirm(this.strings.revertToDefault)) {
+					this.loadFromDefault();
 					}
 				}
-			else alert(Preferences.strings.allDefault);
+			else alert(this.strings.allDefault);
 			
 			}
 		
-		else if(e.target == Preferences.closeButton) {
+		else if(e.target == this.closeButton) {
 			
 			//warn the user about unsaved changes before closing the tab
-			if(!Preferences.anyChanges ||
-				confirm(Preferences.strings.unsavedChanges)) {
-					Preferences.confirmedClose = true;
+			if(!this.anyChanges ||
+				confirm(this.strings.unsavedChanges)) {
+					this.confirmedClose = true;
 					window.close();
 				}
 			
@@ -934,22 +955,23 @@ PreferenceViewManager.prototype = {
 	Warn the user about unsaved changes before unload
 	*/
 	beforeUnloadListener: function(e) {
-		if(!Preferences.confirmedClose) {
-			if(Preferences.anyChanges) {
-				if(e) e.returnValue = Preferences.strings.unsavedChanges;
-				return Preferences.strings.unsavedChanges;
+		if(!this.confirmedClose) {
+			if(this.anyChanges) {
+				if(e) e.returnValue = this.strings.unsavedChanges;
+				return this.strings.unsavedChanges;
 				}
 			}
-		else Preferences.confirmedClose = false;
+		else this.confirmedClose = false;
 		},
 	
 	/*
-	Change value of respective input if not already changed by user
+	Change value of respective input if not already changed by user.
+	Should be called via chrome.extension.onRequest.addListener .
 	*/
 	setValueListener: function(request, sender, sendResponse) {
-		var pref = Preferences.prefs[request.name];
+		var pref = this.prefs[request.name];
 		if(!pref) {
-			pref = Preferences.add(request.name, JSON.parse(request.jsonValue));
+			pref = this.add(request.name, JSON.parse(request.jsonValue));
 			}
 		else if(!pref.changedFromLastSaved) {
 			pref.model.lastSavedValue = pref.value = JSON.parse(request.jsonValue);
@@ -957,6 +979,7 @@ PreferenceViewManager.prototype = {
 		},
 	
 	}
+
 
 	
 //holds caught preferences
