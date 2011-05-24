@@ -958,12 +958,9 @@ PreferenceViewManager.prototype = {
 				break;
 		
 			case this.closeButton:
-				//warn the user about unsaved changes before closing the tab
-				if(!this.anyChanges ||
-					confirm(this.strings.unsavedChanges)) {
-						this.confirmedClose = true;
-						window.close();
-					}
+				/*beforeunload listener should catch this and
+				warn the user about unsaved changes before closing the tab*/
+				window.close();
 				break;
 			}
 		
@@ -973,10 +970,9 @@ PreferenceViewManager.prototype = {
 	Warn the user about unsaved changes before unload
 	*/
 	beforeUnloadListener: function(e) {
-		if(!this.confirmedClose && this.anyChanges) {
+		if(this.anyChanges) {
 			return e.returnValue = this.strings.unsavedChanges;
 			}
-		this.confirmedClose = false;
 		},
 	
 	/*
