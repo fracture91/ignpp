@@ -350,9 +350,9 @@ PreferenceView.prototype = {
 		this.defaultControl = getFirstByClassName(this.controls, "defaultControl");
 		this.saveControl = getFirstByClassName(this.controls, "saveControl");
 		
-		if(Array.isArray(this.model.selections)) {
+		if(Array.isArray(this.model.rules.selections)) {
 			this.input = document.createElement("select");
-			this.model.selections.forEach(function(e, i, a) {
+			this.model.rules.selections.forEach(function(e, i, a) {
 				var option = document.createElement("option");
 				if(Array.isArray(e)) {
 					option.textContent = e[0];
@@ -364,7 +364,7 @@ PreferenceView.prototype = {
 				this.input.appendChild(option);
 				}, this);
 			}
-		else if(!this.model.multiline) {
+		else if(!this.model.rules.multiline) {
 			this.input = document.createElement("input");
 			if(this.model.type == "boolean") {
 				this.input.type = "checkbox";
@@ -377,20 +377,20 @@ PreferenceView.prototype = {
 			this.input = document.createElement("textarea");
 			}
 			
-		if(this.model.pattern instanceof RegExp) {
-			this.input.pattern = this.model.pattern.source;
+		if(this.model.rules.pattern instanceof RegExp) {
+			this.input.pattern = this.model.rules.pattern.source;
 			}
-		if(typeof this.model.min == "number") {
-			this.input.min = this.model.min;
+		if(typeof this.model.rules.min == "number") {
+			this.input.min = this.model.rules.min;
 			}
-		if(typeof this.model.max == "number") {
-			this.input.max = this.model.max;
+		if(typeof this.model.rules.max == "number") {
+			this.input.max = this.model.rules.max;
 			}
-		if(typeof this.model.step == "number") {
-			this.input.step = this.model.step;
+		if(typeof this.model.rules.step == "number") {
+			this.input.step = this.model.rules.step;
 			}
-		if(typeof this.model.maxLength == "number") {
-			this.input.maxLength = this.model.maxLength;
+		if(typeof this.model.rules.maxLength == "number") {
+			this.input.maxLength = this.model.rules.maxLength;
 			}
 			
 		this.errorOutput = document.createElement("ul");
@@ -461,10 +461,10 @@ PreferenceView.prototype = {
 
 /*
 A model for a preference
-Given the preference's name (as used in GM_(s/g)etValue) and its default value
+Given the preference's name (as used in GM_(s/g)etValue), its default value, and optional rules.
 The preference is assumed to only be able to hold values of the same type as its default value
 */
-PreferenceModel = function(name, def) {
+PreferenceModel = function(name, def, rules) {
 	
 	this.name = name;
 	
@@ -502,30 +502,50 @@ PreferenceModel = function(name, def) {
 	});
 	
 	/*
-	Minimum and maximum values for numbers.
+	Rules let you define what's acceptable for this preference.
+	A view can use them to make smarter decisions about the interface/interaction.
+	The model will use them for input sanitization.
 	*/
-	this.max;
-	this.min;
+	this.rules = typeof rules == "object" ? rules : {};
 	
-	/*
-	A regular expression the pref must match.
-	*/
-	this.pattern;
-	
-	/*
-	An array of selections for select inputs.
-	*/
-	this.selections;
-	
-	/*
-	True if this preference is a string that accepts multiline input, false otherwise
-	*/
-	this.multiline = false;
-	
-	/*
-	A function that consumes a value and returns an error message if there is an error, false otherwise.
-	*/
-	this.customErrorFunc;
+		//supported rules:
+		
+		/*
+		Minimum and maximum values for numbers.
+		*/
+		//this.max;
+		//this.min;
+		
+		/*
+		Numbers must be a multiple of the step.
+		*/
+		//this.step;
+		
+		/*
+		A regular expression the pref must match.
+		*/
+		//this.pattern;
+		
+		/*
+		An array of selections for select inputs.
+		*/
+		//this.selections;
+		
+		/*
+		True if this preference is a string that accepts multiline input, false otherwise
+		*/
+		//this.multiline = false;
+		
+		/*
+		A maximum length for strings.
+		*/
+		//this.maxLength;
+		
+		/*
+		A function that consumes a value and returns an error message if there 
+		is an error, false otherwise.
+		*/
+		//this.customErrorFunc;
 	
 	}
 	
@@ -542,11 +562,10 @@ PreferenceModel.prototype = {
 	Value is null if type is not recognized
 	Returns an object with value and errors properties.
 	*/
-	clean: function(val, type, multiline) {
+	clean: function(val, type) {
 		
 		if(!defined(val)) val = this.value;
 		if(!defined(type)) type = this.type;
-		if(!defined(multiline)) multiline = this.multiline;
 		
 		var rv = {value: null, errors: {}};
 		
@@ -559,7 +578,7 @@ PreferenceModel.prototype = {
 				break;
 			case "string":
 				val = val+"";
-				if(!multiline) val = val.replace("\n", "");
+				if(!this.rules.multiline) val = val.replace("\n", "");
 				break;
 			default:
 				rv.errors.unrecognizedType = type;
@@ -569,24 +588,24 @@ PreferenceModel.prototype = {
 		var cerr;
 		
 		if(this.rangeOverflow(val)) {
-			val = rv.errors.rangeOverflow = this.max;
+			val = rv.errors.rangeOverflow = this.rules.max;
 			}
 		if(this.rangeUnderflow(val)) {
-			val = rv.errors.rangeUnderflow = this.min;
+			val = rv.errors.rangeUnderflow = this.rules.min;
 			}
 		if(this.stepMismatch(val)) {
-			val = this.roundNearest(val, rv.errors.stepMismatch = this.step);
+			val = this.roundNearest(val, rv.errors.stepMismatch = this.rules.step);
 			}
 		if(this.tooLong(val)) {
-			val = val.substr(0, rv.errors.tooLong = this.maxLength);
+			val = val.substr(0, rv.errors.tooLong = this.rules.maxLength);
 			}
 		if(this.patternMismatch(val)) {
 			val = this.def;
-			rv.errors.patternMismatch = this.pattern;
+			rv.errors.patternMismatch = this.rules.pattern;
 			}
 		if(this.selectionMismatch(val)) {
 			val = this.def;
-			rv.errors.selectionMismatch = this.selections;
+			rv.errors.selectionMismatch = this.rules.selections;
 			}
 		if(cerr = this.customError(val)) {
 			val = this.def;
@@ -601,40 +620,41 @@ PreferenceModel.prototype = {
 	
 	rangeOverflow: function(val) {
 		if(!defined(val)) val = this.value;
-		return typeof this.max == "number" && val > this.max;
+		return typeof this.rules.max == "number" && val > this.rules.max;
 	},
 	
 	rangeUnderflow: function(val) {
 		if(!defined(val)) val = this.value;
-		return typeof this.min == "number" && val < this.min;
+		return typeof this.rules.min == "number" && val < this.rules.min;
 	},
 	
 	stepMismatch: function(val) {
 		if(!defined(val)) val = this.value;
-		return typeof this.step == "number" && val % this.step != 0;
+		return typeof this.rules.step == "number" && val % this.rules.step != 0;
 	},
 	
 	tooLong: function(val) {
 		if(!defined(val)) val = this.value;
-		return typeof this.maxLength == "number" && val.length > this.maxLength;
+		return typeof this.rules.maxLength == "number" && val.length > this.rules.maxLength;
 	},
 	
 	patternMismatch: function(val) {
 		if(!defined(val)) val = this.value;
-		return this.pattern instanceof RegExp && !val.match(this.pattern);
+		return this.rules.pattern instanceof RegExp && !val.match(this.rules.pattern);
 	},
 	
 	selectionMismatch: function(val) {
 		if(!defined(val)) val = this.value;
-		return Array.isArray(this.selections) && !this.selections.some(function(e, i, a) {
-			return e == val || Array.isArray(e) && e[1] == val;
-			}, this);
+		return Array.isArray(this.rules.selections) && 
+			!this.rules.selections.some(function(e, i, a) {
+				return e == val || Array.isArray(e) && e[1] == val;
+				}, this);
 	},
 	
 	customError: function(val) {
 		if(!defined(val)) val = this.value;
-		if(typeof this.customErrorFunc == "function") {
-			return this.customErrorFunc(val);
+		if(typeof this.rules.customErrorFunc == "function") {
+			return this.rules.customErrorFunc(val);
 			}
 		return false;
 	},
@@ -708,14 +728,12 @@ PreferenceViewManager.prototype = {
 	Add this preference to the options page, replacing a pointer if present, otherwise appending to masterContainer
 	Pointers are elements with the id "pref_preferenceName"
 	*/
-	add: function(name, def, rule) {
+	add: function(name, def, rules) {
 		
 		if(!this.prefs[name]) {
 			
-			var model = new PreferenceModel(name, def);
+			var model = new PreferenceModel(name, def, rules);
 			var view = this.prefs[name] = new PreferenceView(model);
-			//everything in the rule gets stuck onto the model
-			for(var i in rule) model[i] = rule[i];
 			
 			var pointer = document.getElementById("pref_" + name);
 			//title of pointer overrides title in rule
