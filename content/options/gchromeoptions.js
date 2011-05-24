@@ -195,6 +195,19 @@ PreferenceView.prototype = {
 		},
 		
 	/*
+	Should be called when the user may have changed the input.
+	Will validate input and checkChanged/FromDefault.
+	*/
+	onInput: function(e) {
+		if(e.target == this.input) {
+			var val = this.value;
+			var clean = this.clean(val);
+			this.validate(clean, val);
+			this.checkNewValue(val, clean.value);
+			}
+		},
+		
+	/*
 	Save the currently inputted value to the model
 	*/
 	save: function() {
@@ -239,6 +252,26 @@ PreferenceView.prototype = {
 			return true;
 			}
 		return false;
+		},
+		
+	/*
+	Should be called when a control button may have been clicked.
+	*/
+	onControl: function(e) {
+		var wasControl = true;
+		switch(e.target) {
+			case this.revertControl: this.load();
+				break;
+			case this.defaultControl: this.loadFromDefault();
+				break;
+			case this.saveControl: this.save();
+				break;
+			default: wasControl = false;
+				break;
+			}
+		if(wasControl) {
+			e.preventDefault();
+			}
 		},
 	
 	/*
@@ -287,6 +320,16 @@ PreferenceView.prototype = {
 	isChangedFromLastSaved: function(val, cleanVal) {
 		return this.isChangedFrom(this.model.lastSavedValue, val, cleanVal);
 		},
+		
+	/*
+	Should be called when the saved value has been changed by some external force.
+	Will change the currently inputted value to match the new one if it hasn't been changed already.
+	*/
+	onSetValue: function(newVal) {
+		if(!this.isChangedFromLastSaved()) {
+			this.model.lastSavedValue = this.value = newVal;
+			}
+		},
 	
 	/*
 	Make the necessary interface out of DOM elements, contained by container
@@ -303,6 +346,9 @@ PreferenceView.prototype = {
 		
 		this._makeControlsTemplate();
 		this.controls = this.controlsTemplate.cloneNode(true);
+		this.revertControl = getFirstByClassName(this.controls, "revertControl");
+		this.defaultControl = getFirstByClassName(this.controls, "defaultControl");
+		this.saveControl = getFirstByClassName(this.controls, "saveControl");
 		
 		if(Array.isArray(this.model.selections)) {
 			this.input = document.createElement("select");
@@ -864,12 +910,7 @@ PreferenceViewManager.prototype = {
 	*/
 	validateInputListener: function(e) {
 		var pref = this.get(e.target);
-		if(pref) {
-			var val = pref.value;
-			var clean = pref.clean(val);
-			pref.validate(clean, val);
-			pref.checkNewValue(val, clean.value);
-			}
+		if(pref) return pref.onInput(e);
 		},
 		
 	/*
@@ -877,24 +918,7 @@ PreferenceViewManager.prototype = {
 	*/
 	controlButtonListener: function(e) {
 		var pref = this.get(e.target);
-		if(pref) {
-		
-			var wasControl = false;
-			if(wasControl = hasClass(e.target, "revertControl")) {
-				pref.load();
-				}
-			else if(wasControl = hasClass(e.target, "defaultControl")) {
-				pref.loadFromDefault();
-				}
-			else if(wasControl = hasClass(e.target, "saveControl")) {
-				pref.save();
-				}
-				
-			if(wasControl) {
-				e.preventDefault();
-				}
-			
-			}
+		if(pref) return pref.onControl(e);
 		},
 	
 	/*
@@ -902,51 +926,45 @@ PreferenceViewManager.prototype = {
 	*/
 	mainControlButtonListener: function(e) {
 		
-		if(e.target == this.saveButton) {
-			
-			if(this.anyChanges) {
-				if(!this.save()) {
-					//if the preferences weren't all valid, warn the user
-					alert(this.strings.notAllValid);
+		switch(e.target) {
+			case this.saveButton:
+				if(this.anyChanges) {
+					if(!this.save()) {
+						//if the preferences weren't all valid, warn the user
+						alert(this.strings.notAllValid);
+						}
+					this.controlLog.textContent = "Saved!";
+					this.clearLog(2000);
 					}
-				this.controlLog.textContent = "Saved!";
-				this.clearLog(2000);
-				}
-			else alert(this.strings.noUnsavedChanges);
+				else alert(this.strings.noUnsavedChanges);
+				break;
 			
-			}
-			
-		else if(e.target == this.revertButton) {
-			
-			if(this.anyChanges) {
-				if(confirm(this.strings.revertChanges)) {
-					this.load();
+			case this.revertButton:
+				if(this.anyChanges) {
+					if(confirm(this.strings.revertChanges)) {
+						this.load();
+						}
 					}
-				}
-			else alert(this.strings.noUnsavedChanges);
+				else alert(this.strings.noUnsavedChanges);
+				break;
 			
-			}
-			
-		else if(e.target == this.defaultButton) {
-			
-			if(this.anyChangesFromDefault) {
-				if(confirm(this.strings.revertToDefault)) {
-					this.loadFromDefault();
+			case this.defaultButton:
+				if(this.anyChangesFromDefault) {
+					if(confirm(this.strings.revertToDefault)) {
+						this.loadFromDefault();
+						}
 					}
-				}
-			else alert(this.strings.allDefault);
-			
-			}
+				else alert(this.strings.allDefault);
+				break;
 		
-		else if(e.target == this.closeButton) {
-			
-			//warn the user about unsaved changes before closing the tab
-			if(!this.anyChanges ||
-				confirm(this.strings.unsavedChanges)) {
-					this.confirmedClose = true;
-					window.close();
-				}
-			
+			case this.closeButton:
+				//warn the user about unsaved changes before closing the tab
+				if(!this.anyChanges ||
+					confirm(this.strings.unsavedChanges)) {
+						this.confirmedClose = true;
+						window.close();
+					}
+				break;
 			}
 		
 		},
@@ -955,13 +973,10 @@ PreferenceViewManager.prototype = {
 	Warn the user about unsaved changes before unload
 	*/
 	beforeUnloadListener: function(e) {
-		if(!this.confirmedClose) {
-			if(this.anyChanges) {
-				if(e) e.returnValue = this.strings.unsavedChanges;
-				return this.strings.unsavedChanges;
-				}
+		if(!this.confirmedClose && this.anyChanges) {
+			return e.returnValue = this.strings.unsavedChanges;
 			}
-		else this.confirmedClose = false;
+		this.confirmedClose = false;
 		},
 	
 	/*
@@ -970,13 +985,14 @@ PreferenceViewManager.prototype = {
 	*/
 	setValueListener: function(request, sender, sendResponse) {
 		var pref = this.prefs[request.name];
+		var newVal = JSON.parse(request.jsonValue);
 		if(!pref) {
-			pref = this.add(request.name, JSON.parse(request.jsonValue));
+			/*the pref will be added to the page, but will not show up next time
+			unless a default is added to defaults.js*/
+			pref = this.add(request.name, newVal);
 			}
-		else if(!pref.changedFromLastSaved) {
-			pref.model.lastSavedValue = pref.value = JSON.parse(request.jsonValue);
-			}
-		},
+		else pref.onSetValue(newVal);
+		}
 	
 	}
 
