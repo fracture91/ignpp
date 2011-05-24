@@ -12,14 +12,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	switch(request.type.toLowerCase()) {
 		
 		case "setvalue":
-			//change value of respective input if not already changed by user
-			var pref = Preferences.prefs[request.name];
-			if(!pref) {
-				pref = Preferences.add(request.name, JSON.parse(request.jsonValue));
-				}
-			else if(!pref.changedFromLastSaved) {
-				pref.model.lastSavedValue = pref.value = JSON.parse(request.jsonValue);
-				}
+			Preferences.setValueListener(request, sender, sendResponse);
 			break;
 			
 		case "ping":
@@ -821,6 +814,154 @@ Preferences = new function() {
 		this.logTimer = setTimeout(this.clearLog, time);
 		
 		}
+		
+	/*
+	Add all necessary event listeners
+	*/
+	this.addListeners = function() {
+		document.addEventListener("keyup", this.validateInputListener, true);
+		document.addEventListener("click", this.validateInputListener, true);
+		document.addEventListener("change", this.validateInputListener, true);
+		document.addEventListener("click", this.controlButtonListener, true);
+		document.addEventListener("click", this.mainControlButtonListener, true);
+		window.addEventListener("beforeunload", this.beforeUnloadListener, true);
+		}
+	
+	/*
+	Validate whatever preference this input is from
+	*/
+	this.validateInputListener = function(e) {
+		var pref = Preferences.get(e.target);
+		if(pref) {
+			var val = pref.value;
+			var clean = pref.clean(val);
+			pref.validate(clean, val);
+			pref.checkNewValue(val, clean.value);
+			}
+		}
+		
+	/*
+	Handle the control buttons for individual preferences
+	*/
+	this.controlButtonListener = function(e) {
+		var pref = Preferences.get(e.target);
+		if(pref) {
+		
+			var wasControl = false;
+			if(wasControl = hasClass(e.target, "revertControl")) {
+				pref.load();
+				}
+			else if(wasControl = hasClass(e.target, "defaultControl")) {
+				pref.loadFromDefault();
+				}
+			else if(wasControl = hasClass(e.target, "saveControl")) {
+				pref.save();
+				}
+				
+			if(wasControl) {
+				e.preventDefault();
+				}
+			
+			}
+		}
+	
+	/*
+	Handles all the buttons in the #control element
+	*/
+	this.mainControlButtonListener = function(e) {
+		
+		if(e.target == Preferences.saveButton) {
+			
+			if(Preferences.anyChanges) {
+				if(!Preferences.save()) {
+					//if the preferences weren't all valid, warn the user
+					alert(Preferences.strings.notAllValid);
+					}
+				Preferences.controlLog.textContent = "Saved!";
+				Preferences.clearLog(2000);
+				}
+			else alert(Preferences.strings.noUnsavedChanges);
+			
+			}
+			
+		else if(e.target == Preferences.revertButton) {
+			
+			if(Preferences.anyChanges) {
+				if(confirm(Preferences.strings.revertChanges)) {
+					Preferences.load();
+					}
+				}
+			else alert(Preferences.strings.noUnsavedChanges);
+			
+			}
+			
+		else if(e.target == Preferences.defaultButton) {
+			
+			if(Preferences.anyChangesFromDefault) {
+				if(confirm(Preferences.strings.revertToDefault)) {
+					Preferences.loadFromDefault();
+					}
+				}
+			else alert(Preferences.strings.allDefault);
+			
+			}
+		
+		else if(e.target == Preferences.closeButton) {
+			
+			//warn the user about unsaved changes before closing the tab
+			if(!Preferences.anyChanges ||
+				confirm(Preferences.strings.unsavedChanges)) {
+					Preferences.confirmedClose = true;
+					window.close();
+				}
+			
+			}
+		
+		}
+		
+	/*
+	Warn the user about unsaved changes before unload
+	*/
+	this.beforeUnloadListener = function(e) {
+		if(!Preferences.confirmedClose) {
+			if(Preferences.anyChanges) {
+				if(e) e.returnValue = Preferences.strings.unsavedChanges;
+				return Preferences.strings.unsavedChanges;
+				}
+			}
+		else Preferences.confirmedClose = false;
+		}
+	
+	this.loadListener = function(e) {
+		
+		//need to set this stuff up when the DOM is available
+		
+		Preferences.masterContainer = document.getElementById("uncategorizedPrefs");
+		Preferences.saveButton = document.getElementById("saveButton");
+		Preferences.revertButton = document.getElementById("revertButton");
+		Preferences.defaultButton = document.getElementById("defaultButton");
+		Preferences.closeButton = document.getElementById("closeButton");
+		Preferences.controlLog = document.getElementById("controlLog");
+		
+		Preferences.addFromObject(prefsCatcher, rules);
+		Preferences.addListeners();
+			
+		}
+		
+	window.addEventListener("load", this.loadListener, true);
+	
+	/*
+	Change value of respective input if not already changed by user
+	*/
+	this.setValueListener = function(request, sender, sendResponse) {
+		var pref = Preferences.prefs[request.name];
+		if(!pref) {
+			pref = Preferences.add(request.name, JSON.parse(request.jsonValue));
+			}
+		else if(!pref.changedFromLastSaved) {
+			pref.model.lastSavedValue = pref.value = JSON.parse(request.jsonValue);
+			}
+		}
 	
 	}
 
@@ -832,125 +973,8 @@ function pref(name, def) {
 	prefsCatcher[name.substring(name.lastIndexOf(".")+1)] = def;
 	}
 
-	
-window.onload = function(e) {
-	
-	//need to set this stuff up when the DOM is available
-	
-	Preferences.masterContainer = document.getElementById("uncategorizedPrefs");
-	Preferences.saveButton = document.getElementById("saveButton");
-	Preferences.revertButton = document.getElementById("revertButton");
-	Preferences.defaultButton = document.getElementById("defaultButton");
-	Preferences.closeButton = document.getElementById("closeButton");
-	Preferences.controlLog = document.getElementById("controlLog");
-	
-	Preferences.addFromObject(prefsCatcher, rules);
-		
-	}
 
-//validate whatever preference this input is from
-function validateInputHandler(e) {
-	var pref = Preferences.get(e.target);
-	if(pref) {
-		var val = pref.value;
-		var clean = pref.clean(val);
-		pref.validate(clean, val);
-		pref.checkNewValue(val, clean.value);
-		}
-	}
-	
-document.addEventListener("keyup", validateInputHandler, true);
-document.addEventListener("click", validateInputHandler, true);
-document.addEventListener("change", validateInputHandler, true);
 
-function controlButtonHandler(e) {
-	var pref = Preferences.get(e.target);
-	if(pref) {
-	
-		var wasControl = false;
-		if(wasControl = hasClass(e.target, "revertControl")) {
-			pref.load();
-			}
-		else if(wasControl = hasClass(e.target, "defaultControl")) {
-			pref.loadFromDefault();
-			}
-		else if(wasControl = hasClass(e.target, "saveControl")) {
-			pref.save();
-			}
-			
-		if(wasControl) {
-			e.preventDefault();
-			}
-		
-		}
-	}
-	
-document.addEventListener("click", controlButtonHandler, true);
-
-//handles all the buttons in the #control element
-function mainControlButtonHandler(e) {
-	
-	if(e.target == Preferences.saveButton) {
-		
-		if(Preferences.anyChanges) {
-			if(!Preferences.save()) {
-				//if the preferences weren't all valid, warn the user
-				alert(Preferences.strings.notAllValid);
-				}
-			Preferences.controlLog.textContent = "Saved!";
-			Preferences.clearLog(2000);
-			}
-		else alert(Preferences.strings.noUnsavedChanges);
-		
-		}
-		
-	else if(e.target == Preferences.revertButton) {
-		
-		if(Preferences.anyChanges) {
-			if(confirm(Preferences.strings.revertChanges)) {
-				Preferences.load();
-				}
-			}
-		else alert(Preferences.strings.noUnsavedChanges);
-		
-		}
-		
-	else if(e.target == Preferences.defaultButton) {
-		
-		if(Preferences.anyChangesFromDefault) {
-			if(confirm(Preferences.strings.revertToDefault)) {
-				Preferences.loadFromDefault();
-				}
-			}
-		else alert(Preferences.strings.allDefault);
-		
-		}
-	
-	else if(e.target == Preferences.closeButton) {
-		
-		//warn the user about unsaved changes before closing the tab
-		if(!Preferences.anyChanges ||
-			confirm(Preferences.strings.unsavedChanges)) {
-				Preferences.confirmedClose = true;
-				window.close();
-			}
-		
-		}
-	
-	}
-	
-document.addEventListener("click", mainControlButtonHandler, true);
-
-//warn the user about unsaved changes before unload
-window.onbeforeunload = function(e) {
-	if(!Preferences.confirmedClose) {
-		if(Preferences.anyChanges) {
-			if(e) e.returnValue = Preferences.strings.unsavedChanges;
-			return Preferences.strings.unsavedChanges;
-			}
-		}
-	else Preferences.confirmedClose = false;
-	}
 
 /*
 All tabBoxes are controlled from here
@@ -970,7 +994,7 @@ The default styling will make these selected elements visible, and unselected el
 
 Additional tabBoxes can be nested within content elements without interfering with ones above it
 */
-function tabHandler(e) {
+function tabListener(e) {
 	
 	function hasTab(el) { return el.hasAttribute && el.hasAttribute("tab") }
 	
@@ -1004,4 +1028,4 @@ function tabHandler(e) {
 	
 	}
 
-document.addEventListener("click", tabHandler, true);
+document.addEventListener("click", tabListener, true);
