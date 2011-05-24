@@ -187,8 +187,19 @@ color: red;
 }
 
 .preference.invalid > input, 
+.preference.invalid > select, 
 .preference.invalid > textarea {
 outline: 1px solid red;
+}
+
+.preference.invalid > input:focus, 
+.preference.invalid > select:focus, 
+.preference.invalid > textarea:focus {
+outline-style: dotted;
+}
+
+.preference.invalid > menu > li > .saveControl {
+color: red;
 }
 
 .preference > .errors:empty {
