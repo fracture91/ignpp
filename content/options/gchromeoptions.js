@@ -621,37 +621,48 @@ PreferenceModel.prototype = {
 	}
 
 /*
-Manages preferences on the options page
+Manages PreferenceViews on the options page
 */
-Preferences = new function() {
-	
-	//relevant strings
-	this.strings = {
-		unsavedChanges: "You have unsaved changes - are you sure you want to close the Options tab?",
-		revertChanges: "Are you sure you want to revert all unsaved preferences to their last saved state?",
-		revertToDefault: "Are you sure you want to revert all preferences to their default state?",
-		noUnsavedChanges: "You have no unsaved changes.",
-		allDefault: "All preferences are already in their default state.",
-		notAllValid: "Some preferences were not valid and, consequently, not saved."
-		}
+PreferenceViewManager = function() {
 	
 	/*
 	Holds all managed PreferenceView, indexed by preference name
 	*/
 	this.prefs = {};
 	
+	this.masterContainer = document.getElementById("uncategorizedPrefs");
+	this.saveButton = document.getElementById("saveButton");
+	this.revertButton = document.getElementById("revertButton");
+	this.defaultButton = document.getElementById("defaultButton");
+	this.closeButton = document.getElementById("closeButton");
+	this.controlLog = document.getElementById("controlLog");
+	
+	}
+	
+PreferenceViewManager.prototype = {
+	
+	//relevant strings
+	strings: {
+		unsavedChanges: "You have unsaved changes - are you sure you want to close the Options tab?",
+		revertChanges: "Are you sure you want to revert all unsaved preferences to their last saved state?",
+		revertToDefault: "Are you sure you want to revert all preferences to their default state?",
+		noUnsavedChanges: "You have no unsaved changes.",
+		allDefault: "All preferences are already in their default state.",
+		notAllValid: "Some preferences were not valid and, consequently, not saved."
+		},
+	
 	/*
 	Call add using the pairs of values from obj as name: default
 	*/
-	this.addFromObject = function(obj, rules) {
+	addFromObject: function(obj, rules) {
 		for(var i in obj) this.add(i, obj[i], rules[i]);
-		}
+		},
 	
 	/*
 	Add this preference to the options page, replacing a pointer if present, otherwise appending to masterContainer
 	Pointers are elements with the id "pref_preferenceName"
 	*/
-	this.add = function(name, def, rule) {
+	add: function(name, def, rule) {
 		
 		if(!this.prefs[name]) {
 			
@@ -681,28 +692,28 @@ Preferences = new function() {
 			
 			}
 		
-		}
+		},
 		
 	/*
 	Given an element, get the preference associated with it.
 	*/
-	this.get = function(el) {
+	get: function(el) {
 		var parent = hasClass(el, "preference") ? el : getParentByClassName(el, "preference");
 		if(parent && parent.id.slice(0,5)=="pref_") {
 			var pref = Preferences.prefs[parent.id.substring(5)];
 			if(pref) return pref;
 			}
 		return null
-		}
+		},
 	
 	/*
 	Call some function for each managed preference
 	Function is passed the PreferenceView, the preference name, and all managed preferences
 	If the function returns false, the loop stops
 	*/
-	this.forEachPref = function(func) {
+	forEachPref: function(func) {
 		for(var i in this.prefs) if(func(this.prefs[i], i, this.prefs)===false) return false;
-		}
+		},
 	
 	/*
 	Basically shorthand for this pattern:
@@ -719,7 +730,7 @@ Preferences = new function() {
 	if func().allVal is undefined, all will not change
 	if func().returnVal is undefined, the loop will not stop
 	*/
-	this.delegate = function(func, def) {
+	delegate: function(func, def) {
 		var all = def = defined(def) ? def : true;
 		//the function passed to forEachPref is all about handling the return value of func
 		this.forEachPref(function(e, i, a) {
@@ -741,96 +752,96 @@ Preferences = new function() {
 				}
 			});
 		return all;
-		}
+		},
 	
 	/*
 	Save each managed preference if it has been changed and is valid
 	Returns true if all preferences were valid, false otherwise
 	*/
-	this.save = function() {
+	save: function() {
 		return this.delegate(function(e, i, a) {
 			if(!e.save().valid) return false;
 			}, true);
-		}
+		},
 		
 	/*
 	Load each managed preference if it has been changed.
 	Returns true if all prefs were loaded, false otherwise.
 	*/
-	this.load = function() {
+	load: function() {
 		return this.delegate(function(e, i, a) {
 			if(!e.load()) return false;
 			}, true);
-		}
+		},
 		
 	/*
 	Load each managed preference from default if it has been changed from default.
 	Returns true if all prefs were loaded, false otherwise.
 	*/
-	this.loadFromDefault = function() {
+	loadFromDefault: function() {
 		return this.delegate(function(e, i, a) {
 			if(!e.loadFromDefault()) return false;
 			}, true);
-		}
+		},
 	
 	/*
 	if pref.isChangedFrom(oldValFunc(e, i, a)) is true for any managed pref, return true.
 	*/
-	this.anyChangesFrom = function(oldValFunc) {
+	anyChangesFrom: function(oldValFunc) {
 		return this.delegate(function(e, i, a) {
 			if(e.isChangedFrom(oldValFunc(e, i, a))) {
 				return {allVal: true, returnVal: false};
 				}
 			}, false);
-		}
+		},
 	
 	/*
 	Returns true if any managed preference has been changed, false otherwise
 	*/
-	this.__defineGetter__("anyChanges", function() {
+	get anyChanges() {
 		return this.anyChangesFrom(function(e, i, a) {
 			return e.model.value;
 			});
-		});
+		},
 		
 	/*
 	Returns true if any managed preference has been changed from default, false otherwise
 	*/
-	this.__defineGetter__("anyChangesFromDefault", function() {
+	get anyChangesFromDefault() {
 		return this.anyChangesFrom(function(e, i, a) {
 			return e.model.def;
 			});
-		});
+		},
 		
 	/*
 	If called with a number of milliseconds, set controlLog textContent to empty after that amount of time
 	Otherwise, clear it immediately
 	*/
-	this.clearLog = function(time) {
+	clearLog: function(time) {
 		
 		if(typeof time != "number") return this.controlLog.textContent = "";
 		
 		if(defined(this.logTimer)) clearTimeout(this.logTimer);
 		this.logTimer = setTimeout(this.clearLog, time);
 		
-		}
+		},
 		
 	/*
 	Add all necessary event listeners
 	*/
-	this.addListeners = function() {
+	addListeners: function() {
 		document.addEventListener("keyup", this.validateInputListener, true);
 		document.addEventListener("click", this.validateInputListener, true);
 		document.addEventListener("change", this.validateInputListener, true);
 		document.addEventListener("click", this.controlButtonListener, true);
 		document.addEventListener("click", this.mainControlButtonListener, true);
 		window.addEventListener("beforeunload", this.beforeUnloadListener, true);
-		}
+		},
 	
 	/*
 	Validate whatever preference this input is from
 	*/
-	this.validateInputListener = function(e) {
+	validateInputListener: function(e) {
 		var pref = Preferences.get(e.target);
 		if(pref) {
 			var val = pref.value;
@@ -838,12 +849,12 @@ Preferences = new function() {
 			pref.validate(clean, val);
 			pref.checkNewValue(val, clean.value);
 			}
-		}
+		},
 		
 	/*
 	Handle the control buttons for individual preferences
 	*/
-	this.controlButtonListener = function(e) {
+	controlButtonListener: function(e) {
 		var pref = Preferences.get(e.target);
 		if(pref) {
 		
@@ -863,12 +874,12 @@ Preferences = new function() {
 				}
 			
 			}
-		}
+		},
 	
 	/*
 	Handles all the buttons in the #control element
 	*/
-	this.mainControlButtonListener = function(e) {
+	mainControlButtonListener: function(e) {
 		
 		if(e.target == Preferences.saveButton) {
 			
@@ -917,12 +928,12 @@ Preferences = new function() {
 			
 			}
 		
-		}
+		},
 		
 	/*
 	Warn the user about unsaved changes before unload
 	*/
-	this.beforeUnloadListener = function(e) {
+	beforeUnloadListener: function(e) {
 		if(!Preferences.confirmedClose) {
 			if(Preferences.anyChanges) {
 				if(e) e.returnValue = Preferences.strings.unsavedChanges;
@@ -930,30 +941,12 @@ Preferences = new function() {
 				}
 			}
 		else Preferences.confirmedClose = false;
-		}
-	
-	this.loadListener = function(e) {
-		
-		//need to set this stuff up when the DOM is available
-		
-		Preferences.masterContainer = document.getElementById("uncategorizedPrefs");
-		Preferences.saveButton = document.getElementById("saveButton");
-		Preferences.revertButton = document.getElementById("revertButton");
-		Preferences.defaultButton = document.getElementById("defaultButton");
-		Preferences.closeButton = document.getElementById("closeButton");
-		Preferences.controlLog = document.getElementById("controlLog");
-		
-		Preferences.addFromObject(prefsCatcher, rules);
-		Preferences.addListeners();
-			
-		}
-		
-	window.addEventListener("load", this.loadListener, true);
+		},
 	
 	/*
 	Change value of respective input if not already changed by user
 	*/
-	this.setValueListener = function(request, sender, sendResponse) {
+	setValueListener: function(request, sender, sendResponse) {
 		var pref = Preferences.prefs[request.name];
 		if(!pref) {
 			pref = Preferences.add(request.name, JSON.parse(request.jsonValue));
@@ -961,10 +954,11 @@ Preferences = new function() {
 		else if(!pref.changedFromLastSaved) {
 			pref.model.lastSavedValue = pref.value = JSON.parse(request.jsonValue);
 			}
-		}
+		},
 	
 	}
 
+	
 //holds caught preferences
 prefsCatcher = {};
 
@@ -973,6 +967,12 @@ function pref(name, def) {
 	prefsCatcher[name.substring(name.lastIndexOf(".")+1)] = def;
 	}
 
+window.addEventListener("load", function(e) {
+	//need to set this stuff up when the document is loaded
+	window.Preferences = new PreferenceViewManager(); 
+	Preferences.addFromObject(prefsCatcher, rules);
+	Preferences.addListeners();
+	}, true);
 
 
 
