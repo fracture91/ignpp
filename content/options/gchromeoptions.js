@@ -239,6 +239,7 @@ PreferenceView.prototype = {
 			this.value = this.model.value;
 			return true;
 			}
+		this.checkChangedFromDefault();
 		return false;
 		},
 		
@@ -251,6 +252,7 @@ PreferenceView.prototype = {
 			this.value = this.model.def;
 			return true;
 			}
+		this.checkChanged();
 		return false;
 		},
 		
