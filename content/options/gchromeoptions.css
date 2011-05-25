@@ -156,6 +156,11 @@ margin: 5px;
 padding: 5px;
 }
 
+.hidden > .preference:before {
+content: "Hidden";
+color: red;
+}
+
 .preference > label {
 margin: 5px;
 font-size: 0.8em;
@@ -264,6 +269,10 @@ clear: both;
 
 .hidden {
 display: none;
+}
+
+.notReallyHidden {
+display: block;
 }
 
 .tabBox {

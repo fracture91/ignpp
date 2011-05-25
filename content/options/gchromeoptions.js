@@ -332,6 +332,15 @@ PreferenceView.prototype = {
 			this.model.lastSavedValue = this.value = newVal;
 			}
 		},
+		
+	/*
+	Return true if this pref has been deliberately hidden.
+	(is a child of an element of class "hidden" and has a computed hidden style)
+	*/
+	isHidden: function() {
+		var parent = getParentByClassName(this.container, "hidden");
+		return !!(parent && window.getComputedStyle(parent, null).getPropertyValue("display") == "none");
+		},
 	
 	/*
 	Make the necessary interface out of DOM elements, contained by container
@@ -719,6 +728,9 @@ PreferenceViewManager = function(output) {
 	this.revertButton = document.getElementById("revertButton");
 	this.defaultButton = document.getElementById("defaultButton");
 	this.closeButton = document.getElementById("closeButton");
+	this.hiddenToggle = document.getElementById("hiddenToggle");
+	
+	this._prefsAreHidden = true;
 	
 	}
 	
@@ -840,40 +852,40 @@ PreferenceViewManager.prototype = {
 	
 	/*
 	Save each managed preference if it has been changed and is valid
-	Returns true if all preferences were valid, false otherwise
+	Returns true if all non-hidden preferences were valid, false otherwise
 	*/
 	save: function() {
 		return this.delegate(function(e, i, a) {
-			if(!e.save().valid) return false;
+			if(!e.isHidden() && !e.save().valid) return false;
 			}, true);
 		},
 		
 	/*
 	Load each managed preference if it has been changed.
-	Returns true if all prefs were loaded, false otherwise.
+	Returns true if all non-hidden prefs were loaded, false otherwise.
 	*/
 	load: function() {
 		return this.delegate(function(e, i, a) {
-			if(!e.load()) return false;
+			if(!e.isHidden() && !e.load()) return false;
 			}, true);
 		},
 		
 	/*
 	Load each managed preference from default if it has been changed from default.
-	Returns true if all prefs were loaded, false otherwise.
+	Returns true if all non-hidden prefs were loaded, false otherwise.
 	*/
 	loadFromDefault: function() {
 		return this.delegate(function(e, i, a) {
-			if(!e.loadFromDefault()) return false;
+			if(!e.isHidden() && !e.loadFromDefault()) return false;
 			}, true);
 		},
 	
 	/*
-	if pref.isChangedFrom(oldValFunc(e, i, a)) is true for any managed pref, return true.
+	if pref.isChangedFrom(oldValFunc(e, i, a)) is true for any managed non-hidden pref, return true.
 	*/
 	anyChangesFrom: function(oldValFunc) {
 		return this.delegate(function(e, i, a) {
-			if(e.isChangedFrom(oldValFunc(e, i, a))) {
+			if(e.isChangedFrom(oldValFunc(e, i, a)) && !e.isHidden()) {
 				return {allVal: true, returnVal: false};
 				}
 			}, false);
@@ -920,7 +932,8 @@ PreferenceViewManager.prototype = {
 		[document, ["keyup","click","change"], "validateInputListener", true],
 		[document, "click", "controlButtonListener", true],
 		[document, "click", "mainControlButtonListener", true],
-		[window, "beforeunload", "beforeUnloadListener", true]
+		[window, "beforeunload", "beforeUnloadListener", true],
+		[document, "click", "hiddenToggleListener", true]
 		],
 		
 	/*
@@ -1012,6 +1025,30 @@ PreferenceViewManager.prototype = {
 		if(this.anyChanges) {
 			return e.returnValue = this.strings.unsavedChanges;
 			}
+		},
+	
+	/*
+	Toggle hidden-ness of hidden prefs.
+	*/
+	toggleHiddenPrefs: function() {
+		var hiddens = document.getElementsByClassName("hidden");
+		if(!hiddens) return;
+		var className = "notReallyHidden";
+		for(var i=0, len=hiddens.length; i<len; i++) {
+			if(this._prefsAreHidden) {
+				addClass(hiddens[i], className);
+				this.hiddenToggle.value = "Hide Hidden Preferences";
+				}
+			else {
+				removeClass(hiddens[i], className);
+				this.hiddenToggle.value = "Show Hidden Preferences";
+				}
+			}
+		this._prefsAreHidden = !this._prefsAreHidden;
+		},
+	
+	hiddenToggleListener: function(e) {
+		if(e.target == this.hiddenToggle) this.toggleHiddenPrefs();
 		},
 	
 	/*
