@@ -694,22 +694,29 @@ PreferenceModel.prototype = {
 	
 	}
 
+
+	
+	
 /*
 Manages PreferenceViews on the options page
 */
-PreferenceViewManager = function() {
+PreferenceViewManager = function(output) {
 	
 	/*
 	Holds all managed PreferenceView, indexed by preference name
 	*/
 	this.prefs = {};
 	
+	/*
+	The OutputArea associated with this manager.
+	*/
+	this.output = output;
+	
 	this.masterContainer = document.getElementById("uncategorizedPrefs");
 	this.saveButton = document.getElementById("saveButton");
 	this.revertButton = document.getElementById("revertButton");
 	this.defaultButton = document.getElementById("defaultButton");
 	this.closeButton = document.getElementById("closeButton");
-	this.controlLog = document.getElementById("controlLog");
 	
 	}
 	
@@ -886,19 +893,6 @@ PreferenceViewManager.prototype = {
 		},
 		
 	/*
-	If called with a number of milliseconds, set controlLog textContent to empty after that amount of time
-	Otherwise, clear it immediately
-	*/
-	clearLog: function(time) {
-		
-		if(typeof time != "number") return this.controlLog.textContent = "";
-		
-		if(defined(this.logTimer)) clearTimeout(this.logTimer);
-		this.logTimer = setTimeout(this.clearLog, time);
-		
-		},
-		
-	/*
 	Just like target.addEventListener(types, func, useCapture) except:
 		func is a string that represents the name of the method to call (this[func])
 		inside func, this refers to this instance instead of target or window
@@ -958,32 +952,43 @@ PreferenceViewManager.prototype = {
 		switch(e.target) {
 			case this.saveButton:
 				if(this.anyChanges) {
-					if(!this.save()) {
-						//if the preferences weren't all valid, warn the user
-						alert(this.strings.notAllValid);
+					if(this.save()) {
+						this.output.inform("All changes saved!", "goodChange");
 						}
-					this.controlLog.textContent = "Saved!";
-					this.clearLog(2000);
+					//if the preferences weren't all valid, warn the user
+					else this.output.inform(this.strings.notAllValid, "badChange", 3000);
 					}
-				else alert(this.strings.noUnsavedChanges);
+				else this.output.inform(this.strings.noUnsavedChanges);
 				break;
 			
 			case this.revertButton:
 				if(this.anyChanges) {
-					if(confirm(this.strings.revertChanges)) {
-						this.load();
-						}
+					var that = this;
+					this.output.confirm(this.strings.revertChanges, undefined, false,
+						function(button) {
+							if(button == "OK") {
+								that.load();
+								that.output.inform("All changes reverted!", "goodChange");
+								return true;
+								}
+						});
 					}
-				else alert(this.strings.noUnsavedChanges);
+				else this.output.inform(this.strings.noUnsavedChanges);
 				break;
 			
 			case this.defaultButton:
 				if(this.anyChangesFromDefault) {
-					if(confirm(this.strings.revertToDefault)) {
-						this.loadFromDefault();
-						}
+					var that = this;
+					this.output.confirm(this.strings.revertToDefault, undefined, false,
+						function(button) {
+							if(button == "OK") {
+								that.loadFromDefault();
+								that.output.inform("All defaults restored (but not saved)!", "goodChange");
+								return true;
+								}
+						});
 					}
-				else alert(this.strings.allDefault);
+				else this.output.inform(this.strings.allDefault);
 				break;
 		
 			case this.closeButton:
@@ -1022,6 +1027,171 @@ PreferenceViewManager.prototype = {
 	}
 
 
+/*
+Class for interacting with some area that displays a message
+and optionally requests input from the user with buttons.
+Basically a replacement for alert/confirm pop-ups.
+area should be a form element.
+*/
+OutputArea = function(area) {
+	this.area = area;
+	this.buttons = [];
+	this.message;
+	this._currentOutput = {};
+	this.addMyListener(this.area, "submit", "submitListener", true);
+	this.addMyListener(this.area, "click", "clickListener", true);
+	}
+	
+OutputArea.prototype = {
+
+	getCurrentOutput: function() {
+		return this._currentOutput;
+		},
+	
+	/*
+	Displays whatever output object is given.
+	Only submitListener should touch lastValue.
+	Returns true if everything went well and output wasn't blocked via ignoreOthers.
+	Supported output properties:
+		message - The message to display
+		className - A className to apply to the form
+		ignoreOthers - Prevent other outputs from closing this one
+		buttons - Array of strings to make buttons out of
+		onClose
+			function called when the output is closed for whatever reason
+			is passed the button value that was clicked, or null if no buttons were clicked
+			must return true if the function will set output again itself
+		onDisplay
+			function called after output has been displayed
+	*/
+	setCurrentOutput: function(output, lastValue) {
+		if(!this._currentOutput.ignoreOthers || defined(lastValue)) {
+			var dontBother = false;
+			if(typeof this._currentOutput.onClose == "function") {
+				dontBother = this._currentOutput.onClose(defined(lastValue) ? lastValue : null);
+				}
+			if(!dontBother) {
+				this._currentOutput = output==null ? {} : output;
+				this.renderCurrentOutput();
+				}
+			return true;
+			}
+		else return false;
+		},
+	
+	/*
+	Draw everything on the screen for the current output.
+	Calls output.onDisplay when done.
+	*/
+	renderCurrentOutput: function() {
+		
+		while(this.area.firstChild) {
+			this.area.removeChild(this.area.firstChild);
+			}
+			
+		this.area.className = "";
+		
+		//output must have a message
+		if(typeof this._currentOutput.message == "string") {
+			this.message = document.createElement("p");
+			this.message.textContent = this._currentOutput.message;
+			
+			if(typeof this._currentOutput.className == "string") {
+				this.area.className = this._currentOutput.className;
+				}
+			
+			this.area.appendChild(this.message);
+			
+			this.buttons = [];
+			if(this._currentOutput.buttons) {
+				for(var i=0, len=this._currentOutput.buttons.length; i<len; i++) {
+					this.buttons[i] = document.createElement("input");
+					this.buttons[i].type = "submit";
+					this.buttons[i].value = this._currentOutput.buttons[i];
+					this.area.appendChild(this.buttons[i]);
+					}
+				this.buttons[0].focus();
+				}
+				
+			if(typeof this._currentOutput.onDisplay == "function") {
+				this._currentOutput.onDisplay();
+				}
+			}
+			
+		},
+		
+	submitListener: function(e) {
+		e.preventDefault();
+		this.setCurrentOutput(null, this.lastButtonClicked.value);
+		},
+		
+	clickListener: function(e) {
+		this.lastButtonClicked = this.buttons.indexOf(e.target) != -1 ? e.target : null;
+		},
+		
+	/*
+	Show some message in the output area for a certain amount of time.
+	Call the onClose callback when output is closed.
+	*/
+	inform: function(message, className, time, onClose) {
+		
+		time = (typeof time == "number" ? time : 2500);
+		var that = this;
+		return this.setCurrentOutput({
+			message: message,
+			className: className,
+			time: time,
+			onClose: function(button) {
+				clearTimeout(that._currentOutput.timeID);
+				if(typeof callback == "function") {
+					callback(button);
+					}
+				},
+			onDisplay: function() {
+				//only want to start the timer if successfully displayed
+				that._currentOutput.timeID = setTimeout(function() {
+					that.setCurrentOutput(null);
+					}, time);
+				}
+			});
+		
+		},
+
+	/*
+	Like inform, but user must press "OK" to make output go away.
+	If ignoreOthers is true, all other methods that make use of the OutputArea are ignored.
+	*/
+	alert: function(message, className, ignoreOthers, onClose) {
+		
+		return this.setCurrentOutput({
+			message: message,
+			className: className,
+			buttons: ["OK"],
+			ignoreOthers: ignoreOthers,
+			onClose: onClose
+			});
+		
+		},
+		
+	/*
+	Like alert, but user can choose "OK" or "Cancel".
+	*/
+	confirm: function(message, className, ignoreOthers, onClose) {
+		
+		return this.setCurrentOutput({
+			message: message,
+			className: className,
+			buttons: ["OK", "Cancel"],
+			ignoreOthers: ignoreOthers,
+			onClose: onClose
+			});
+		
+		},
+		
+	addMyListener: PreferenceViewManager.prototype.addMyListener
+
+	}
+	
 	
 //holds caught preferences
 prefsCatcher = {};
@@ -1033,7 +1203,8 @@ function pref(name, def) {
 
 window.addEventListener("load", function(e) {
 	//need to set this stuff up when the document is loaded
-	window.Preferences = new PreferenceViewManager(); 
+	var output = new OutputArea(document.getElementById("controlOutput"));
+	window.Preferences = new PreferenceViewManager(output);
 	Preferences.addFromObject(prefsCatcher, rules);
 	Preferences.addListeners();
 	}, true);

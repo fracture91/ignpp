@@ -25,8 +25,10 @@ min-width: 542px;
 }
 
 header {
+position: relative;
 margin: 5px 10px;
-min-width: 689px;
+min-width: 640px;
+max-width: 800px;
 }
 
 header > img {
@@ -40,24 +42,55 @@ margin: 11px 10% 5px 0px;
 }
 
 #control {
-position: relative;
+position: absolute;
 float: left;
 top: -5px;
+right: 0;
+z-index: 10;
 padding: 10px;
 border-bottom-right-radius: 4px;
 border-bottom-left-radius: 4px;
 background-color: #B6BAC0;
+box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-#control > input {
+#controlOutput {
+color: white;
+text-align: center;
+margin: 0;
+max-width: 295px;
+}
+
+#controlOutput:not(:empty) {
+margin-top: 1em;
+}
+
+#control > input ,
+#controlOutput > input {
 font-size: 12pt;
 padding: 5px 10px;
 }
 
-#controlLog {
-color: white;
-text-align: center;
-display: inline;
+#controlOutput > input {
+width: 75px;
+}
+
+#controlOutput > p {
+margin: 0;
+/*For contrast on the gray background*/
+text-shadow: 0 0 1px white;
+}
+
+#controlOutput > p:not(:last-child) {
+margin-bottom: 0.25em;
+}
+
+#controlOutput.goodChange > p {
+color: green;
+}
+
+#controlOutput.badChange > p {
+color: red;
 }
 
 iframe {
@@ -87,7 +120,7 @@ font-weight: bold;
 font-size: 1em;
 }
 
-p {
+.tabBox p {
 margin-left: 20px;
 max-width: 600px;
 min-width: 305px;
@@ -95,7 +128,7 @@ font-size: 0.9em;
 opacity: 0.75;
 }
 
-fieldset > p {
+.tabBox fieldset > p {
 margin-bottom: 2em;
 }
 
