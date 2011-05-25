@@ -392,6 +392,11 @@ section[tab="position"] > fieldset > fieldset {
 float: left;
 }
 
+#pref_ignoreList > input {
+width: 60%;
+min-width: 275px;
+}
+
 #usercolorsDisabled {
 position: absolute;
 top: 0;
