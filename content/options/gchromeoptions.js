@@ -618,6 +618,11 @@ PreferenceModel.prototype = {
 		
 		},
 	
+	/*
+	The next few functions return booleans about whether the given value
+	is valid for this model's rules, similar to the DOM ValidityState interface.
+	*/
+	
 	rangeOverflow: function(val) {
 		if(!defined(val)) val = this.value;
 		return typeof this.rules.max == "number" && val > this.rules.max;
@@ -651,6 +656,9 @@ PreferenceModel.prototype = {
 				}, this);
 	},
 	
+	/*
+	Returns the custom error string if there is an error, false otherwise.
+	*/
 	customError: function(val) {
 		if(!defined(val)) val = this.value;
 		if(typeof this.rules.customErrorFunc == "function") {
@@ -906,6 +914,9 @@ PreferenceViewManager.prototype = {
 			}
 		},
 		
+	/*
+	An array of arrays of arguments to be passed to addMyListener when addListeners is called
+	*/
 	listeners: [
 		[document, ["keyup","click","change"], "validateInputListener", true],
 		[document, "click", "controlButtonListener", true],
