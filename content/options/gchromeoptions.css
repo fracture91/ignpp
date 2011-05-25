@@ -28,7 +28,7 @@ header {
 position: relative;
 margin: 5px 10px;
 min-width: 640px;
-max-width: 800px;
+max-width: 810px;
 }
 
 header > img {
@@ -50,19 +50,25 @@ z-index: 10;
 padding: 10px;
 border-bottom-right-radius: 4px;
 border-bottom-left-radius: 4px;
-background-color: #B6BAC0;
+background-color: #EBEFF9;
 box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+border: 1px solid #B6BAC0;
+border-top: none;
 }
 
 #controlOutput {
-color: white;
+color: black;
 text-align: center;
 margin: 0;
-max-width: 295px;
+max-width: 283px;
+background: white;
+border-radius: 0 0 3px 3px;
 }
 
 #controlOutput:not(:empty) {
 margin-top: 1em;
+padding: 5px;
+border: 1px solid #B5C7DE;
 }
 
 #control > input ,
@@ -77,8 +83,6 @@ width: 75px;
 
 #controlOutput > p {
 margin: 0;
-/*For contrast on the gray background*/
-text-shadow: 0 0 1px white;
 }
 
 #controlOutput > p:not(:last-child) {

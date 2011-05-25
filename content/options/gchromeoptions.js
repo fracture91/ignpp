@@ -727,7 +727,7 @@ PreferenceViewManager.prototype = {
 	//relevant strings
 	strings: {
 		unsavedChanges: "You have unsaved changes - are you sure you want to close the Options tab?",
-		revertChanges: "Are you sure you want to revert all unsaved preferences to their last saved state?",
+		revertChanges: "Are you sure you want to revert all preferences to their last saved state?",
 		revertToDefault: "Are you sure you want to revert all preferences to their default state?",
 		noUnsavedChanges: "You have no unsaved changes.",
 		allDefault: "All preferences are already in their default state.",
