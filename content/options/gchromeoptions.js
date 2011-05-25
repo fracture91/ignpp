@@ -727,8 +727,11 @@ PreferenceViewManager.prototype = {
 	//relevant strings
 	strings: {
 		unsavedChanges: "You have unsaved changes - are you sure you want to close the Options tab?",
+		afterSave: "All changes saved!",
 		revertChanges: "Are you sure you want to revert all preferences to their last saved state?",
+		afterRevert: "All changes reverted!",
 		revertToDefault: "Are you sure you want to revert all preferences to their default state?",
+		afterDefault: "All defaults restored (but not saved)!",
 		noUnsavedChanges: "You have no unsaved changes.",
 		allDefault: "All preferences are already in their default state.",
 		notAllValid: "Some preferences were not valid and, consequently, not saved."
@@ -955,7 +958,7 @@ PreferenceViewManager.prototype = {
 			case this.saveButton:
 				if(this.anyChanges) {
 					if(this.save()) {
-						this.output.inform("All changes saved!", "goodChange");
+						this.output.inform(this.strings.afterSave, "goodChange");
 						}
 					//if the preferences weren't all valid, warn the user
 					else this.output.inform(this.strings.notAllValid, "badChange", 3000);
@@ -970,7 +973,7 @@ PreferenceViewManager.prototype = {
 						function(button) {
 							if(button == "OK") {
 								that.load();
-								that.output.inform("All changes reverted!", "goodChange");
+								that.output.inform(that.strings.afterRevert, "goodChange");
 								return true;
 								}
 						});
@@ -985,7 +988,7 @@ PreferenceViewManager.prototype = {
 						function(button) {
 							if(button == "OK") {
 								that.loadFromDefault();
-								that.output.inform("All defaults restored (but not saved)!", "goodChange");
+								that.output.inform(that.strings.afterDefault, "goodChange");
 								return true;
 								}
 						});

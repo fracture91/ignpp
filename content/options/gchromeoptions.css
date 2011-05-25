@@ -114,6 +114,10 @@ border-style: solid;
 border-width: 1px;
 }
 
+fieldset > fieldset {
+float: none;
+}
+
 fieldset:not(:last-child) {
 margin-bottom: 2em;
 }
@@ -188,7 +192,7 @@ color: darkBlue;
 
 /*enable*/
 .preference.changed > menu > li > a.revertControl,
-.preference.changed > menu > li > a.saveControl,
+.preference.changed:not(.invalid) > menu > li > a.saveControl,
 .preference.changedFromDefault > menu > li > a.defaultControl {
 opacity: 0.8;
 pointer-events: auto;
@@ -287,6 +291,7 @@ padding-right: 3px;
 border-top-width: 0;
 border-bottom-width: 0;
 float: left;
+max-width: 132px;
 }
 
 .tabBox.horizontalTabs > nav:first-child {
@@ -355,7 +360,6 @@ position: relative;
 overflow: auto;
 max-width: 1000px;
 min-width: 365px;
-/*background-color: #F4F6FC;*/
 }
 
 body > .tabBox > section[tab] {
@@ -368,11 +372,15 @@ display: block;
 
 .tabBox.verticalTabs > section[tab] {
 float: left;
-width: 70%;
+width: 76%;
 }
 
 .tabBox.horizontalTabs {
 min-width: 691px;
+}
+
+section[tab="position"] > fieldset > fieldset {
+float: left;
 }
 
 #usercolorsDisabled {
