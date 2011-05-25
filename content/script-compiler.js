@@ -2,11 +2,11 @@
 //vestitools_xmlhttpRequester()		[xmlhttprequester.js]
 
 // vestitools_PrefManager singleton
-Components.utils.import("resource://modules/prefman.js");
+Components.utils.import("resource://vestitools/prefman.js");
 // vestitools_style singleton
-Components.utils.import("resource://modules/style.js");
+Components.utils.import("resource://vestitools/style.js");
 // vestitools_files singleton
-Components.utils.import("resource://modules/files.js");
+Components.utils.import("resource://vestitools/files.js");
 
 
 var vestitools_gmCompiler={
