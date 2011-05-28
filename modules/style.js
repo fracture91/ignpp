@@ -1,7 +1,7 @@
 // vestitools_PrefManager singleton
-Components.utils.import("resource://modules/prefman.js");
+Components.utils.import("resource://vestitools/prefman.js");
 // vestitools_files singleton
-Components.utils.import("resource://modules/files.js");
+Components.utils.import("resource://vestitools/files.js");
 
 var EXPORTED_SYMBOLS = ["vestitools_style"];
 

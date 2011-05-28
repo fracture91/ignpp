@@ -1,8 +1,8 @@
 
 // vestitools_PrefManager
-Components.utils.import("resource://modules/prefman.js");
+Components.utils.import("resource://vestitools/prefman.js");
 // vestitools_style
-Components.utils.import("resource://modules/style.js");
+Components.utils.import("resource://vestitools/style.js");
 
 
 function GM_setValue(name, val) {
