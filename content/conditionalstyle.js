@@ -23,14 +23,14 @@ var Condstyle = new function() {
 		if(I.layout.fresh) {
 			minHeightFix +=
 			'.boards_thread_links {' +
-			'height: auto;' +
+			'height: auto !important;' +
 			'min-height: ' + window.getComputedStyle(document.getElementsByClassName("boards_thread_links")[0],null).getPropertyValue("height") + ' !important;' +
 			'}'
 			}
 			
 		minHeightFix +=
 		'#boards_thread_header_links {' +
-		'height: auto;' +
+		'height: auto !important;' +
 		'min-height: ' + window.getComputedStyle(document.getElementById("boards_thread_header_links"),null).getPropertyValue("height") + ' !important;' +
 		'}';
 		
@@ -72,6 +72,8 @@ var Condstyle = new function() {
 		minHeightFix;
 
 	GM_addStyle(style);
+	
+	//for chrome, must also add usercolors
 
 	vlog("Styles initialized");
 

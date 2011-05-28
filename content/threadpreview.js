@@ -64,7 +64,6 @@ var Threadpreview = new function() {
 			method: "GET",
 			url: url.href,
 			headers:{
-				"User-Agent": navigator.userAgent,
 				"Accept": "text/html, text/plain"
 				},
 			onload:function(details) {

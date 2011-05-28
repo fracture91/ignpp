@@ -59,7 +59,6 @@ var Quickstats = new function() {
 		method: 'GET',
 		url: 'http://boards.ign.com/ServicesV31/UserServices.asmx/GetUserDetails?username=' + user + '&viewingusername=' + I.username,
 		headers: {
-			'User-agent': navigator.userAgent,
 			'Accept': 'text/xml, text/html, text/plain',
 			},
 		onload: function(details) {

@@ -1,3 +1,9 @@
+////from the Greasemonkey Compiler, updated to include features in newer GM versions
+////also updated for usage in Google Chrome in background page
+////my comments have 2x slashes for clarification, GM devs' have normal amount
+
+////in Chrome, unsafeContentWin refers to the Port for this request
+////new requester is made for each Port, Port is made for each XHR from content
 function vestitools_xmlhttpRequester(unsafeContentWin, chromeWindow, originUrl) {
 	this.unsafeContentWin = unsafeContentWin;
 	this.chromeWindow = chromeWindow;
@@ -12,6 +18,8 @@ function vestitools_xmlhttpRequester(unsafeContentWin, chromeWindow, originUrl) 
 // headers should be in the form {name:value,name:value,etc}
 // can't support mimetype because i think it's only used for forcing
 // text/xml and we can't support that
+
+////in Chrome, this is called from background when Port connection is started from content
 vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 	// important to store this locally so that content cannot trick us up with
 	// a fancy getter that checks the number of times it has been accessed,
@@ -24,26 +32,36 @@ vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 		throw new Error("Invalid url: url must be of type string");
 	}
 
-	var ioService=Components.classes["@mozilla.org/network/io-service;1"]
-		.getService(Components.interfaces.nsIIOService);
-	var scheme = ioService.extractScheme(url);
+	////Only check the scheme in Firefox.  Dangerous for Chrome?  Maybe.
+	////Might want to also use this for reading files in Chrome later on, anyway.
+	////http://code.google.com/p/chromium/issues/detail?id=41024
+	if(window.Components && window.Components.classes) {
+	
+		var ioService=Components.classes["@mozilla.org/network/io-service;1"]
+			.getService(Components.interfaces.nsIIOService);
+		var scheme = ioService.extractScheme(url);
 
-	// This is important - without it, GM_xmlhttpRequest can be used to get
-	// access to things like files and chrome. Careful.
-	switch (scheme) {
-		case "http":
-		case "https":
-		case "ftp":
-			this.chromeWindow.setTimeout(
-				vestitools_gmCompiler.hitch(this, "chromeStartRequest", url, details), 0);
-			break;
-		default:
-			throw new Error("Invalid url: " + url);
-	}
+		// This is important - without it, GM_xmlhttpRequest can be used to get
+		// access to things like files and chrome. Careful.
+		switch (scheme) {
+			case "http":
+			case "https":
+			case "ftp":
+				this.chromeWindow.setTimeout(
+					vestitools_gmCompiler.hitch(this, "chromeStartRequest", url, details), 0);
+				break;
+			default:
+				throw new Error("Invalid url: " + url);
+			}
+		
+		}
+		
+	////Chrome will just call this directly
+	else this.chromeStartRequest(url, details);
 	
 	return {
 		abort: function() {
-			req.abort();
+			//if(req) req.abort();
 		}
 	};
 	
@@ -69,7 +87,7 @@ vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 			req.setRequestHeader(prop, details.headers[prop]);
 		}
 	}
-
+	
 	var body = details.data ? details.data : null;
 	if (details.binary) {
 		// xhr supports binary?
@@ -90,8 +108,12 @@ vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 // arranges for the specified 'event' on xmlhttprequest 'req' to call the
 // method by the same name which is a property of 'details' in the content
 // window's security context.
+
+////in Chrome, each event is just set up to send a message to content
+////through Port with details - content handles actually calling the event callbacks
 vestitools_xmlhttpRequester.prototype.setupRequestEvent =
 function(unsafeContentWin, req, event, details) {
+
 	if (details[event]) {
 		req[event] = function() {
 		
@@ -109,15 +131,29 @@ function(unsafeContentWin, req, event, details) {
 				responseState.responseHeaders = req.getAllResponseHeaders();
 				responseState.status = req.status;
 				responseState.statusText = req.statusText;
-				responseState.finalUrl = req.channel.URI.spec;
+				////Chrome does not support this
+				var finalURLSupported = req.channel && req.channel.URI && req.channel.URI.spec;
+				responseState.finalUrl = finalURLSupported ? req.channel.URI.spec : null;
 			}
-
-			// Pop back onto browser thread and call event handler.
-			// Have to use nested function here instead of GM_hitch because
-			// otherwise details[event].apply can point to window.setTimeout, which
-			// can be abused to get increased priveledges.
-			new XPCNativeWrapper(unsafeContentWin, "setTimeout()")
-				.setTimeout(function(){details[event](responseState);}, 0);
-		}
+		
+			////if Firefox...
+			if(window.XPCNativeWrapper) {
+			
+				// Pop back onto browser thread and call event handler.
+				// Have to use nested function here instead of GM_hitch because
+				// otherwise details[event].apply can point to window.setTimeout, which
+				// can be abused to get increased priveledges.
+				new XPCNativeWrapper(unsafeContentWin, "setTimeout()")
+					.setTimeout(function(){details[event](responseState);}, 0);
+				
+				}
+				
+			else {
+				
+				////in Chrome, post a message to the open Port with details
+				unsafeContentWin.postMessage({event: event, details: responseState});
+				
+				}
+		} 
 	}
 }

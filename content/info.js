@@ -418,7 +418,7 @@ var I = new function() {
 			}
 		}
 		
-	this.validUsername = /^[a-z0-9_.\-]{3,20}$/i;
+	this.validUsername = /^[\w.\-]{3,20}$/i;
 		
 	if(username != "<unknown>" && !this.validUsername.test(username)) username = "<error>";
 	

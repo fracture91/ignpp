@@ -27,7 +27,7 @@ var defaultColors = ["#000099", "transparent", "transparent"];
 var ids = ["colorField", "bgcolorField", "bordercolorField", "weightSelect", "styleSelect", "decorationSelect"];
 
 function isValidColor(color) {
-	return (typeof color == "string") && (/[\da-f]{6}/i.test(color));
+	return (typeof color == "string") && (/^[\da-f]{6}$/i.test(color));
 	}
 
 function validateColor(color, i) {
@@ -208,8 +208,9 @@ function initOptions() {
 			document.getElementById("decorationSelect").selectedItem.value,
 			], 
 			function(d) {
+				var fail = !!d.responseText.match(/false/);
 				document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
-					"Colors successfully posted.";
+					!fail ? "Colors successfully posted." : "Server error.";
 				refreshColors(e);
 				}
 			);

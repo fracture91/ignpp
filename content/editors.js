@@ -75,7 +75,11 @@ function Editor(parent, map) {
 			this.sync();
 			
 			this.wysiwygContainer.style.display = wysiwygOn ? "none" : "block";
+			
 			(wysiwygOn ? this.textarea : this.wysiwyg).focus();
+			if(!wysiwygOn) this.restoreSelection(true);
+			else this.lastSelection = null;
+			
 			this.clearButtonStates();
 			this.buttonRefs.toggle.setAttribute("state", !wysiwygOn);
 			
@@ -83,6 +87,8 @@ function Editor(parent, map) {
 			
 			}
 		});
+		
+	this.lastSelection = null;
 		
 	if(map)
 		for(var i in map)
@@ -193,7 +199,8 @@ Editor.prototype = {
 		highlight: {
 			state: function(ref) {
 				var value = document.queryCommandValue("hilitecolor");
-				var valid = value != "transparent";
+				//chrome returns false instead of "transparent"
+				var valid = value && value != "transparent";
 				ref.style.backgroundColor = valid ? value : "";
 				ref.style.color = valid ? colorBrightness(value) < 130 ? "white" : "black" : "";
 				return valid;
@@ -208,7 +215,7 @@ Editor.prototype = {
 		color: {
 			state: function(ref) {
 				var value = document.queryCommandValue("forecolor");
-				var valid = value != "rgb(0, 0, 0)" && value != "";
+				var valid = value && value != "rgb(0, 0, 0)" && value != "";
 				ref.style.backgroundColor = valid ? value : "";
 				ref.style.color = valid ? colorBrightness(value) < 130 ? "white" : "black" : "";
 				return valid;
@@ -298,6 +305,25 @@ Editor.prototype = {
 		
 		},
 	
+	//restore last selection with window.restoreSelection,
+	//create default selection if no last selection
+	restoreSelection: function(force) {
+		
+		if(!this.wysiwygOn && !force) return;
+		
+		if(!this.lastSelection) {
+			//make ls = default selection
+			this.lastSelection = [];
+			var range = document.createRange();
+			range.selectNode(this.wysiwyg.firstChild);
+			range.collapse(true);
+			this.lastSelection.push(range);
+			}
+		
+		restoreSelection(this.lastSelection);
+		
+		},
+	
 	moveCursor: function() {
 		
 		if(!this.wysiwygOn) {
@@ -312,13 +338,34 @@ Editor.prototype = {
 		else {
 		
 			//this works now, yay!
+			//very painfully made to work in Chrome and FF
 			var cursorSpan = getFirstByClassName(this.field, "cursorSpan");
+			
 			if(cursorSpan) {
 				this.field.focus();
-				var ran = window.getSelection().getRangeAt(0);
+				var ran, sel = window.getSelection();
+				
+				//in Chrome, rangecount will be zero if there's no selection,
+				//rather than holding some default selection like in FF
+				if(sel.rangeCount<1) {
+					ran = document.createRange();
+					sel.addRange(ran);
+					}
+					
+				//for some reason, we must modify an existing range, rather than using
+				//removeAllRanges, createRange, and addRange
+				ran = sel.getRangeAt(0);
 				ran.selectNode(cursorSpan);
+				
+				//without this, the cursor is invisible until you type in Firefox
 				ran.deleteContents();
 				//ran.collapse(false);
+				
+				//if you use getSelectionCopy instead of manually constructing the range array,
+				//a random ass text node in the header is shown as selected in Chrome, WHHHYYYYY
+				//cursorSpan is accurate. ran.startContainer seems accurate.  bug in getSelectionCopy?
+				//first iteration in loop, getRangeAt returns the random range.  Weeeiiiird.
+				this.lastSelection = [ran];
 				}
 			
 			}
@@ -470,6 +517,10 @@ Editor.prototype = {
 		format = format.toLowerCase();
 		
 		this.field.focus();
+		//Chrome destroys your selection upon the wysiwyg editor losing focus
+		//so if you click a button, we need to restore the last selection
+		if(this.wysiwygOn && Listeners.isMouse(e))
+			this.restoreSelection();
 		
 		//this.actions[format].func can contain prompt()s
 		//it seems like if there's a prompt in an event handler, preventDefault doesn't work
@@ -1080,12 +1131,55 @@ Editors = new function Editors_Obj() {
 		if(myed) myed.checkButtonStates();
 		
 		}
+	
+	//accepts a Selection or a copy of one
+	//returns Editor if entire selection is within a wysiwyg editor
+	//returns false otherwise, including when there's no selection
+	this.selectionInEditor = function(sel) {
+		
+		if(!sel) return false;
+		
+		var len = defined(sel.rangeCount) ? sel.rangeCount : defined(sel.length) ? sel.length : 0;
+		
+		if(!len) return false;
+		
+		var editor = null;
+		for(var i=0; i<len; i++) {
+			
+			var thisRange = sel.getRangeAt ? sel.getRangeAt(i) : sel[i];
+			if(!thisRange) return false;
+			
+			var field = thisRange.commonAncestorContainer;
+			
+			if(hasClass(field, "wysiwyg") || (field = getParentByClassName(field, "wysiwyg")))
+				if((editor && this.get(field)==editor) || (!editor && (editor=this.get(field))))
+					continue;
+				
+			return false;
+			
+			}
+			
+		return editor;
+		
+		}
 		
 	Listeners.add(document, "keydown", this.actionHandler, true);
 	Listeners.add(document, "click", this.actionHandler, true);
 	
 	Listeners.add(document, "keyup", this.stateHandler, true);
 	Listeners.add(document, "mouseup", this.stateHandler, true);
+	
+	Listeners.add(document, "mousedown", function(e) {
+		
+		if(e.which!=1 || !e.target) return;
+			
+		var copy = getSelectionCopy();
+		if(!(myed=Editors.selectionInEditor(copy))) return;
+			
+		myed.lastSelection = getSelectionCopy();
+		//vlog(inspect(myed.lastSelection));
+		
+		}, true);
 	
 	
 	};

@@ -1,0 +1,26 @@
+Chrome extension versions look like this:
+major.minor.maint.build
+
+Correspondence of build with alphanumeric FF version:
+	1000x = ax
+	2000x = bx
+	3000x = prex
+	4000x = rcx
+	50000 = final release
+	
+Build must include "leading" zeros where necessary.
+
+You can't do something like 2.1.0a1 in Chrome.  Must use only integers <65536 and >-1.
+
+Examples:
+
+2.1.0a3 -> 2.1.0.10003
+2.1.0b1 -> 2.1.0.20001
+3.0.1a27 -> 3.0.1.10027
+2.1.0 -> 2.1.0.50001
+
+This means you can have up to 9999 builds for each milestone.
+
+Yes, I could have divided 65534 up into sections of 16383 for each milestone,
+and reserved 65535 for the final release, but this is much clearer.
+I don't think I'll ever reach 9999 builds for one milestone, anyway.

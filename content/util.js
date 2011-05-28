@@ -263,6 +263,36 @@ function xpath(query) {
 		XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
 	}
 	
+//returns an array holding all ranges in Selection object
+//returned by window.getSelection(), null if no ranges
+function getSelectionCopy() {
+	
+	var sel = window.getSelection();
+	var copy = null;
+	var len = sel.rangeCount;
+	if(len>0) {
+		var i=-1;
+		copy = [];
+		while(++i<len) copy.push(sel.getRangeAt(i));
+		}
+		
+	return copy;
+	
+	}
+
+//restores selection from a copy (array of ranges)
+function restoreSelection(copy) {
+	
+	var sel = window.getSelection();
+	sel.removeAllRanges();
+	
+	for(var i=0, len=copy.length; i<len; i++)
+		sel.addRange(copy[i]);
+		
+	return sel;
+	
+	}
+	
 function debugString(string) {
 
 	var debug = top.document.createElement("div");
@@ -517,7 +547,8 @@ function bools2bits(bools) {
 	return integer;
 	
 	}
-	
+
+//dec2hex and rgb2hex from IGNBQ by heyf00L, modified a bit
 function dec2hex(dec) {
     var hex = parseInt(dec).toString(16);
     while(hex.length < 2) hex = "0" + hex;
@@ -588,6 +619,8 @@ function colorBrightness(rgb) {
 	return Math.sqrt( (.241 * r * r) + (.691 * g * g) + (.068 * b * b) );
 	}
 	
+
+//faces and shortcuts from IGNBQ by heyf00L
 	
 var faces = 
 [null, "happy", "sad", "wink", "grin", "batting", "confused", "love", "blush", "tongue",

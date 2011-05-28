@@ -20,7 +20,8 @@ var vestitools_style = new function vt_Style() {
 	
 	//because file contents can change, we need to keep track of the data: uri so we can successfully
 	//unregister/re-register a changed stylesheet
-	var dataUri = null;
+	var colorsDataUri = null;
+	var mainDataUri = null;
 	
 	var GM_setValue = function(name, val) {
 		return vestitools_PrefManager.setValue(name, val);
@@ -68,18 +69,31 @@ var vestitools_style = new function vt_Style() {
 
 	//apply the main.css stylesheet to the browser
 	this.applyMain = function() {
-		//set uri to our target file
-		uri = ios.newURI(mainFileUri, null, null);
+	
+		var temp = vestitools_files.readFile(mainFileUri);
+		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
+		//also need to fix chrome-extension URIs
+		if(temp) mainDataUri = ios.newURI(
+		"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
+		temp.replace(/\n/g, "%0A")
+			.replace(/chrome-extension:\/\//g, "chrome://")
+			//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
+			//http://code.google.com/p/chromium/issues/detail?id=39899
+			.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
+			.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
+		" }",
+		null, null);
+		else return 0; //file wasn't read correctly
 		
 		//if it's not registered already, load and register it
 		//agent_sheet is less safe, but we need it to control button appearance for some reason
-		if(!sss.sheetRegistered(uri, sss.AGENT_SHEET))
-			return sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
+		if(!sss.sheetRegistered(mainDataUri, sss.AGENT_SHEET))
+			return sss.loadAndRegisterSheet(mainDataUri, sss.AGENT_SHEET);
 
 			
 		}
 		
-	//uses dataUri to keep track of the data URL of the last installed style
+	//uses colorsDataUri to keep track of the data URL of the last installed style
 	//instead of the chrome URI
 	//"data:text/css,body{color:purple;}or whatever"
 		
@@ -87,23 +101,23 @@ var vestitools_style = new function vt_Style() {
 	//and then registered if appropriate (for when refreshing usercolors.css)
 	this.applyColors = function(force) {
 		
-		var oldSheet = dataUri != null;
-		var oldSheetReg = oldSheet ? sss.sheetRegistered(dataUri, sss.USER_SHEET) : false;
+		var oldSheet = colorsDataUri != null;
+		var oldSheetReg = oldSheet ? sss.sheetRegistered(colorsDataUri, sss.USER_SHEET) : false;
 		
 		if(	force && oldSheetReg || 
 			(oldSheetReg && !GM_getValue("applyUsercolors", true)) ) {
 			
-			sss.unregisterSheet(dataUri, sss.USER_SHEET);
+			sss.unregisterSheet(colorsDataUri, sss.USER_SHEET);
 			
 			}
 		
 		if(	GM_getValue("applyUsercolors", true) && 
-			(!oldSheet || (force && oldSheetReg) || !sss.sheetRegistered(dataUri, sss.USER_SHEET)) ) {
+			(!oldSheet || (force && oldSheetReg) || !sss.sheetRegistered(colorsDataUri, sss.USER_SHEET)) ) {
 			
 			var temp = vestitools_files.readFile(colorsFileUri);
-			if(temp) dataUri = ios.newURI("data:text/css," + temp.replace(/\n/g, "%0A"), null, null);
+			if(temp) colorsDataUri = ios.newURI("data:text/css," + temp.replace(/\n/g, "%0A"), null, null);
 			else return 0; //file wasn't read correctly
-			sss.loadAndRegisterSheet(dataUri, sss.USER_SHEET);
+			sss.loadAndRegisterSheet(colorsDataUri, sss.USER_SHEET);
 			
 			}
 			

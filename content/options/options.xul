@@ -469,7 +469,7 @@
 							</columns>
 							<rows>
 								<row align="center">
-									<hbox align="right">Text: #<textbox id="colorField" preference="pref_UCcolor" tooltiptext="Text color"/></hbox>
+									<hbox align="right">Text: #<textbox id="colorField" preference="pref_UCcolor" tooltiptext="Text color" maxlength="6"/></hbox>
 									<menulist id="weightSelect" preference="pref_UCweight" tooltiptext="Font weight">
 										<menupopup>
 											<menuitem label="Normal" value="normal"/>
@@ -478,7 +478,7 @@
 									</menulist>
 								</row>
 								<row align="center">
-									<hbox>Back: #<textbox id="bgcolorField" preference="pref_UCbgcolor" tooltiptext="Background color"/></hbox>
+									<hbox>Back: #<textbox id="bgcolorField" preference="pref_UCbgcolor" tooltiptext="Background color" maxlength="6"/></hbox>
 									<menulist id="styleSelect" preference="pref_UCstyle" tooltiptext="Font style">
 										<menupopup>
 											<menuitem label="Normal" value="normal"/>
@@ -487,7 +487,7 @@
 									</menulist>
 								</row>
 								<row align="center">
-									<hbox>Bord: #<textbox id="bordercolorField" preference="pref_UCbordercolor" tooltiptext="Border color"/></hbox>
+									<hbox>Bord: #<textbox id="bordercolorField" preference="pref_UCbordercolor" tooltiptext="Border color" maxlength="6"/></hbox>
 									<menulist id="decorationSelect" preference="pref_UCdecoration" tooltiptext="Font decoration">
 										<menupopup>
 											<menuitem label="None" value="none"/>
