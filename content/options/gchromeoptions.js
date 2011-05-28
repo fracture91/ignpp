@@ -1083,7 +1083,7 @@ OutputArea = function(area) {
 	this.addMyListener(this.area, "submit", "submitListener", true);
 	this.addMyListener(this.area, "click", "clickListener", true);
 	}
-	
+
 OutputArea.prototype = {
 
 	getCurrentOutput: function() {
