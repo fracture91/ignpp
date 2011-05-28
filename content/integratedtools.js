@@ -50,7 +50,7 @@ var Integratedtools = new function() {
 		
 		var temp = createElementX("li", {
 			className: "vtControls",
-			innerHTML: GM_getFile("chrome://vestitools/content/controls.html")
+			innerHTML: GM_getFile("extension://content/controls.html")
 			});
 		
 		var links = temp.getElementsByTagName("a");
@@ -66,7 +66,7 @@ var Integratedtools = new function() {
 	this.addExtraOptions = function() {
 		
 		var temp = createElementX("div", {
-			innerHTML: GM_getFile("chrome://vestitools/content/extra.html")
+			innerHTML: GM_getFile("extension://content/extra.html")
 			});
 
 		var upcoming = getFirstByClassName( getFirstByClassName(document.getElementById("nav-global"), "home"), "upcoming-top");

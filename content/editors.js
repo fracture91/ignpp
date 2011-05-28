@@ -33,7 +33,7 @@ function Editor(parent, map) {
 	this.ref = parent;
 	addClass(this.ref, "editor");
 	GM_time("wysiwyg.html");
-	this.ref.innerHTML += GM_getFile("chrome://vestitools/content/wysiwyg.html");
+	this.ref.innerHTML += GM_getFile("extension://content/wysiwyg.html");
 	GM_timeEnd("wysiwyg.html");
 	this.wysiwygContainer = getFirstByClassName(this.ref, "wysiwygContainer");
 	

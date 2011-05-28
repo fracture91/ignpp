@@ -171,11 +171,7 @@ injectScript: function(script, url, unsafeContentWin) {
 	sandbox.GM_deleteValue=vestitools_gmCompiler.hitch(storage, "deleteValue");
 	sandbox.GM_showOptions=vestitools_gmCompiler.hitch(this, "showOptions", unsafeContentWin);
 	
-	//Security: this allows the content script to read base64 data of all files in chrome://vestitools/skin/images/
-	//but it turned out that I didn't need this
-	//sandbox.GM_getImage=vestitools_gmCompiler.hitch(this, "getImage", unsafeContentWin);
-	
-	//Security: This allows the content script to read text of all files in chrome://vestitools/
+	//Security: This allows the content script to read text of all files in chrome://vestitools/ or ProfD/ign++
 	//However, no sensitive info is stored there so anything an attacker could get is of no use
 	sandbox.GM_getFile=vestitools_gmCompiler.hitch(this, "getFile", unsafeContentWin);
 	sandbox.GM_openInTab=vestitools_gmCompiler.hitch(this, "openInTab", unsafeContentWin);
@@ -308,28 +304,9 @@ timeEnd: function(win, name) {
 			win.console.timeEnd("IGN++_" + name);
 	},
 	
-//API function GM_getImage(name)
-//returns base64 data + "metadata" prefix of the image with the given name
-//in vestitools/skin/default/images
-//no longer necessary because I'm using a stylesheet instead
-getImage: function(win, name) {
-	//it's ugly, but I couldn't figure out how to get a file from a chrome:// URI
-	//this took me like 4 hours to do
-	//the first time an image is read, it's cached and read from the cache in the future
-	if(!vestitools_gmCompiler.imageCache[name]) {
-		var path = "chrome://vestitools/skin/images/" + name;
-		var file = vestitools_files.getFile(vestitools_files.chromeToPath(path));
-		if(!file) {vestitools_gmCompiler.log('Image not found: ' + name + ', ' + path);return '';}
-		var data = vestitools_files.getDataURIFromFile(file);
-		vestitools_gmCompiler.imageCache[name] = data;
-		return data;
-		}
-	else return vestitools_gmCompiler.imageCache[name];
-	},
+getFile: function(win, uri) {
 	
-getFile: function(win, path) {
-	
-	return vestitools_files.readFile(path);
+	return vestitools_files.readFile(uri);
 	
 	},
  

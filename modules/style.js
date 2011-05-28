@@ -16,9 +16,9 @@ var vestitools_style = new function vt_Style() {
 	var ios = Cc["@mozilla.org/network/io-service;1"]
 				.getService(Components.interfaces.nsIIOService);
 	
-	this.colorsFileUri = "chrome://vestitools/skin/usercolors.css";
-	this.objectFileUri = "chrome://vestitools/skin/usercolors.json";
-	this.mainFileUri = "chrome://vestitools/skin/main.css";
+	this.colorsFileUri = "profile://usercolors.css";
+	this.objectFileUri = "profile://usercolors.json";
+	this.mainFileUri = "extension://skin/main.css";
 	
 	this.colorsListUrl = "http://derekdev.com/mozilla/ignbq/colors.new.php";
 	this.colorsUserUrl = "http://derekdev.com/mozilla/ignbq/getcolors.php?JSON&username=";
@@ -218,7 +218,7 @@ var vestitools_style = new function vt_Style() {
 		
 		if(this.saveColorsObject() == 1) {
 			//only write to the colors file and apply if saving was successful
-			vestitools_files.writeFile(usercolorStyle, this.colorsFileUri);
+			vestitools_files.writeFile(this.colorsFileUri, usercolorStyle);
 			this.applyColors(true);
 			}
 		
@@ -353,7 +353,7 @@ var vestitools_style = new function vt_Style() {
 	this.saveColorsObject = function() {
 		//stringify here will add some spacing so the file's pretty
 		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
-		return vestitools_files.writeFile(JSON.stringify(this.colorsObject, null, " "), this.objectFileUri);
+		return vestitools_files.writeFile(this.objectFileUri, JSON.stringify(this.colorsObject, null, " "));
 		}
 	
 	var validUsernameExp = /^[\w.\-]{3,20}$/i;

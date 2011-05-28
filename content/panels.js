@@ -24,7 +24,7 @@ function Panel(parent, type, map) {
 	//points to the HTML element of class Panel
 	this.ref = document.createElement("div");
 	GM_time("panel.html");
-	this.ref.innerHTML = GM_getFile("chrome://vestitools/content/panel.html");
+	this.ref.innerHTML = GM_getFile("extension://content/panel.html");
 	GM_timeEnd("panel.html");
 	this.ref = this.ref.firstChild;
 	addClass(this.ref, type);
