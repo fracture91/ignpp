@@ -7,14 +7,6 @@ Components.utils.import("resource://vestitools/files.js");
 var EXPORTED_SYMBOLS = ["vestitools_style"];
 
 var vestitools_style = new function vt_Style() {
-
-	var Cc = Components.classes;
-
-	//XPCOM stuff we need for adding stylesheets
-	var sss = Cc["@mozilla.org/content/style-sheet-service;1"]
-				.getService(Components.interfaces.nsIStyleSheetService);
-	var ios = Cc["@mozilla.org/network/io-service;1"]
-				.getService(Components.interfaces.nsIIOService);
 	
 	this.colorsFileUri = "profile://usercolors.css";
 	this.objectFileUri = "profile://usercolors.json";
@@ -24,8 +16,17 @@ var vestitools_style = new function vt_Style() {
 	this.colorsUserUrl = "http://derekdev.com/mozilla/ignbq/getcolors.php?JSON&username=";
 	this.colorsSubmitUrl = "http://derekdev.com/mozilla/ignbq/submitcolors.php";
 	
-	//defaulted to undefined to indicate object has not been read from disk
-	//JSON.parse can't handle undefined, so we'll never get that value from the file
+	/*
+	Frequency to update usercolors at, in hours.
+	*/
+	this.updateFrequency = 12;
+	
+	/*
+	Holds a native representation of the usercolor list.
+	
+	Defaulted to undefined to indicate object has not been read from disk
+	JSON.parse can't handle undefined, so we'll never get that value from the file
+	*/
 	var _colorsObject = undefined;
 	
 	/*
@@ -46,6 +47,24 @@ var vestitools_style = new function vt_Style() {
 	]
 	*/
 	
+	this.__defineGetter__("colorsObject", function() {
+		
+		if(typeof _colorsObject == "undefined") {
+			_colorsObject = this.validateUsers(JSON.parse(
+									vestitools_files.readFile(this.objectFileUri)
+									));
+			}
+			
+		return _colorsObject;
+		
+		});
+	
+	//doesn't save to disk(!)
+	this.__defineSetter__("colorsObject", function(o) {
+		_colorsObject = this.validateUsers(o);
+		});
+	
+	
 	//because file contents can change, we need to keep track of the data: uri so we can successfully
 	//unregister/re-register a changed stylesheet
 	var colorsDataUri = null;
@@ -59,17 +78,54 @@ var vestitools_style = new function vt_Style() {
 		return vestitools_PrefManager.getValue(name, def);
 		}
 		
+	var Cc = Components.classes;
+	var Ci = Components.interfaces;
+
+	//XPCOM stuff we need for adding stylesheets
+	var sss = Cc["@mozilla.org/content/style-sheet-service;1"]
+				.getService(Ci.nsIStyleSheetService);
+	var ios = Cc["@mozilla.org/network/io-service;1"]
+				.getService(Ci.nsIIOService);
+		
 	var xhrHeaders = function(xhr, headers) {
 		for(i in headers) {
 			xhr.setRequestHeader(i, headers[i]);
 			}
 		}
-
-	//in hours
-	this.updateFrequency = 12;
+	
+	
+	/*
+	Apply the stylesheet at mainFileUri to the browser.
+	*/
+	this.applyMain = function() {
+	
+		var temp = vestitools_files.readFile(this.mainFileUri);
+		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
+		//also need to fix chrome-extension URIs
+		if(temp) mainDataUri = ios.newURI(
+			"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
+			temp.replace(/\n/g, "%0A")
+				.replace(/chrome-extension:\/\//g, "chrome://")
+				//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
+				//http://code.google.com/p/chromium/issues/detail?id=39899
+				.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
+				.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
+			" }",
+			null, null);
+		else return 0; //file wasn't read correctly
 		
-	//if colors haven't been updated in x hours update the file
-	//apply usercolor stylesheet to browser
+		//if it's not registered already, load and register it
+		//agent_sheet is less safe, but we need it to control button appearance for some reason
+		if(!sss.sheetRegistered(mainDataUri, sss.AGENT_SHEET))
+			return sss.loadAndRegisterSheet(mainDataUri, sss.AGENT_SHEET);
+
+			
+		}
+	
+	/*	
+	If colors haven't been updated in this.updateFrequency hours, update the file.
+	Apply the usercolor stylesheet to the browser regardless.
+	*/
 	this.checkColorsAndApply = function(timeForce) {
 		
 		var beenUpdated = false;
@@ -95,38 +151,14 @@ var vestitools_style = new function vt_Style() {
 		
 		}
 
-	//apply the main.css stylesheet to the browser
-	this.applyMain = function() {
+	/*
+	If the applyUsercolors pref is true, then apply the stylesheet, otherwise remove it.
+	If force is true, the style will always be unregistered if it's already registered
+	and then registered if appropriate (for when refreshing usercolors.css).
 	
-		var temp = vestitools_files.readFile(this.mainFileUri);
-		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
-		//also need to fix chrome-extension URIs
-		if(temp) mainDataUri = ios.newURI(
-			"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
-			temp.replace(/\n/g, "%0A")
-				.replace(/chrome-extension:\/\//g, "chrome://")
-				//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
-				//http://code.google.com/p/chromium/issues/detail?id=39899
-				.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
-				.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
-			" }",
-			null, null);
-		else return 0; //file wasn't read correctly
-		
-		//if it's not registered already, load and register it
-		//agent_sheet is less safe, but we need it to control button appearance for some reason
-		if(!sss.sheetRegistered(mainDataUri, sss.AGENT_SHEET))
-			return sss.loadAndRegisterSheet(mainDataUri, sss.AGENT_SHEET);
-
-			
-		}
-		
-	//uses colorsDataUri to keep track of the data URL of the last installed style
-	//instead of the chrome URI
-	//"data:text/css,body{color:purple;}or whatever"
-		
-	//if force is true, the style will always be unregistered if it's already registered
-	//and then registered if appropriate (for when refreshing usercolors.css)
+	Uses colorsDataUri to keep track of the data URL of the last installed style instead of the chrome URI.
+	For example, "data:text/css,body{color:purple;}" or whatever.
+	*/
 	this.applyColors = function(force) {
 		
 		var oldSheet = colorsDataUri != null;
@@ -154,8 +186,8 @@ var vestitools_style = new function vt_Style() {
 		}
 		
 	/*
-	Post the usercolors in style object as the colors of the user with the given name.
-	Save colors and call callback if xhr goes through.
+	Post the usercolors in styles object as the colors of the user with the given name.
+	Call callback if xhr goes through.
 	Styles is always validated.
 	*/
 	this.postColors = function(name, styles, callback) {
@@ -176,7 +208,7 @@ var vestitools_style = new function vt_Style() {
 		var t = this;
 		
 		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
-									.createInstance(Components.interfaces.nsIXMLHttpRequest) : new XMLHttpRequest();
+									.createInstance(Ci.nsIXMLHttpRequest) : new XMLHttpRequest();
 		xhr.open("POST", this.colorsSubmitUrl, true);
 		xhrHeaders(xhr, {'Content-Type': 'application/x-www-form-urlencoded'});
 		xhr.onreadystatechange = function() {
@@ -226,8 +258,8 @@ var vestitools_style = new function vt_Style() {
 	
 	/*
 	Both parameters are optional.
-	If given a username, the function will find the colors for that user and save them.
-	If not given a username, the function will get the entire usercolor list and write it to usercolors.css.
+	If given a username, the function will find the colors for that user.
+	If not given a username, the function will get the entire usercolor list.
 	Returns 0 if successful in sending the request, -1 if the name isn't valid (and was provided).
 	*/
 	this.getColors = function(name, callback) {
@@ -249,7 +281,7 @@ var vestitools_style = new function vt_Style() {
 			}
 		
 		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
-									.createInstance(Components.interfaces.nsIXMLHttpRequest) : new XMLHttpRequest();
+									.createInstance(Ci.nsIXMLHttpRequest) : new XMLHttpRequest();
 		xhr.open("GET", 
 					(name ? this.colorsUserUrl + name
 							: this.colorsListUrl),
@@ -285,23 +317,33 @@ var vestitools_style = new function vt_Style() {
 		return 0;
 		
 		}
-	
-	this.__defineGetter__("colorsObject", function() {
 		
-		if(typeof _colorsObject == "undefined") {
-			_colorsObject = this.validateUsers(JSON.parse(
-									vestitools_files.readFile(this.objectFileUri)
-									));
-			}
-			
-		return _colorsObject;
+	/*
+	Given a styles object, save it to prefs as the user's last usercolors.
+	Also validates styles and returns it.
+	*/
+	this.saveStyles = function(styles) {
 		
-		});
+		styles = this.validateStyles(styles);
+		
+		//now styles only contains properties that must be saved with prefix "UC"
+		
+		for(var i in styles)
+				GM_setValue("UC" + i, styles[i] + "");
+		
+		return styles;
+		
+		}
+		
+	/*
+	Saves the current colorsObject to a JSON file.
+	*/
+	this.saveColorsObject = function() {
+		//stringify here will add some spacing so the file's pretty
+		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
+		return vestitools_files.writeFile(this.objectFileUri, JSON.stringify(this.colorsObject, null, " "));
+		}
 	
-	//doesn't save to disk(!)
-	this.__defineSetter__("colorsObject", function(o) {
-		_colorsObject = this.validateUsers(o);
-		});
 	
 	/*
 	Given a name, return the user in colorsObject with that username.
@@ -350,11 +392,6 @@ var vestitools_style = new function vt_Style() {
 		
 		}
 		
-	this.saveColorsObject = function() {
-		//stringify here will add some spacing so the file's pretty
-		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
-		return vestitools_files.writeFile(this.objectFileUri, JSON.stringify(this.colorsObject, null, " "));
-		}
 	
 	var validUsernameExp = /^[\w.\-]{3,20}$/i;
 	var validColorExp = /^[\da-f]{6}$/i;
@@ -578,23 +615,6 @@ var vestitools_style = new function vt_Style() {
 		buf.push("}\n"); //end of @-moz-document
 			
 		return buf.join("");
-		
-		}
-	
-	/*
-	Given a styles object, save it to prefs as the user's last usercolors.
-	Also validates styles and returns it.
-	*/
-	this.saveStyles = function(styles) {
-		
-		styles = this.validateStyles(styles);
-		
-		//now styles only contains properties that must be saved with prefix "UC"
-		
-		for(var i in styles)
-				GM_setValue("UC" + i, styles[i] + "");
-		
-		return styles;
 		
 		}
 		
