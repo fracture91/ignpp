@@ -18,7 +18,8 @@
 		"tabs",
 		"http://boards.ign.com/*",
 		"http://forums.ign.com/*",
-		"http://betaboards.ign.com/*"
+		"http://betaboards.ign.com/*",
+		"unlimitedStorage"
 	],
 	
 	"options_page": "content/options/gchromeoptions.html",

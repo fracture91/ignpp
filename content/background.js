@@ -6,52 +6,6 @@ function vlog(t){
 	console.log("IGN++: " + t);
 	}
 	
-function readFile(path, callback) {
-	
-	if(typeof callback != "function") callback = function(){};
-	
-	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function() {
-		if (xhr.readyState == 4) {
-			//note that chrome will give you a status of 0 for some reason, even when successful
-			if(xhr.responseText == "") {
-				vlog("Warning, responseText for " + path + " is empty");
-				}
-			callback(xhr.responseText);
-			}
-		}
-	xhr.open("GET", chrome.extension.getURL(path), true);
-	xhr.send();
-	
-	}
-	
-function writeFile(path, content, callback) {
-	
-	if(typeof callback != "function") callback = function(){};
-	
-	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function() {
-		if (xhr.readyState == 4) {
-            callback(xhr);
-			}
-		}
-	xhr.open("POST", chrome.extension.getURL(path), true);
-	xhr.send(content);
-	
-	}
-	
-function writeFileTest(path) {
-	
-	var testText = "hello world!";
-	
-	writeFile(path, testText, function(xhr) {
-		readFile(path, function(content) {
-			vlog("write file test content: " + content + "\n" + (content == testText ? "it works" : "it's broken"));
-			});
-		});
-	
-	}
-	
 function copyLocalStorage() {
 	
 	var copy = {};
@@ -70,7 +24,7 @@ function copyFiles(files, callback) {
 	var copy = [];
 	
 	files.forEach(function(el, i, arr) {
-		readFile(el, function(content){
+		vestitools_files.readFile(el, function(content){
 			copy[i] = content;
 			var done = true;
 			files.forEach(function(ele, j, arra) {
@@ -119,31 +73,27 @@ function addStyle(tab, css) {
 	
 	}
 
-window.onload = function(e){
+window.onload = function(e) {
 
 	window.localStorageCopy = copyLocalStorage();
 	
-	copyFiles(knownFiles, function(copy) {
-	
-		window.filesCopy = {};
-		for(var i in knownFiles)
-			window.filesCopy[getFileName(knownFiles[i])] = copy[i];
-		
-		
+	vestitools_files.chromeInit(function() {
+		copyFiles(knownFiles, function(copy) {
+			window.filesCopy = {};
+			for(var i in knownFiles)
+				window.filesCopy[getFileName(knownFiles[i])] = copy[i];
+			});
 		});
-	
-	//test to see if this works yet
-	//writeFileTest('test.txt');
 	
 	}
 
 var managedTabs = [];
 
 var knownFiles = [
-	"content/panel.html",
-	"content/wysiwyg.html",
-	"content/extra.html",
-	"content/controls.html"
+	"extension://content/panel.html",
+	"extension://content/wysiwyg.html",
+	"extension://content/extra.html",
+	"extension://content/controls.html"
 	];
 
 var scripts = [
@@ -244,11 +194,6 @@ function XHRDockHag(port) {
 chrome.extension.onConnect.addListener(function(port) {
 	
 	switch(port.name.toLowerCase()) {
-	
-		case "getfile":
-			//doesn't work
-			readFile(port.path);
-			break;
 		
 		case "xmlhttprequest":
 			var aDockHag = new XHRDockHag(port);
