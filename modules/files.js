@@ -203,21 +203,30 @@ var vestitools_files = new function vt_files() {
 				}
 			//else it should be a FileEntry
 			else {
-				// Create a FileWriter object for our FileEntry (log.txt).
+				// Create a FileWriter object for our FileEntry
 				file.createWriter(function(fileWriter) {
 
+					// Create a new Blob to write to the file
+					var bb = new BlobBuilder(); // Note: window.WebKitBlobBuilder in Chrome 12.
+					bb.append(text);
+					var blob = bb.getBlob('text/plain');
+				
 					fileWriter.onwriteend = function(e) {
-						callback(true, e);
-					};
+						if(fileWriter.length > blob.size) {
+							//we need to truncate the remainder
+							fileWriter.onwriteend = function(e) {
+								callback(true, e);
+								}
+							fileWriter.truncate(blob.size);
+							}
+						else callback(true, e);
+						}
 
 					fileWriter.onerror = function(e) {
 						callback(false, e);
-					};
+						}
 
-					// Create a new Blob and write it to log.txt.
-					var bb = new BlobBuilder(); // Note: window.WebKitBlobBuilder in Chrome 12.
-					bb.append(text);
-					fileWriter.write(bb.getBlob('text/plain'));
+					fileWriter.write(blob);
 
 					}, that.chromeErrorHandler);
 				}
