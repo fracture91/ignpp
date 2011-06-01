@@ -379,14 +379,6 @@ addStyle:function(doc, css) {
 	head.appendChild(style);
 },
 
-setUpColorInterval: function() {
-
-	setInterval(function(){ 
-		vestitools_style.checkColorsAndApply(true)
-		}, vestitools_style.updateFrequency * 3600000);
-
-},
-
 onLoad: function() {
 	var	appcontent=window.document.getElementById("appcontent");
 	if (appcontent && !appcontent.greased_vestitools_gmCompiler) {
@@ -395,27 +387,7 @@ onLoad: function() {
 		//for the true there, see this:
 		//http://github.com/greasemonkey/greasemonkey/issues/closed#issue/1082
 		}
-	//apply the main stylesheet to userChrome
-	vestitools_style.applyMain();
-	//apply usercolors, update if necessary
-	var updated = vestitools_style.checkColorsAndApply();
-	
-	//update colors every x hours while the browser is open
-	if(!updated) {
-		
-		var currentTime = Math.floor((new Date()).getTime() / 3600000);
-		
-		setTimeout(
-			function(){
-				vestitools_style.checkColorsAndApply(true);
-				vestitools_gmCompiler.setUpColorInterval();
-				},
-			((vestitools_style.updateFrequency + vestitools_PrefManager.getValue("lastUsercolorCheck", 0) - currentTime) * 3600000)
-			);
-			
-		}
-	else vestitools_gmCompiler.setUpColorInterval();
-	
+	vestitools_style.init();
 },
 
 onUnLoad: function() {

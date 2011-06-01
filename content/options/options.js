@@ -119,9 +119,7 @@ var Options = new function() {
 
 		vestitools_style.getColors(function(xhr, success) {
 
-			vestitools_style.colorsObject = JSON.parse(xhr.responseText);
-			vestitools_style.synchronizeColors();
-			vestitools_style.setLastUsercolorCheck();
+			vestitools_style.defaultRefreshColorsCallback(xhr, success);
 
 			document.getElementById("refreshButton").parentNode.getElementsByClassName("log")[0].value = 
 				success ? "All colors successfully found, saved, and applied." : ("Server error: " + xhr.responseText);
@@ -144,10 +142,7 @@ var Options = new function() {
 			
 			t.setStylesInput(styles);
 			
-			if(success) {
-				//save styles as user's usercolors
-				vestitools_style.saveStyles(styles);
-				}
+			vestitools_style.defaultGetColorsCallback(xhr, success, styles);
 			
 			document.getElementById("getButton").parentNode.getElementsByClassName("log")[0].value = 
 				success ? "Personal colors successfully found and saved." :
@@ -182,18 +177,7 @@ var Options = new function() {
 				document.getElementById("postButton").parentNode.getElementsByClassName("log")[0].value = 
 					success ? "Colors successfully posted." : ("Server error: " + xhr.responseText);
 				
-				if(success) {
-					/*
-					assume that the server handled everything correctly and the colors will now show up on the main list
-					update our local list and style to reflect assumed changes
-					this is better than just refreshing normally because in that case you might just get a cached copy
-					which doesn't reflect your changes and often makes people think the post didn't go through
-					*/
-					vestitools_style.setUserStyles(username, styles);
-					vestitools_style.synchronizeColors();
-					vestitools_style.saveStyles(styles);
-					//don't setLastUsercolorCheck though, since this wasn't a true refresh
-					}
+				vestitools_style.defaultPostColorsCallback(xhr, success, username, styles);
 				
 				});
 		

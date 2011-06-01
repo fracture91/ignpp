@@ -80,6 +80,22 @@ var vestitools_style = new function vt_Style() {
 		
 	var Cc = Components.classes;
 	var Ci = Components.interfaces;
+		
+	/*
+	In Firefox, window can't be accessed from modules, so we need to define setTimeout/Interval ourselves.
+	*/
+	if(typeof window == "undefined") {
+		var setTimeout = function(func, time, isInterval) {
+			var obs = {notify: func};
+			var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+			timer.initWithCallback(obs, time,  Ci.nsITimer[isInterval ? "TYPE_REPEATING_SLACK" : "TYPE_ONE_SHOT"]);
+			return timer;
+			}
+				
+		var setInterval = function(func, time) {
+			return setTimeout(func, time, true);
+			}
+		}
 
 	//XPCOM stuff we need for adding stylesheets
 	var sss = Cc["@mozilla.org/content/style-sheet-service;1"]
@@ -93,6 +109,41 @@ var vestitools_style = new function vt_Style() {
 			}
 		}
 	
+	
+	/*
+	Applies the main stylesheet, updates usercolors if necessary, and sets up future usercolor updates.
+	Should be called on startup.
+	*/
+	this.init = function() {
+		
+		//apply the main stylesheet to userChrome
+		this.applyMain();
+		//apply usercolors, update if necessary
+		var updated = this.checkColorsAndApply();
+		
+		//update colors every x hours while the browser is open
+		if(!updated) {
+			
+			var that = this;
+			setTimeout(function(){
+				that.checkColorsAndApply(true);
+				that.setUpColorInterval();
+				}, ((this.updateFrequency + GM_getValue("lastUsercolorCheck", 0) - this.getTimeInHours()) * 3600000) );
+				
+			}
+		else this.setUpColorInterval();
+		
+		}
+	
+	/*
+	Start updating usercolors every this.updateFrequency hours.
+	*/
+	this.setUpColorInterval = function() {
+		var that = this;
+		setInterval(function(){
+			that.checkColorsAndApply(true)
+			}, this.updateFrequency * 3600000);
+		}
 	
 	/*
 	Apply the stylesheet at mainFileUri to the browser.
@@ -138,14 +189,22 @@ var vestitools_style = new function vt_Style() {
 			//if if hasn't been updated in x hours, update it
 			if(timeForce || ((currentTime - GM_getValue("lastUsercolorCheck", 0)) >= this.updateFrequency)) {
 				
-				this.getColors();
+				var that = this;
+				this.getColors(function(xhr, success){
+					that.defaultRefreshColorsCallback(xhr, success);
+					});
 				beenUpdated = true;
 				
 				}
 			
 			}
 			
-		if(!beenUpdated) this.applyColors();
+		/*
+		getColors will applyColors if beenUpdated, but it may fail.
+		If getColors is successful, this is a bit wasteful, but I'd rather make sure the user can
+		at least see their old usercolors.
+		*/
+		this.applyColors();
 		
 		return beenUpdated;
 		
@@ -222,6 +281,24 @@ var vestitools_style = new function vt_Style() {
 			
 		return 0;
 		
+		}
+		
+	/*
+	Set user's styles locally, synchronize colors, and save user's styles prefs.
+	*/
+	this.defaultPostColorsCallback = function(xhr, success, username, styles) {
+		if(success) {
+			/*
+			assume that the server handled everything correctly and the colors will now show up on the main list
+			update our local list and style to reflect assumed changes
+			this is better than just refreshing normally because in that case you might just get a cached copy
+			which doesn't reflect your changes and often makes people think the post didn't go through
+			*/
+			this.setUserStyles(username, styles);
+			this.synchronizeColors();
+			this.saveStyles(styles);
+			//don't setLastUsercolorCheck though, since this wasn't a true refresh
+			}
 		}
 	
 	/*
@@ -316,6 +393,27 @@ var vestitools_style = new function vt_Style() {
 		
 		return 0;
 		
+		}
+		
+	/*
+	Save user's styles prefs if successful.
+	*/
+	this.defaultGetColorsCallback = function(xhr, success, styles) {
+		if(success) {
+			//save styles as user's usercolors
+			this.saveStyles(styles);
+			}
+		}
+		
+	/*
+	If successful, update local usercolors object and file, apply stylesheet, update lastUsercolorCheck.
+	*/
+	this.defaultRefreshColorsCallback = function(xhr, success) {
+		if(success) {
+			this.colorsObject = JSON.parse(xhr.responseText);
+			this.synchronizeColors();
+			this.setLastUsercolorCheck();
+			}
 		}
 		
 	/*
