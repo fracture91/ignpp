@@ -6,6 +6,21 @@ function vlog(t){
 	console.log("IGN++: " + t);
 	}
 	
+function GM_getValue(name, def) {
+	var jsonValue = localStorage[name];
+	if(typeof(jsonValue)!="undefined") return JSON.parse(jsonValue);
+	return def;
+	}
+	
+function GM_setValue(name, value, sender) {
+	var jsonValue = JSON.stringify(value);
+	localStorage[name] = localStorageCopy[name] = jsonValue;
+	managedTabs.forEach(function(el, i, arr) {
+		if(sender && sender.tab.id==el.id) return;
+		chrome.tabs.sendRequest(el.id, {type: "setValue", name: name, jsonValue: jsonValue});
+		});
+	}
+	
 function copyLocalStorage() {
 	
 	var copy = {};
@@ -83,6 +98,7 @@ window.onload = function(e) {
 			for(var i in knownFiles)
 				window.filesCopy[getFileName(knownFiles[i])] = copy[i];
 			});
+		vestitools_style.init(true);
 		});
 	
 	}
@@ -121,7 +137,10 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	
 	if(request.type === undefined) return;
 	
-	if(sender.tab && managedTabs.indexOf(sender.tab)==-1) managedTabs.push(sender.tab);
+	if(sender.tab && managedTabs.indexOf(sender.tab)==-1 && 
+		!managedTabs.some(function(e,i,a) { return sender.tab.id == e.id;}) ) {
+		managedTabs.push(sender.tab);
+		}
 	
 	switch(request.type.toLowerCase()) {
 		
@@ -130,12 +149,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			break;
 			
 		case "setvalue":
-			var name = request.name, jsonValue = request.jsonValue;
-			localStorage[name] = localStorageCopy[name] = jsonValue;
-			managedTabs.forEach(function(el, i, arr) {
-				if(sender.tab.id==el.id) return;
-				chrome.tabs.sendRequest(el.id, {type: "setValue", name: name, jsonValue: jsonValue});
-				});
+			GM_setValue(request.name, JSON.parse(request.jsonValue));
 			break;
 			
 		case "ping":
@@ -149,6 +163,10 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			
 		case "addstyle":
 			addStyle(sender.tab, request.css);
+			break;
+			
+		case "usercolors":
+			chrome.tabs.sendRequest(sender.tab.id, {type: "registercolors", value: vestitools_style.getColorsData()});
 			break;
 			
 		case "checkin":

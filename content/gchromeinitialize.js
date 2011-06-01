@@ -23,6 +23,14 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			GM_localStorage[name] = jsonValue;
 			break;
 			
+		case "registercolors":
+			//should be handled in gchromecolors.js
+			break;
+			
+		case "unregistercolors":
+			//ditto
+			break;
+			
 		case "ping":
 			sendResponse({time: (new Date()).getTime()});
 			break;

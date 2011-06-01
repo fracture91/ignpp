@@ -1,11 +1,19 @@
-//todo: Chrome compatibility
-// vestitools_PrefManager singleton
-Components.utils.import("resource://vestitools/prefman.js");
-// vestitools_files singleton
-Components.utils.import("resource://vestitools/files.js");
+
+try {
+	// vestitools_PrefManager singleton
+	Components.utils.import("resource://vestitools/prefman.js");
+	// vestitools_files singleton
+	Components.utils.import("resource://vestitools/files.js");
+	}
+catch(e) {
+	//you're probably on Google Chrome
+	}
 
 var EXPORTED_SYMBOLS = ["vestitools_style"];
 
+/*
+A bunch of stuff for working with stylesheets and usercolors.
+*/
 var vestitools_style = new function vt_Style() {
 	
 	this.colorsFileUri = "profile://usercolors.css";
@@ -15,6 +23,12 @@ var vestitools_style = new function vt_Style() {
 	this.colorsListUrl = "http://derekdev.com/mozilla/ignbq/colors.new.php";
 	this.colorsUserUrl = "http://derekdev.com/mozilla/ignbq/getcolors.php?JSON&username=";
 	this.colorsSubmitUrl = "http://derekdev.com/mozilla/ignbq/submitcolors.php";
+	
+	/*
+	true if this module is being used by Google Chrome.
+	Set by this.init()
+	*/
+	this.chrome = false;
 	
 	/*
 	Frequency to update usercolors at, in hours.
@@ -47,16 +61,13 @@ var vestitools_style = new function vt_Style() {
 	]
 	*/
 	
+	//init should be called before this is used!
 	this.__defineGetter__("colorsObject", function() {
-		
 		if(typeof _colorsObject == "undefined") {
-			_colorsObject = this.validateUsers(JSON.parse(
-									vestitools_files.readFile(this.objectFileUri)
-									));
+			//if init wasn't called for some reason
+			_colorsObject = [];
 			}
-			
 		return _colorsObject;
-		
 		});
 	
 	//doesn't save to disk(!)
@@ -70,39 +81,55 @@ var vestitools_style = new function vt_Style() {
 	var colorsDataUri = null;
 	var mainDataUri = null;
 	
-	var GM_setValue = function(name, val) {
-		return vestitools_PrefManager.setValue(name, val);
-		}
-		
-	var GM_getValue = function(name, def) {
-		return vestitools_PrefManager.getValue(name, def);
-		}
-		
-	var Cc = Components.classes;
-	var Ci = Components.interfaces;
-		
 	/*
-	In Firefox, window can't be accessed from modules, so we need to define setTimeout/Interval ourselves.
+	True if usercolor stylesheet on Google Chrome is currently applied, false otherwise.
 	*/
+	var gChromeColorsRegistered = false;
+	
+		
+	try {
+		var Cc = Components.classes;
+		var Ci = Components.interfaces;
+		//XPCOM stuff we need for adding stylesheets
+		var sss = Cc["@mozilla.org/content/style-sheet-service;1"]
+					.getService(Ci.nsIStyleSheetService);
+		var ios = Cc["@mozilla.org/network/io-service;1"]
+					.getService(Ci.nsIIOService);
+		}
+	catch(e) {
+		//chrome
+		}
+	
+	var setTimeout, setInterval, GM_getValue, GM_setValue;
 	if(typeof window == "undefined") {
-		var setTimeout = function(func, time, isInterval) {
+		//In Firefox, window can't be accessed from modules, so we need to define setTimeout/Interval ourselves.
+		setTimeout = function(func, time, isInterval) {
 			var obs = {notify: func};
 			var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 			timer.initWithCallback(obs, time,  Ci.nsITimer[isInterval ? "TYPE_REPEATING_SLACK" : "TYPE_ONE_SHOT"]);
 			return timer;
 			}
-				
-		var setInterval = function(func, time) {
+		setInterval = function(func, time) {
 			return setTimeout(func, time, true);
 			}
-		}
-
-	//XPCOM stuff we need for adding stylesheets
-	var sss = Cc["@mozilla.org/content/style-sheet-service;1"]
-				.getService(Ci.nsIStyleSheetService);
-	var ios = Cc["@mozilla.org/network/io-service;1"]
-				.getService(Ci.nsIIOService);
 		
+		//Google Chrome is responsible for providing its own get/setValue
+		GM_setValue = function(name, val) {
+			return vestitools_PrefManager.setValue(name, val);
+			}
+		GM_getValue = function(name, def) {
+			return vestitools_PrefManager.getValue(name, def);
+			}
+		}
+	else {
+		//Google Chrome, we should have access to all of these
+		setTimeout = window.setTimeout;
+		setInterval = window.setInterval;
+		GM_getValue = window.GM_getValue;
+		GM_setValue = window.GM_setValue;
+		}
+	
+	
 	var xhrHeaders = function(xhr, headers) {
 		for(i in headers) {
 			xhr.setRequestHeader(i, headers[i]);
@@ -113,25 +140,56 @@ var vestitools_style = new function vt_Style() {
 	/*
 	Applies the main stylesheet, updates usercolors if necessary, and sets up future usercolor updates.
 	Should be called on startup.
+	If being called in Google Chrome, isChrome should be true.
 	*/
-	this.init = function() {
+	this.init = function(isChrome, callback) {
+		if(typeof callback != "function") callback = function(){};
+		this.chrome = isChrome;
 		
 		//apply the main stylesheet to userChrome
-		this.applyMain();
-		//apply usercolors, update if necessary
-		var updated = this.checkColorsAndApply();
-		
-		//update colors every x hours while the browser is open
-		if(!updated) {
-			
-			var that = this;
-			setTimeout(function(){
-				that.checkColorsAndApply(true);
-				that.setUpColorInterval();
-				}, ((this.updateFrequency + GM_getValue("lastUsercolorCheck", 0) - this.getTimeInHours()) * 3600000) );
-				
+		if(!this.chrome) {
+			this.applyMain();
 			}
-		else this.setUpColorInterval();
+		
+		var that = this;
+		vestitools_files.readFile(this.objectFileUri, function(text) {
+			(function(text) {
+			
+			try {
+				this.colorsObject = JSON.parse(text);
+				}
+			catch(e) {
+				//the file may have some kind of syntax error that makes JSON.parse freak out
+				this.colorsObject = [];
+				if(typeof console != "undefined") {
+					console.log("IGN++ - vestitools_style.init colorsObject: " + e);
+					}
+				}
+			
+			/*
+			Note that checkColorsAndApply's side effects are asynchronous
+			on Google Chrome, but we don't really care right now.
+			*/
+			
+			//apply usercolors, update if necessary
+			var updated = this.checkColorsAndApply();
+			
+			//update colors every x hours while the browser is open
+			if(!updated) {
+				
+				var that = this;
+				setTimeout(function(){
+					that.checkColorsAndApply(true);
+					that.setUpColorInterval();
+					}, ((this.updateFrequency + GM_getValue("lastUsercolorCheck", 0) - this.getTimeInHours()) * 3600000) );
+					
+				}
+			else this.setUpColorInterval();
+			
+			callback();
+			
+			}).apply(that, [text]);
+			});
 		
 		}
 	
@@ -147,8 +205,10 @@ var vestitools_style = new function vt_Style() {
 	
 	/*
 	Apply the stylesheet at mainFileUri to the browser.
+	Google Chrome should never have to use this.
 	*/
 	this.applyMain = function() {
+		if(this.chrome) throw new TypeError("Must be Firefox");
 	
 		var temp = vestitools_files.readFile(this.mainFileUri);
 		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
@@ -218,30 +278,77 @@ var vestitools_style = new function vt_Style() {
 	Uses colorsDataUri to keep track of the data URL of the last installed style instead of the chrome URI.
 	For example, "data:text/css,body{color:purple;}" or whatever.
 	*/
-	this.applyColors = function(force) {
+	this.applyColors = function(force, callback) {
+		if(typeof callback != "function") callback = function(){};
 		
-		var oldSheet = colorsDataUri != null;
-		var oldSheetReg = oldSheet ? sss.sheetRegistered(colorsDataUri, sss.USER_SHEET) : false;
+		var oldSheetReg, oldSheet = colorsDataUri != null;
+		if(!this.chrome) {
+			oldSheetReg = oldSheet && sss.sheetRegistered(colorsDataUri, sss.USER_SHEET);
+			}
+		else {
+			oldSheetReg = oldSheet && gChromeColorsRegistered;
+			}
 		
 		if(	force && oldSheetReg || 
 			(oldSheetReg && !GM_getValue("applyUsercolors", true)) ) {
 			
-			sss.unregisterSheet(colorsDataUri, sss.USER_SHEET);
+			if(!this.chrome) {
+				sss.unregisterSheet(colorsDataUri, sss.USER_SHEET);
+				}
+			else {
+				this.gChromeUnregisterColors();
+				}
 			
 			}
 		
 		if(	GM_getValue("applyUsercolors", true) && 
 			(!oldSheet || (force && oldSheetReg) || !sss.sheetRegistered(colorsDataUri, sss.USER_SHEET)) ) {
 			
-			var temp = vestitools_files.readFile(this.colorsFileUri);
-			if(temp) colorsDataUri = ios.newURI("data:text/css," + temp.replace(/\n/g, "%0A"), null, null);
-			else return 0; //file wasn't read correctly
-			sss.loadAndRegisterSheet(colorsDataUri, sss.USER_SHEET);
+			var that = this;
+			vestitools_files.readFile(this.colorsFileUri, function(text) {
+				if(!that.chrome) {
+					var data = "data:text/css," + text.replace(/\n/g, "%0A");
+					colorsDataUri = ios.newURI(data, null, null);
+					sss.loadAndRegisterSheet(colorsDataUri, sss.USER_SHEET);
+					}
+				else {
+					that.gChromeRegisterColors(text);
+					}
+				callback();
+				});
 			
 			}
+		else callback();
 			
 		return 1;
 		
+		}
+		
+	this.getColorsData = function() {
+		return colorsDataUri;
+		}
+		
+	/*
+	Tell each managed tab to remove its colors stylesheet.
+	*/
+	this.gChromeUnregisterColors = function() {
+		if(!this.chrome) throw new TypeError("Must be Google Chrome.");
+		managedTabs.forEach(function(e, i, a) {
+			chrome.tabs.sendRequest(e.id, {type: "unregisterColors"});
+			});
+		gChromeColorsRegistered = false;
+		}
+		
+	/*
+	Tell each managed tab to add a colors stylesheet with the given CSS.
+	*/
+	this.gChromeRegisterColors = function(css) {
+		if(!this.chrome) throw new TypeError("Must be Google Chrome.");
+		colorsDataUri = css;
+		managedTabs.forEach(function(e, i, a) {
+			chrome.tabs.sendRequest(e.id, {type: "registerColors", value: colorsDataUri});
+			});
+		gChromeColorsRegistered = true;
 		}
 		
 	/*
@@ -321,15 +428,19 @@ var vestitools_style = new function vt_Style() {
 	You'll want to call this after changing the colors object when you want the user to see changes
 	(which they will assume are persistent, i.e. saved to disk).
 	*/
-	this.synchronizeColors = function() {
+	this.synchronizeColors = function(callback) {
 		
+		if(typeof callback != "function") callback = function(){};
 		var usercolorStyle = this.createStyle(this.colorsObject);
 		
-		if(this.saveColorsObject() == 1) {
-			//only write to the colors file and apply if saving was successful
-			vestitools_files.writeFile(this.colorsFileUri, usercolorStyle);
-			this.applyColors(true);
-			}
+		var that = this;
+		this.saveColorsObject(function(success, error) {
+			if(!success) { callback(); return; }
+			//only write to the colors file and apply if saving object was successful
+			vestitools_files.writeFile(that.colorsFileUri, usercolorStyle, function(success, error) {
+				that.applyColors(true, callback);
+				});
+			});
 		
 		}
 	
@@ -436,10 +547,10 @@ var vestitools_style = new function vt_Style() {
 	/*
 	Saves the current colorsObject to a JSON file.
 	*/
-	this.saveColorsObject = function() {
+	this.saveColorsObject = function(callback) {
 		//stringify here will add some spacing so the file's pretty
 		//this will increase filesize a bit, but I think it's worth it for anyone who happens to read it
-		return vestitools_files.writeFile(this.objectFileUri, JSON.stringify(this.colorsObject, null, " "));
+		return vestitools_files.writeFile(this.objectFileUri, JSON.stringify(this.colorsObject, null, " "), callback);
 		}
 	
 	
@@ -661,8 +772,10 @@ var vestitools_style = new function vt_Style() {
 			else buf.push(e);
 			}
 		
-		//only apply to select domains
-		buf.push(mozDocument);
+		//only apply to select domains (@-moz-document)
+		if(!this.chrome) {
+			buf.push(mozDocument);
+			}
 		
 		//the object should be an array of users
 		for(var i=0, len=obj.length; i<len; i++) {
@@ -710,7 +823,9 @@ var vestitools_style = new function vt_Style() {
 			
 			}
 			
-		buf.push("}\n"); //end of @-moz-document
+		if(!this.chrome) {
+			buf.push("}\n"); //end of @-moz-document
+			}
 			
 		return buf.join("");
 		

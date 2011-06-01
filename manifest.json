@@ -19,6 +19,7 @@
 		"http://boards.ign.com/*",
 		"http://forums.ign.com/*",
 		"http://betaboards.ign.com/*",
+		"http://derekdev.com/mozilla/ignbq/*",
 		"unlimitedStorage"
 	],
 	
@@ -37,6 +38,15 @@
 				"content/gchromewrap.js",
 				"content/gchromeinitialize.js"
 			]
+		},
+		{
+			"matches": [
+				"http://boards.ign.com/*",
+				"http://forums.ign.com/*",
+				"http://betaboards.ign.com/*"
+			],
+			"js": ["content/gchromecolors.js"],
+			"run_at": "document_start"
 		}
 	]
 
