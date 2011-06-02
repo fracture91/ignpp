@@ -271,6 +271,13 @@ var vestitools_style = new function vt_Style() {
 		}
 
 	/*
+	Returns true if the usercolors stylesheet is registered, false otherwise.
+	*/
+	this.getColorsRegistered = function() {
+		return this.chrome ? gChromeColorsRegistered : sss.sheetRegistered(colorsDataUri, sss.USER_SHEET);
+		}
+		
+	/*
 	If the applyUsercolors pref is true, then apply the stylesheet, otherwise remove it.
 	If force is true, the style will always be unregistered if it's already registered
 	and then registered if appropriate (for when refreshing usercolors.css).
@@ -281,13 +288,8 @@ var vestitools_style = new function vt_Style() {
 	this.applyColors = function(force, callback) {
 		if(typeof callback != "function") callback = function(){};
 		
-		var oldSheetReg, oldSheet = colorsDataUri != null;
-		if(!this.chrome) {
-			oldSheetReg = oldSheet && sss.sheetRegistered(colorsDataUri, sss.USER_SHEET);
-			}
-		else {
-			oldSheetReg = oldSheet && gChromeColorsRegistered;
-			}
+		var oldSheet = colorsDataUri != null;
+		var oldSheetReg = oldSheet && this.getColorsRegistered();
 		
 		if(	force && oldSheetReg || 
 			(oldSheetReg && !GM_getValue("applyUsercolors", true)) ) {
@@ -302,7 +304,7 @@ var vestitools_style = new function vt_Style() {
 			}
 		
 		if(	GM_getValue("applyUsercolors", true) && 
-			(!oldSheet || (force && oldSheetReg) || !sss.sheetRegistered(colorsDataUri, sss.USER_SHEET)) ) {
+			(!oldSheet || (force && oldSheetReg) || !this.getColorsRegistered()) ) {
 			
 			var that = this;
 			vestitools_files.readFile(this.colorsFileUri, function(text) {

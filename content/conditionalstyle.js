@@ -72,8 +72,6 @@ var Condstyle = new function() {
 		minHeightFix;
 
 	GM_addStyle(style);
-	
-	//for chrome, must also add usercolors
 
 	vlog("Styles initialized");
 
