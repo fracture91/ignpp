@@ -8,7 +8,14 @@ function vlog(t){
 	
 function GM_getValue(name, def) {
 	var jsonValue = localStorage[name];
-	if(typeof(jsonValue)!="undefined") return JSON.parse(jsonValue);
+	if(typeof(jsonValue)!="undefined") {
+		try {
+			 return JSON.parse(jsonValue);
+			}
+		catch(e) {
+			vlog("GM_getValue - Error parsing value " + name + ", returning default.\n" + e);
+			}
+		}
 	return def;
 	}
 	

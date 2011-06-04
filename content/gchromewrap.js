@@ -15,7 +15,14 @@ GM_localStorage = undefined;
 GM_getValue = function(name, def) {
 	
 	var jsonValue = GM_localStorage[name];
-	if(typeof(jsonValue)!="undefined") return JSON.parse(jsonValue);
+	if(typeof(jsonValue)!="undefined") {
+		try {
+			 return JSON.parse(jsonValue);
+			}
+		catch(e) {
+			GM_log("GM_getValue - Error parsing value " + name + ", returning default.\n" + e);
+			}
+		}
 	
 	return def;
 	
