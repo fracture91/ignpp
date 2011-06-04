@@ -335,9 +335,9 @@ var vestitools_style = new function vt_Style() {
 	*/
 	this.gChromeUnregisterColors = function() {
 		if(!this.chrome) throw new TypeError("Must be Google Chrome.");
-		managedTabs.forEach(function(e, i, a) {
-			chrome.tabs.sendRequest(e.id, {type: "unregisterColors"});
-			});
+		for(var i in tabManager.tabs) {
+			chrome.tabs.sendRequest(tabManager.tabs[i].id, {type: "unregisterColors"});
+			}
 		gChromeColorsRegistered = false;
 		}
 		
@@ -347,9 +347,9 @@ var vestitools_style = new function vt_Style() {
 	this.gChromeRegisterColors = function(css) {
 		if(!this.chrome) throw new TypeError("Must be Google Chrome.");
 		colorsDataUri = css;
-		managedTabs.forEach(function(e, i, a) {
-			chrome.tabs.sendRequest(e.id, {type: "registerColors", value: colorsDataUri});
-			});
+		for(var i in tabManager.tabs) {
+			chrome.tabs.sendRequest(tabManager.tabs[i].id, {type: "registerColors", value: colorsDataUri});
+			}
 		gChromeColorsRegistered = true;
 		}
 		

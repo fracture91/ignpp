@@ -22,10 +22,11 @@ function GM_getValue(name, def) {
 function GM_setValue(name, value, sender) {
 	var jsonValue = JSON.stringify(value);
 	localStorage[name] = localStorageCopy[name] = jsonValue;
-	managedTabs.forEach(function(el, i, arr) {
-		if(sender && sender.tab.id==el.id) return;
-		chrome.tabs.sendRequest(el.id, {type: "setValue", name: name, jsonValue: jsonValue});
-		});
+	for(var i in tabManager.tabs) {
+		var managed = tabManager.tabs[i];
+		if(sender && sender.tab.id==managed.id) continue;
+		chrome.tabs.sendRequest(managed.id, {type: "setValue", name: name, jsonValue: jsonValue});
+		}
 	}
 	
 function copyLocalStorage() {
@@ -110,7 +111,6 @@ window.onload = function(e) {
 	
 	}
 
-var managedTabs = [];
 
 var knownFiles = [
 	"extension://content/panel.html",
@@ -140,14 +140,116 @@ var scripts = [
 	"content/kbonly.js"
 	];
 	
+	
+/*
+Holds a chromeTab and its sentinel port.
+onDisconnectFunc is called whenever the given tab is disconnected (closed, crashes, explodes, etc.)
+*/
+function Tab(chromeTab, onDisconnectFunc) {
+	this.chromeTab = chromeTab;
+	this.sentinel = null;
+	this.onDisconnectFunc = onDisconnectFunc;
+	this.connect();
+	}
+	
+Tab.prototype = {
+	
+	/*
+	Open connection to the tab if not already connected.
+	*/
+	connect: function() {
+		if(this.sentinel != null) return false;
+		this.sentinel = chrome.tabs.connect(this.id, {name: "sentinel"});
+		var that = this;
+		this.sentinel.onDisconnect.addListener(function(port){ that.onDisconnect(port) });
+		},
+		
+	/*
+	Disconnect from the tab if not already disconnected.
+	*/
+	disconnect: function() {
+		if(this.sentinel == null) return false;
+		this.sentinel.disconnect();
+		},
+		
+	/*
+	Disconnect listener that's always added to the sentinel port.
+	Nullifies the port and calls this.onDisconnectFunc.
+	*/
+	onDisconnect: function(port) {
+		this.sentinel = null;
+		this.onDisconnectFunc(this, port);
+		},
+		
+	get id() { return this.chromeTab.id; }
+	
+	}
+	
+/*
+Manages tabs in a way such that all tabs are unique, exist in the browser,
+and are running our scripts.
+*/
+function TabManager() {
+	/*
+	Tabs, indexed by chromeTab.id.
+	*/
+	this.tabs = {};
+	}
+	
+TabManager.prototype = {
+	
+	/*
+	Given a chromeTab, add a Tab for it to this manager.
+	*/
+	add: function(chromeTab) {
+		if(!this.hasTab(chromeTab)) {
+			var that = this;
+			this.tabs[chromeTab.id] = new Tab(chromeTab, function(tab, port) {
+				that.onDisconnect(tab, port);
+				});
+			}
+		},
+		
+	/*
+	Given a Tab or a chromeTab, disconnect remove the Tab from this manager.
+	*/
+	remove: function(tab) {
+		if(this.hasTab(tab)) {
+			this.tabs[tab.id].disconnect();
+			delete this.tabs[tab.id];
+			}
+		},
+		
+	/*
+	Given a Tab or chromeTab, return true if this manager has it, false otherwise.
+	*/
+	hasTab: function(tab) {
+		return this.tabs[tab.id] instanceof Tab;
+		},
+		
+	/*
+	The disconnect listener added to all Tabs.
+	Removes the disconnected Tab from this manager.
+	*/
+	onDisconnect: function(tab, port) {
+		this.remove(tab);
+		}
+	
+	}
+	
+/*
+This will hold all tabs into which we have injected scripts that need to be alerted
+about preference changes and potentially other things.
+*/
+var tabManager = new TabManager();
+
+
+	
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	
 	if(request.type === undefined) return;
 	
-	if(sender.tab && managedTabs.indexOf(sender.tab)==-1 && 
-		!managedTabs.some(function(e,i,a) { return sender.tab.id == e.id;}) ) {
-		managedTabs.push(sender.tab);
-		}
+	if(sender.tab) tabManager.add(sender.tab);
 	
 	switch(request.type.toLowerCase()) {
 		
@@ -156,7 +258,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			break;
 			
 		case "setvalue":
-			GM_setValue(request.name, JSON.parse(request.jsonValue));
+			GM_setValue(request.name, JSON.parse(request.jsonValue), sender);
 			break;
 			
 		case "ping":
