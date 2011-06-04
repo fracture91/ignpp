@@ -36,5 +36,5 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	
 	});
 	
-//this should just send back a registercolors request
+//this should just send back a registercolors request if applyUsercolors pref is true
 chrome.extension.sendRequest({type: "usercolors"});

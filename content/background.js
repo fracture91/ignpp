@@ -275,7 +275,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			break;
 			
 		case "usercolors":
-			chrome.tabs.sendRequest(sender.tab.id, {type: "registercolors", value: vestitools_style.getColorsData()});
+			if(GM_getValue("applyUsercolors", true)) {
+				chrome.tabs.sendRequest(sender.tab.id, {type: "registercolors", value: vestitools_style.getColorsData()});
+				}
 			break;
 			
 		case "checkin":
