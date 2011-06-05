@@ -10,7 +10,7 @@ function GM_getValue(name, def) {
 	var jsonValue = localStorage[name];
 	if(typeof(jsonValue)!="undefined") {
 		try {
-			 return JSON.parse(jsonValue);
+			return JSON.parse(jsonValue);
 			}
 		catch(e) {
 			vlog("GM_getValue - Error parsing value " + name + ", returning default.\n" + e);

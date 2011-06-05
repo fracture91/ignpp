@@ -1,6 +1,8 @@
 
 //the localStorage on the options page is the same as on the background page
-GM_localStorage = localStorage;
+GM_API.localStorage = localStorage;
+
+GM_API.expose();
 
 //just checking in with the background page to make sure we receive setvalue updates
 chrome.extension.sendRequest({type: "checkin"});

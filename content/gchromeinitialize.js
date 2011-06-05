@@ -1,14 +1,20 @@
 
-//This file only run in Google Chrome
-//Gets some necessary data from background page, adds listeners,
-//requests rest of scripts to be run
+/*
+This file only runs in Google Chrome.
+Gets some necessary data from background page, adds listeners,
+requests rest of scripts to be run.
+*/
 
-//sending an initialize request will make background page send all relevant data
-//in response, and inject necessary scripts
+GM_API.expose();
+
+/*
+Sending an initialize request will make background page send all relevant data
+in response, and inject necessary scripts.
+*/
 chrome.extension.sendRequest({type: "initialize"}, function(response) {
 	
-	GM_localStorage = response.localStorage;
-	GM_files = response.files;
+	GM_API.localStorage = response.localStorage;
+	GM_API.files = response.files;
 	
 	});
 
@@ -19,8 +25,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	switch(request.type.toLowerCase()) {
 		
 		case "setvalue":
+			//A setting has been changed elsewhere, so we should change our local copy
 			var name = request.name, jsonValue = request.jsonValue;
-			GM_localStorage[name] = jsonValue;
+			GM_API.localStorage[name] = jsonValue;
 			break;
 			
 		case "registercolors":
@@ -42,12 +49,3 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		}
 	
 	});
-	
-/*chrome.extension.sendRequest({type: "localstorage"}, function(response) {
-	
-	GM_localStorage = response;
-	var str = "";
-	for(var i in response) str += i + ": " + response[i];
-	alert(str);
-	
-	});*/
