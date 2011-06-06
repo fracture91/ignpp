@@ -44,6 +44,69 @@ Like the regular addStyle, except this requires a tab to add the style to.
 GM_API.addStyle = function(tab, css) {
 	chrome.tabs.insertCSS(tab.id, {code: css});
 	}
+	
+	
+GM_API.oldXHRDockHag = GM_API.XHRDockHag;
+
+/*
+Manages an xmlhttpRequester and its port, facilitating communication with the content
+script that made a GM_xmlhttpRequest call.
+*/
+GM_API.XHRDockHag = function (port) {
+	
+	/*
+	The port which made the xmlhttpRequest call.
+	*/
+	this.port = port;
+	
+	/*
+	This dock hag's xmlhttpRequester, which handles all the actual network communication.
+	*/
+	this.requester = new vestitools_xmlhttpRequester(this.port, window, this.port.sender.tab.url);
+	
+	/*
+	Object that contentStartRequest returns that lets us abort the request.
+	*/
+	this.gynecologist = null;
+	
+	var that = this;
+	
+	this.port.onMessage.addListener(function(msg) {
+		//only one message is sent for this connection that has details
+		that.gynecologist = that.requester.contentStartRequest(msg.details);
+		});
+		
+	this.port.onDisconnect.addListener(function(msg) {
+		if(that.gynecologist) that.gynecologist.abort();
+		});
+	
+	}
+
+GM_API.oldXmlhttpRequest = GM_API.xmlhttpRequest;
+	
+/*
+The background version of xmlhttpRequest can take the standard details object or a Port.
+
+If given a Port, the method assumes that this request is being made through that Port
+and will communicate through it (wait for details message, send messages for xhr events).
+
+If the argument isn't a Port, the method acts just like you would expect it to work
+if you were calling it from a content script.
+*/
+GM_API.xmlhttpRequest = function(detailsOrPort) {
+	var rv = {abort: this.unsupported};
+	if(detailsOrPort instanceof chrome.Port) {
+		var aDockHag = new this.XHRDockHag(detailsOrPort);
+		rv.abort = function(){ aDockHag.port.disconnect() };
+		}
+	else {
+		var xhr = new vestitools_xmlhttpRequester(null, window, window.location);
+		var gynecologist = xhr.contentStartRequest(detailsOrPort);
+		rv.abort = function(){ gynecologist.abort() };
+		}
+	return rv;
+	}
+	
 
 GM_API.expose();
 

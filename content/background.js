@@ -158,7 +158,7 @@ var Background = new function() {
 	this.onConnect = function(port) {
 		switch(port.name.toLowerCase()) {
 			case "xmlhttprequest":
-				var aDockHag = new XHRDockHag(port);
+				GM_xmlhttpRequest(port);
 				break;
 			default:
 				GM_log("Unknown connection: " + port.name);
@@ -285,29 +285,3 @@ about preference changes and potentially other things.
 Background.tabManager = GM_API.tabManager = new TabManager();
 Background.init();
 
-	
-
-
-//manages the port for the xmlhttprequester, get it?
-//okay, so the dock hag only managed a single dock AFAIK, but you get it
-function XHRDockHag(port) {
-	
-	this.port = port;
-	this.requester = new vestitools_xmlhttpRequester(this.port, window, this.port.sender.tab.url);
-	
-	//object that contentStartRequest returns that lets us abort the request
-	this.gynecologist = null;
-	
-	var that = this;
-	
-	this.port.onMessage.addListener(function(msg) {
-		//only one message is sent for this connection that has details
-		that.gynecologist = that.requester.contentStartRequest(msg.details);
-		});
-		
-	this.port.onDisconnect.addListener(function(msg) {
-		if(that.gynecologist) that.gynecologist.abort();
-		});
-	
-	}
-	
