@@ -35,7 +35,7 @@
 			],
 			"css": ["skin/default/main.css"],
 			"js": [
-				"content/gchromewrap.js",
+				"content/gchromeapi.js",
 				"content/gchromeinitialize.js"
 			]
 		},
