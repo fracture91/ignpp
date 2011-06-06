@@ -75,7 +75,7 @@ var GM_API = new function() {
 	The client is responsible for setting it up.
 	get/setValue uses this object.
 	*/
-	this.localStorage = undefined;
+	this.localStorage = {};
 
 	/*
 	Returns the value of the preference with the given name.
@@ -123,7 +123,7 @@ var GM_API = new function() {
 	An object that holds file contents keyed by file names (sans extension).
 	The client is responsible for setting it up.
 	*/
-	this.files = undefined;
+	this.files = {};
 	
 	/*
 	Given a file path, return the file's contents.

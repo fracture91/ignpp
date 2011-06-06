@@ -1,145 +1,209 @@
 
-//this file only runs in gchrome in background.html
+/*
+This file only runs in Google Chrome in background.html
+*/
 
+/*
+We need to override some functionality in GM_API for the background page.
+setValue needs to maintain a copy of localStorage and alert managed tabs of changes.
+addStyle needs to apply a style to a certain tab, rather than message background about it.
+*/
+(function(){
 
-function vlog(t){ 
-	console.log("IGN++: " + t);
-	}
-	
-function GM_getValue(name, def) {
-	var jsonValue = localStorage[name];
-	if(typeof(jsonValue)!="undefined") {
-		try {
-			return JSON.parse(jsonValue);
-			}
-		catch(e) {
-			vlog("GM_getValue - Error parsing value " + name + ", returning default.\n" + e);
-			}
-		}
-	return def;
-	}
-	
-function GM_setValue(name, value, sender) {
+GM_API.localStorage = localStorage;
+
+/*
+A copy of localStorage which Background can send to tabs that request it.
+*/
+GM_API.localStorageCopy = {};
+for(var i in localStorage)
+	GM_API.localStorageCopy[i] = localStorage[i];
+
+GM_API.oldSetValue = GM_API.setValue;
+//tabManager should be set properly later on
+GM_API.tabManager = null;
+
+/*
+Like the regular setValue, except this will also maintain this.localStorageCopy
+and call this.tabManager.onSetValue.
+*/
+GM_API.setValue = function(name, value, sender) {
 	var jsonValue = JSON.stringify(value);
-	localStorage[name] = localStorageCopy[name] = jsonValue;
-	for(var i in tabManager.tabs) {
-		var managed = tabManager.tabs[i];
-		if(sender && sender.tab.id==managed.id) continue;
-		chrome.tabs.sendRequest(managed.id, {type: "setValue", name: name, jsonValue: jsonValue});
+	this.localStorage[name] = this.localStorageCopy[name] = jsonValue;
+	if(this.tabManager) {
+		this.tabManager.onSetValue(name, jsonValue, sender ? sender.tab : undefined);
 		}
+	return value;
 	}
-	
-function copyLocalStorage() {
-	
-	var copy = {};
-	
-	for(var i in localStorage)
-		copy[i] = localStorage[i];
-		
-	return copy;
-	
-	}
-	
-function copyFiles(files, callback) {
-	
-	if(typeof callback != "function") callback = function(){};
-	
-	var copy = [];
-	
-	files.forEach(function(el, i, arr) {
-		vestitools_files.readFile(el, function(content){
-			copy[i] = content;
-			var done = true;
-			files.forEach(function(ele, j, arra) {
-				if(!copy[j]) done = false;
-				});
-			if(done) callback(copy);
-			});
-		});
-	
-	}
-	
-function getFileName(path) {
-	
-	return path.match(/\/([^\/]*)\..*$/)[1];
-	
-	}
-	
-function ping(tab) {
-	
-	var t1 = (new Date()).getTime();
-	
-	chrome.tabs.sendRequest(tab.id, {type: "ping"}, function(response) {
-		
-		var t2 = response.time;
-		var t3 = (new Date()).getTime();
-		vlog(
-				"ping: " + (t3-t1) +
-				"\nto there: " + (t2-t1) +
-				"\nand back: " + (t3-t2)
-				);
-		
-		});
-	
-	}
-	
-function injectScripts(tab) {
-	
-	for(var i=0, len=scripts.length; i<len; i++)
-		chrome.tabs.executeScript(tab.id, {file: scripts[i]});
-	
-	}
-	
-function addStyle(tab, css) {
-	
+
+GM_API.oldAddStyle = GM_API.addStyle;
+
+/*
+Like the regular addStyle, except this requires a tab to add the style to.
+*/
+GM_API.addStyle = function(tab, css) {
 	chrome.tabs.insertCSS(tab.id, {code: css});
-	
 	}
 
-window.onload = function(e) {
+GM_API.expose();
 
-	window.localStorageCopy = copyLocalStorage();
+})();
+
+/*
+Responsible for injecting content scripts and hooking up all the API functions for them.
+*/
+var Background = new function() {
 	
-	vestitools_files.chromeInit(function() {
-		copyFiles(knownFiles, function(copy) {
-			window.filesCopy = {};
-			for(var i in knownFiles)
-				window.filesCopy[getFileName(knownFiles[i])] = copy[i];
+	/*
+	Add the onLoad, onRequest, and onConnect listeners.
+	*/
+	this.init = function() {
+		var that = this;
+		window.addEventListener("load", function(e){ that.onLoad(e) }, true);
+		chrome.extension.onRequest.addListener(function(r,s,sr){ that.onRequest(r,s,sr) });
+		chrome.extension.onConnect.addListener(function(p){ that.onConnect(p) });
+		}
+	
+	/*
+	Given an array of filenames, get a new array where
+	each corresponding element has the contents of the file.
+	*/
+	this.getFilesCopy = function(files, callback) {
+		if(typeof callback != "function") callback = function(){};
+		var copy = [];
+		
+		files.forEach(function(el, i, arr) {
+			vestitools_files.readFile(el, function(content){
+				copy[i] = content;
+				var done = true;
+				files.forEach(function(ele, j, arra) {
+					if(!copy[j]) done = false;
+					});
+				if(done) callback(copy);
+				});
 			});
-		vestitools_style.init(true);
-		});
+		}
 	
+	/*
+	Ping the given tab - that is, log how long it takes to get a response from sendRequest.
+	*/
+	this.ping = function(tab) {
+		var t1 = (new Date()).getTime();
+		chrome.tabs.sendRequest(tab.id, {type: "ping"}, function(response) {
+			var t2 = response.time;
+			var t3 = (new Date()).getTime();
+			GM_log(
+					"ping: " + (t3-t1) +
+					"\nto there: " + (t2-t1) +
+					"\nand back: " + (t3-t2)
+					);
+			});
+		}
+	
+	/*
+	Inject all scripts listed in this.scripts into the given tab.
+	*/
+	this.injectScripts = function(tab) {
+		for(var i=0, len=this.scripts.length; i<len; i++) {
+			chrome.tabs.executeScript(tab.id, {file: this.scripts[i]});
+			}
+		}
+		
+	/*
+	Files which will be copied to GM_API.files onload.
+	*/
+	this.knownFiles = [
+		"extension://content/panel.html",
+		"extension://content/wysiwyg.html",
+		"extension://content/extra.html",
+		"extension://content/controls.html"
+		];
+		
+	/*
+	Scripts which will be injected with this.injectScripts.
+	*/
+	this.scripts = [
+		"content/util.js",
+		"content/info.js",
+		"content/console.js",
+		"content/parse.js",
+		"content/replies.js",
+		"content/topics.js",
+		"content/editors.js",
+		"content/panels.js",
+		"content/overlay.js",
+		"content/message.js",
+		"content/infopanels.js",
+		"content/quickstats.js",
+		"content/threadpreview.js",
+		"content/autowul.js",
+		"content/conditionalstyle.js",
+		"content/integratedtools.js",
+		"content/autorefresh.js",
+		"content/kbonly.js"
+		];
+		
+	this.onLoad = function(e) {
+		var that = this;
+		vestitools_files.chromeInit(function() {
+			that.getFilesCopy(that.knownFiles, function(copy) {
+				for(var i in that.knownFiles)
+					GM_API.files[GM_API.getFileName(that.knownFiles[i])] = copy[i];
+				});
+			vestitools_style.init(true);
+			});
+		}
+		
+	this.onRequest = function(request, sender, sendResponse) {
+		if(request.type === undefined) return;
+		if(sender.tab) this.tabManager.add(sender.tab);
+		
+		switch(request.type.toLowerCase()) {
+			case "localstorage":
+				sendResponse(GM_API.localStorageCopy);
+				break;
+			case "setvalue":
+				GM_setValue(request.name, JSON.parse(request.jsonValue), sender);
+				break;
+			case "ping":
+				sendResponse({time: (new Date()).getTime()});
+				break;
+			case "initialize":
+				sendResponse({localStorage: GM_API.localStorageCopy, files: GM_API.files});
+				this.injectScripts(sender.tab);
+				break;
+			case "addstyle":
+				GM_addStyle(sender.tab, request.css);
+				break;
+			case "usercolors":
+				if(GM_getValue("applyUsercolors", true)) {
+					chrome.tabs.sendRequest(sender.tab.id, {type: "registercolors", value: vestitools_style.getColorsData()});
+					}
+				break;
+			case "checkin":
+				//options page just checking in
+				break;
+			default:
+				GM_log("Unknown request: " + request.type);
+				break;
+			}
+		
+		}
+		
+	this.onConnect = function(port) {
+		switch(port.name.toLowerCase()) {
+			case "xmlhttprequest":
+				var aDockHag = new XHRDockHag(port);
+				break;
+			default:
+				GM_log("Unknown connection: " + port.name);
+				break;
+			}
+		}
+		
 	}
-
-
-var knownFiles = [
-	"extension://content/panel.html",
-	"extension://content/wysiwyg.html",
-	"extension://content/extra.html",
-	"extension://content/controls.html"
-	];
-
-var scripts = [
-	"content/util.js",
-	"content/info.js",
-	"content/console.js",
-	"content/parse.js",
-	"content/replies.js",
-	"content/topics.js",
-	"content/editors.js",
-	"content/panels.js",
-	"content/overlay.js",
-	"content/message.js",
-	"content/infopanels.js",
-	"content/quickstats.js",
-	"content/threadpreview.js",
-	"content/autowul.js",
-	"content/conditionalstyle.js",
-	"content/integratedtools.js",
-	"content/autorefresh.js",
-	"content/kbonly.js"
-	];
 	
+
 	
 /*
 Holds a chromeTab and its sentinel port.
@@ -233,6 +297,18 @@ TabManager.prototype = {
 	*/
 	onDisconnect: function(tab, port) {
 		this.remove(tab);
+		},
+		
+	/*
+	Should be called when GM_setValue is called.
+	Alerts all tabs of the value change, except for the origin tab (if provided).
+	*/
+	onSetValue: function(name, jsonValue, origin) {
+		for(var i in this.tabs) {
+			var tab = this.tabs[i];
+			if(origin && origin.id==tab.id) continue;
+			chrome.tabs.sendRequest(tab.id, {type: "setValue", name: name, jsonValue: jsonValue});
+			}
 		}
 	
 	}
@@ -241,56 +317,11 @@ TabManager.prototype = {
 This will hold all tabs into which we have injected scripts that need to be alerted
 about preference changes and potentially other things.
 */
-var tabManager = new TabManager();
+Background.tabManager = GM_API.tabManager = new TabManager();
+Background.init();
 
+	
 
-	
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	
-	if(request.type === undefined) return;
-	
-	if(sender.tab) tabManager.add(sender.tab);
-	
-	switch(request.type.toLowerCase()) {
-		
-		case "localstorage":
-			sendResponse(localStorageCopy);
-			break;
-			
-		case "setvalue":
-			GM_setValue(request.name, JSON.parse(request.jsonValue), sender);
-			break;
-			
-		case "ping":
-			sendResponse({time: (new Date()).getTime()});
-			break;
-			
-		case "initialize":
-			sendResponse({localStorage: localStorageCopy, files: filesCopy});
-			injectScripts(sender.tab);
-			break;
-			
-		case "addstyle":
-			addStyle(sender.tab, request.css);
-			break;
-			
-		case "usercolors":
-			if(GM_getValue("applyUsercolors", true)) {
-				chrome.tabs.sendRequest(sender.tab.id, {type: "registercolors", value: vestitools_style.getColorsData()});
-				}
-			break;
-			
-		case "checkin":
-			//options page just checking in
-			break;
-			
-		default:
-			vlog("Unknown request: " + request.type);
-			break;
-		
-		}
-	
-	});
 
 //manages the port for the xmlhttprequester, get it?
 //okay, so the dock hag only managed a single dock AFAIK, but you get it
@@ -300,38 +331,18 @@ function XHRDockHag(port) {
 	this.requester = new vestitools_xmlhttpRequester(this.port, window, this.port.sender.tab.url);
 	
 	//object that contentStartRequest returns that lets us abort the request
-	//(not implemented yet)
 	this.gynecologist = null;
 	
 	var that = this;
 	
 	this.port.onMessage.addListener(function(msg) {
-	
 		//only one message is sent for this connection that has details
 		that.gynecologist = that.requester.contentStartRequest(msg.details);
-		
 		});
 		
 	this.port.onDisconnect.addListener(function(msg) {
-		
 		if(that.gynecologist) that.gynecologist.abort();
-		
 		});
 	
 	}
 	
-chrome.extension.onConnect.addListener(function(port) {
-	
-	switch(port.name.toLowerCase()) {
-		
-		case "xmlhttprequest":
-			var aDockHag = new XHRDockHag(port);
-			break;
-			
-		default:
-			vlog("Unknown connection: " + port.name);
-			break;
-			
-		}
-		
-	});
