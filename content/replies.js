@@ -103,8 +103,24 @@ function Replies(ref, after) {
 		this.pages = Parse.pages(ref.innerHTML);
 		}
 		
-	this.currentPage = this.pages ? +getFirstByClassName(this.pages, "currentpage").textContent : 1;
-	this.lastPage = this.pages ? +getLastByClassName(this.pages, "prevnext").parentNode.previousElementSibling.textContent : 1;
+	if(this.pages) {
+		this.lastPage = +getLastByClassName(this.pages, "prevnext").parentNode.previousElementSibling.textContent;
+		this.currentPage = getFirstByClassName(this.pages, "currentpage");
+		if(this.currentPage) {
+			this.currentPage = +this.currentPage.textContent;
+			}
+		else {
+			/*
+			IGN has a bug where this class and the current page don't show up in fast threads.
+			For example, url says p3, but paginator shows [Prev][1][2][Next]   - See issue #241.
+			This seems to happen when the current page should be the last page, so increment lastPage as well.
+			*/
+			this.currentPage = ++this.lastPage;
+			}
+		}
+	else {
+		this.lastPage = this.currentPage = 1;
+		}
 	
 	}
 	
