@@ -324,8 +324,8 @@ var Parse = new function() {
 		//handle both HTML strings and plain old HTML elements
 		if(typeof input == "string") {
 			var node = document.createElement('div');
-			node.innerHTML = input;
 			temp.appendChild(node);
+			node.innerHTML = input;
 			}
 		else if(typeof input == "object") {
 			temp.appendChild(input.cloneNode(true));
