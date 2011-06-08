@@ -33,7 +33,13 @@ function Editor(parent, map) {
 	this.ref = parent;
 	addClass(this.ref, "editor");
 	GM_time("wysiwyg.html");
-	this.ref.innerHTML += GM_getFile("extension://content/wysiwyg.html");
+	var frag = document.createDocumentFragment();
+	var div = document.createElement("div");
+	frag.appendChild(div);
+	div.innerHTML = GM_getFile("extension://content/wysiwyg.html");
+	while(div.firstChild) {
+		this.ref.appendChild(div.firstChild);
+		}
 	GM_timeEnd("wysiwyg.html");
 	this.wysiwygContainer = getFirstByClassName(this.ref, "wysiwygContainer");
 	
