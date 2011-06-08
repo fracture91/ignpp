@@ -157,25 +157,31 @@ Replies.prototype = {
 	get ignoreList(){return GM_getValue("ignoreList", "");},
 	set ignoreList(s){return GM_setValue("ignoreList", s);},
 	
+	/*
+	Given a Reply or a username, ignore that username or the Reply's author.
+	If unIgnore is true, unIgnore the user instead (defaults to false).
+	*/
 	ignore: function(reply, unIgnore) {
-		
 		if(!defined(unIgnore)) unIgnore = false;
+		var user = typeof reply == "string" ? reply : reply.author;
 		
-		var target, list = this.ignoreList.split(","), user = reply.author;
-		if(!user) user = reply; //can take a string instead
+		var list = this.ignoreList;
+		//if this.ignoreList == "", split returns [""], which is an invalid list
+		list = list == "" ? [] : list.split(",");
 		
 		if(unIgnore) {
-			if((target = list.indexOf(user))!=-1) {
+			var target = list.indexOf(user);
+			if(target!=-1) {
 				list.splice(target, 1);
-				this.ignoreList = list.toString();
+				this.ignoreList = list.join(",");
 				}
 			}
 		else if(list.indexOf(user)==-1) {
 			list.push(user);
-			this.ignoreList = list.toString();
+			this.ignoreList = list.join(",");
 			}
 			
-		//hide all other replies by this user in this Replies object
+		//hide/show all other replies by this user in this Replies object
 		this.forEachReply(function(r) {
 			if(r.author == user) {
 				if(unIgnore) r.unIgnore();
