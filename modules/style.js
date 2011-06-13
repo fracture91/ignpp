@@ -216,10 +216,12 @@ var vestitools_style = new function vt_Style() {
 		if(temp) mainDataUri = ios.newURI(
 			"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
 			temp.replace(/\n/g, "%0A")
-				.replace(/chrome-extension:\/\//g, "chrome://")
-				//chrome has a bug where extension id isn't replaced, so I have to hardcode it for now...ugh
-				//http://code.google.com/p/chromium/issues/detail?id=39899
-				.replace(/neccigeidlomkjogomjkjpeapgojbodn|mhopcnahlbanfaniphbpeaoggmofanhf|__MSG_@@extension_id__/g, "vestitools")
+				/*
+				Ideally, I'd only need to replace __MSG_@@extension_id__ specifically with vestitools,
+				but I can't use it since it's broken.
+				See http://code.google.com/p/chromium/issues/detail?id=39899
+				*/
+				.replace(/chrome-extension:\/\/[^\/]*\//g, "chrome://vestitools/")
 				.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
 			" }",
 			null, null);
