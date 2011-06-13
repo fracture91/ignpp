@@ -7,8 +7,10 @@ if [ "$1" = "-h" ]; then
 	echo "Usage: ./build.sh [filename (before extension) or "/" for default] [directory]"
 	echo "By default, filename is ignppx,x,x.zip/.xpi, and directory is ../packaged"
 	echo
-	echo "This script zips up the contents of the working directory into a file named \
-			according to the version in install.rdf, then makes a copy with a .xpi extension."
+	echo "This script should be used to create zip/xpi files for public distribution.  \
+It zips up the contents of the working directory into a file named \
+according to the version in install.rdf, then makes a copy with a .xpi extension.  \
+It will also run cssid.sh to make sure the public ID is used."
 	exit 0
 fi
 
@@ -27,18 +29,29 @@ else
 	IGNDIR="$2"
 fi
 
-
-
-mkdir -p "$IGNDIR"
-
 IGNDF="$IGNDIR/$IGNFILE"
 
+#we need to work in a different directory since cssid.sh will change the contents of some files
+IGNBUILD="$IGNDIR/build"
+echo "Creating build directory $IGNBUILD ..."
+mkdir -p "$IGNBUILD"
+cp -r ./* "$IGNBUILD"
+
+ORIGDIR=`pwd`
+cd "$IGNBUILD"
+./cssid.sh pub
+
+
 echo "Creating $IGNDF.zip ..."
-zip -qr9X "$IGNDF.zip" *
+zip -qr9X "build.zip" *
+cd "$ORIGDIR"
+cp "$IGNBUILD/build.zip" "$IGNDF.zip"
 
 echo "Copying to $IGNDF.xpi ..."
 cp "$IGNDF.zip" "$IGNDF.xpi"
 
+echo "Cleanup..."
 chmod -R 700 "$IGNDIR"
+rm -r "$IGNBUILD"
 
 echo "Done."
