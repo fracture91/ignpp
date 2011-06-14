@@ -26,7 +26,8 @@ var GM_API = new function() {
 		"addStyle",
 		"xmlhttpRequest",
 		"time",
-		"timeEnd"
+		"timeEnd",
+		"showOptions"
 		];
 
 	/*
@@ -231,6 +232,13 @@ var GM_API = new function() {
 		var aDockHag = new this.XHRDockHag(details);
 		aDockHag.startRequest();
 		return {abort: function(){ aDockHag.abort() }};
+		}
+		
+	/*
+	Open the options tab, or focus if it already exists.
+	*/
+	this.showOptions = function() {
+		chrome.extension.sendRequest({type: "showOptions"});
 		}
 
 	

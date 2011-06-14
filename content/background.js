@@ -142,6 +142,9 @@ var Background = new function() {
 					chrome.tabs.sendRequest(sender.tab.id, {type: "registercolors", value: vestitools_style.getColorsData()});
 					}
 				break;
+			case "showoptions":
+				GM_showOptions(sender.tab);
+				break;
 			case "checkin":
 				//options page just checking in
 				break;

@@ -45,6 +45,32 @@ GM_API.addStyle = function(tab, css) {
 	chrome.tabs.insertCSS(tab.id, {code: css});
 	}
 	
+/*
+If the Options tab is already open in the given tab's window, then focus it.
+Otherwise, open the Options tab at tab.index + 1.
+This behavior seems identical to the behavior of the Options link in the extensions management page,
+which calls chrome.send('options', [extensionId])
+*/
+GM_API.showOptions = function(tab) {
+	var windowId = tab ? tab.windowId : undefined;
+	var index = tab ? tab.index + 1 : undefined;
+	chrome.tabs.getAllInWindow(windowId, function(tabs){
+		var url = chrome.extension.getURL("content/options/gchromeoptions.html");
+		var exists = false;
+		tabs.forEach(function(e,i,a){
+			if(!exists) {
+				if(e.url == url) {
+					exists = true;
+					chrome.tabs.update(e.id, {selected: true});
+					}
+				}
+			});
+		if(!exists) {
+			chrome.tabs.create({windowId: windowId, url: url, index: index});
+			}
+		});
+	}
+	
 	
 GM_API.oldXHRDockHag = GM_API.XHRDockHag;
 

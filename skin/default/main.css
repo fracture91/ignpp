@@ -62,16 +62,15 @@ box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
 }
 
 /* control buttons in boards drop down */
-.vtControls {
-min-height: 24px;
+.vtControls > a, .vtControls > a > img {
+float: left;
 }
-.vtControls > img, .vtControls > a > img {
-position: relative;
-top: 18px;
-right: 4px;
-margin-left: 3px !important;
-}
-.settingsButton, .regularButton {
+.vtControls > a {
+min-height: 24px !important;
+min-width: 30px !important;
+margin-left: 5px !important;
+padding: 0 !important;
+border: none !important;
 -moz-user-select: none;
 -webkit-user-select: none;
 background-color: transparent;
@@ -80,20 +79,18 @@ color: #BBBBBB;
 text-decoration: none;
 cursor: pointer;
 }
-.vtControls > a:first-child > img {
-margin-left: 0 !important;
+.vtControls > ul {
+float: left !important;
+width: auto !important;
 }
-#postTopicButton,
-#postReplyButton,
-/*next child selector needed because next id can appear in other places (BAD)*/
-.vtControls > #privateMessageButton {
-padding-top: 20px !important;
+.vtControls > ul + a {
+margin-left: 10px !important;
 }
-#privateMessageButton {
-margin-bottom: 2px !important;
+#privateMessageButton > img {
+margin-top: -2px;
 }
-.vtControls > .settingsButton {
-margin: 2px 0 4px 7px !important;
+#optionsButton > img {
+margin: 5px 8px;
 }
 .nav-item.home .sub-bullets-head a {
 font-weight: bold !important;

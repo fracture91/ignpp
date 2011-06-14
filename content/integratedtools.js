@@ -12,6 +12,7 @@ var Integratedtools = new function() {
 	var search = document.getElementById("boards_search_container");
 	var form = getFirstByTagName(search, "form");
 	var input = document.getElementById('boards_search_input');
+	var dropDownBottom = getFirstByClassName( getFirstByClassName(document.getElementById("nav-global"), "home"), "sub-nav-display-sub");
 	
 	this.addSearchInTab = function() {
 		
@@ -48,18 +49,18 @@ var Integratedtools = new function() {
 		
 	this.addIntegratedControls = function() {
 		
-		var temp = createElementX("li", {
-			className: "vtControls",
+		var temp = createElementX("div", {
 			innerHTML: GM_getFile("extension://content/controls.html")
 			});
 		
 		var links = temp.getElementsByTagName("a");
 		links[0].href = I.url.topicUrl;
 		links[1].href = I.url.replyUrl;
+		if(chrome) {
+			links[3].href = chrome.extension.getURL("content/options/gchromeoptions.html");
+			}
 
-		var target = document.getElementById("nav-global");
-		target = getFirstByTagName( getFirstByClassName( getFirstByClassName(target, "home"), "upcoming-top"), "ul");
-		if(target) target.appendChild(temp);
+		dropDownBottom.parentNode.insertBefore(temp.firstChild, dropDownBottom);
 		
 		}
 		
@@ -68,14 +69,15 @@ var Integratedtools = new function() {
 		var temp = createElementX("div", {
 			innerHTML: GM_getFile("extension://content/extra.html")
 			});
-
-		var upcoming = getFirstByClassName( getFirstByClassName(document.getElementById("nav-global"), "home"), "upcoming-top");
-		if(!upcoming) return;
-		var bottom = upcoming.nextSibling.nextSibling;
-		if(!bottom) return;
 		
 		for(var i=0, len = temp.childNodes.length; i<len; i++)
-			upcoming.parentNode.insertBefore(temp.firstChild, bottom);
+			dropDownBottom.parentNode.insertBefore(temp.firstChild, dropDownBottom);
+			
+		//we also want to get rid of Board Options link and replace with Help
+		var firstGroup = dropDownBottom.parentNode.firstElementChild;
+		var columns = firstGroup.getElementsByTagName("ul");
+		columns[0].removeChild(columns[0].getElementsByTagName("li")[2]);
+		columns[0].appendChild(columns[1].getElementsByTagName("li")[3]);
 		
 		}
 		
@@ -126,31 +128,32 @@ var Integratedtools = new function() {
 
 //for some reason, this also gets called when you submit the search bar form
 //by pressing enter on the wiki search button...oh well, it's desirable
-Listeners.add(document, 'click', function(event) {
+Listeners.add(document, 'click', function(e) {
 	
 	Autorefresh.inFocus = true;
 	
-	if(event.which!=1 || event.ctrlKey || event.altKey || event.shiftKey || event.metaKey) return;
+	if(e.which!=1 || e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
 
-	switch(event.target.id) {
-		case "wikiSearchButton":
-			Integratedtools.doVestiWikiSearch();
+	var wasControl = true;
+	switch(e.target.id || e.target.parentNode.id) {
+		case "wikiSearchButton": Integratedtools.doVestiWikiSearch();
 			break;
-		case "postTopicButton":
-			Integratedtools.topic();
+		case "postTopicButton": Integratedtools.topic();
 			break;
-		case "postReplyButton":
-			Integratedtools.reply();
+		case "postReplyButton": Integratedtools.reply();
 			break;
-		case "privateMessageButton":
-			Integratedtools.pm();
+		case "privateMessageButton": Integratedtools.pm();
 			break;
-		case "settingsButton":
-			Integratedtools.settings();
+		case "optionsButton": Integratedtools.settings();
+			break;
+		default: wasControl = false;
 			break;
 		}
+	if(wasControl) {
+		e.preventDefault();
+		}
 	
-	}, true);
+	}, false);
 	
 Listeners.add(document, "keyup", function(e) {
 	
