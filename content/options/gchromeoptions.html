@@ -79,30 +79,85 @@
 						</div>
 					</fieldset>
 				</section>
-				<section tab="linkHijacking">
+				<section tab="autocensor">
 					<fieldset>
-						<legend>Link Hijacking</legend>
-							<p>Clicking on links makes a panel appear instead of going to the normal post form.
-							Note that disabling these preferences will prevent you from accessing the core
-							functionality of IGN++.  The "Quick" Reply and Quote buttons, which open up
-							IGN's default quick reply, are never hijacked.</p>
-						<div id="pref_topicHijacking">
-							<p>The "Post New Topic" link on boards opens a topic panel.</p>
+						<legend>Autocensor</legend>
+							<p>The autocensor will automatically censor bannable words in your text.
+							Censoring occurs when the Post button in a panel is focused (in other words,
+							when you tab over to it or click it).</p>
+							<p>The censor is not perfect.  You are responsible for what you post.</p>
+						<div id="pref_autocensorPosts" title="Censor Posts">
+							<p>Autocensor posts (Topics, Replies, Edits).</p>
 						</div>
-						<div id="pref_replyHijacking">
-							<p>The "Reply" links below posts and the main "Post Reply" link in threads open reply panels.</p>
+						<div id="pref_autocensorPMs" title="Censor PMs"></div>
+						<div id="pref_autocensorContextual" title="Censor Contextually">
+							<p>Try to censor words which are only bannable in certain contexts.</p>
 						</div>
-						<div id="pref_quoteHijacking">
-							<p>The "Quote" links below posts open reply panels with the post quoted inside.
-							Links are also subject to Selection Quote rules.</p>
+						<div id="pref_autocensorAsterisks" title="Use Asterisks">
+							<p>Use asterisks to censor the letters of bannable words.
+							If disabled, IGN++ will instead replace bannable words with similar but non-bannable words.</p>
 						</div>
-						<div id="pref_PMHijacking">
-							<p>On the Classic theme, "Private Message" links below posts open PM panels.
-							On other themes, you can hover over the user's icon to reach this link instead.
-							"Reply" links below PMs also open PM panels.</p>
+					</fieldset>
+				</section>
+				<section tab="editors">
+					<fieldset>
+						<legend>Editors</legend>
+							<p>Editors are the areas in panels which include the formatting buttons, faces, and WYSIWYG/Code inputs.</p>
+						<div id="pref_wysiwygDefault" title="Use WYSIWYG Mode By Default">
+							<p>If this is enabled, editors will, by default, use the What-You-See-Is-What-You-Get view.
+							In this view, you see your post as it will appear when you post it - images and formatting
+							are visible, etc.  If this is disabled, editors will instead use the Code view.  In the Code
+							view you can see the raw boardcode that will be posted.  This allows finer control of the
+							content of your post, but isn't as easy to use.  Note that you can switch between the views
+							freely - this preference just controls the default state.</p>
 						</div>
-						<div id="pref_editHijacking">
-							<p>"Edit" links below posts open edit panels.</p>
+						<div id="pref_overlayWysiwyg" title="Overlay Normal Forms">
+							<p>If enabled, IGN++ will add its editor to the standard IGN post forms.</p>
+						</div>
+						<div class="hidden">
+							<div id="pref_lastHighlightWysiwyg"></div>
+							<div id="pref_lastColorWysiwyg"></div>
+						</div>
+					</fieldset>
+				</section>
+				<section tab="pretext">
+					<fieldset>
+						<legend>Pretext</legend>
+							<p>Pretext refers to content which IGN++ can add to editors for you.
+							You can use the [cursor] tag to indicate where the cursor should be placed after inserting text.
+							You can use the [author] tag in the Before and After fields to refer to the author of the quoted post.</p>
+						<div id="pref_pretextStart" title="Start">
+							<p>This text will be added to the start of every post.</p>
+						</div>
+						<div id="pref_pretextEnd" title="End">
+							<p>This text will be added to the end of every post.  IGN++ will also try to
+							keep it at the end when you quote people.</p>
+						</div>
+						<div id="pref_pretextBefore" title="Before">
+							<p>This text is added before quoted text.  [quote] tags are not included implicitly!</p>
+						</div>
+						<div id="pref_pretextAfter" title="After">
+							<p>This text is added after quoted text.  [/quote] tags are not included implicitly!</p>
+						</div>
+						<div id="pref_pretextEdit" title="Edit">
+							<p>This text will be added at the end of your post when you edit it.</p>
+						</div>
+					</fieldset>
+				</section>
+				<section tab="selectionQuote">
+					<fieldset>
+						<legend><div id="pref_selectionQuote"></div></legend>
+							<p>If you click "Quote" under a post when part of the post is selected, only the selected part is quoted.  Note that you can make multiple selections by holding Control.
+							IGN++ will quote each selection.</p>
+						<div id="pref_strictSelectionQuote" title="Strict Selection">
+							<p>If this is enabled, you can only select inside the post you are trying to quote.
+							If a selection is made outside of the post and you try to quote it, the full post
+							is quoted as if Selection Quote were off.</p>
+						</div>
+						<div id="pref_strictSelectionQuoteAuthor" title="Strict Author">
+							<p>If Strict Selection is off and you select outside of the post you're quoting,
+							IGN++ will always try to use the correct username as the author.  If this is disabled,
+							IGN++ will just use the author of the post whose button you're clicking.</p>
 						</div>
 					</fieldset>
 				</section>
@@ -153,85 +208,30 @@
 						</div>
 					</fieldset>
 				</section>
-				<section tab="autocensor">
+				<section tab="linkHijacking">
 					<fieldset>
-						<legend>Autocensor</legend>
-							<p>The autocensor will automatically censor bannable words in your text.
-							Censoring occurs when the Post button in a panel is focused (in other words,
-							when you tab over to it or click it).</p>
-							<p>The censor is not perfect.  You are responsible for what you post.</p>
-						<div id="pref_autocensorPosts" title="Censor Posts">
-							<p>Autocensor posts (Topics, Replies, Edits).</p>
+						<legend>Link Hijacking</legend>
+							<p>Clicking on links makes a panel appear instead of going to the normal post form.
+							Note that disabling these preferences will prevent you from accessing the core
+							functionality of IGN++.  The "Quick" Reply and Quote buttons, which open up
+							IGN's default quick reply, are never hijacked.</p>
+						<div id="pref_topicHijacking">
+							<p>The "Post New Topic" link on boards opens a topic panel.</p>
 						</div>
-						<div id="pref_autocensorPMs" title="Censor PMs"></div>
-						<div id="pref_autocensorContextual" title="Censor Contextually">
-							<p>Try to censor words which are only bannable in certain contexts.</p>
+						<div id="pref_replyHijacking">
+							<p>The "Reply" links below posts and the main "Post Reply" link in threads open reply panels.</p>
 						</div>
-						<div id="pref_autocensorAsterisks" title="Use Asterisks">
-							<p>Use asterisks to censor the letters of bannable words.
-							If disabled, IGN++ will instead replace bannable words with similar but non-bannable words.</p>
+						<div id="pref_quoteHijacking">
+							<p>The "Quote" links below posts open reply panels with the post quoted inside.
+							Links are also subject to Selection Quote rules.</p>
 						</div>
-					</fieldset>
-				</section>
-				<section tab="editors">
-					<fieldset>
-						<legend>Editors</legend>
-							<p>Editors are the areas in panels which include the formatting buttons, faces, and WYSIWYG/Code inputs.</p>
-						<div id="pref_wysiwygDefault" title="Use WYSIWYG Mode By Default">
-							<p>If this is enabled, editors will, by default, use the What-You-See-Is-What-You-Get view.
-							In this view, you see your post as it will appear when you post it - images and formatting
-							are visible, etc.  If this is disabled, editors will instead use the Code view.  In the Code
-							view you can see the raw boardcode that will be posted.  This allows finer control of the
-							content of your post, but isn't as easy to use.  Note that you can switch between the views
-							freely - this preference just controls the default state.</p>
+						<div id="pref_PMHijacking">
+							<p>On the Classic theme, "Private Message" links below posts open PM panels.
+							On other themes, you can hover over the user's icon to reach this link instead.
+							"Reply" links below PMs also open PM panels.</p>
 						</div>
-						<div id="pref_overlayWysiwyg" title="Overlay Editors">
-							<p>If enabled, IGN++ will add its editor to the standard IGN post forms.</p>
-						</div>
-						<div class="hidden">
-							<div id="pref_lastHighlightWysiwyg"></div>
-							<div id="pref_lastColorWysiwyg"></div>
-						</div>
-					</fieldset>
-				</section>
-				<section tab="pretext">
-					<fieldset>
-						<legend>Pretext</legend>
-							<p>Pretext refers to content which IGN++ can add to editors for you.
-							You can use the [cursor] tag to indicate where the cursor should be placed after inserting text.
-							You can use the [author] tag in the Before and After fields to refer to the author of the quoted post.</p>
-						<div id="pref_pretextStart" title="Start">
-							<p>This text will be added to the start of every post.</p>
-						</div>
-						<div id="pref_pretextEnd" title="End">
-							<p>This text will be added to the end of every post.  IGN++ will also try to
-							keep it at the end when you quote people.</p>
-						</div>
-						<div id="pref_pretextBefore" title="Before">
-							<p>This text is added before quoted text.  [quote] tags are not included implicitly!</p>
-						</div>
-						<div id="pref_pretextAfter" title="After">
-							<p>This text is added after quoted text.  [/quote] tags are not included implicitly!</p>
-						</div>
-						<div id="pref_pretextEdit" title="Edit">
-							<p>This text will be added at the end of your post when you edit it.</p>
-						</div>
-					</fieldset>
-				</section>
-				<section tab="selectionQuote">
-					<fieldset>
-						<legend><div id="pref_selectionQuote"></div></legend>
-							<p>If you click "Quote" under a post when part of the post is selected, only the selected part is quoted.  Note that you can make multiple selections by holding Control.
-							IGN++ will quote each selection.</p>
-						<div id="pref_strictSelectionQuote" title="Strict Selection">
-							<p>If this is enabled, you can only select inside the post you are trying to quote.
-							If a selection is made outside of the post and you try to quote it, the full post
-							is quoted as if Selection Quote were off.</p>
-						</div>
-						<div id="pref_strictSelectionQuoteAuthor" title="Strict Author">
-							<p>If Strict Selection is off and you select outside of the post you're quoting,
-							IGN++ will always try to use the correct username as the author.  If this is disabled,
-							IGN++ will just use the author of the post whose button you're clicking.</p>
+						<div id="pref_editHijacking">
+							<p>"Edit" links below posts open edit panels.</p>
 						</div>
 					</fieldset>
 				</section>
@@ -249,7 +249,7 @@
 					<a tab="autorefresh" href selected="true">Autorefresh</a>
 					<a tab="ignore" href>Ignore</a>
 					<a tab="integratedTools" href>Integrated Tools</a>
-					<a tab="miscellaneous" href>Miscellaneous</a>
+					<a tab="threads" href>Threads</a>
 					<a tab="wuls" href>WULs</a>
 					<a tab="position" href>Position</a>
 					<a tab="kbBrowsing" href>KB Browsing</a>
@@ -296,25 +296,6 @@
 						</div>
 					</fieldset>
 				</section>
-				<section tab="wuls">
-					<fieldset>
-						<legend>WULs</legend>
-						<p>Stands for Watched User List.  WULs are the de facto currency of the boards.
-						Adding a user to your Watched User List (i.e. WULing them or giving them a WUL)
-						is also used as a sign of respect or thanks.</p>
-						<div id="pref_WULLinks">
-							<p>Show links to WUL the author below posts in threads.</p>
-						</div>
-						<div id="pref_autoWUL">
-							<p>Automate the WULing process when you click on a WUL link.
-							The link background will turn white, then yellow, then green.
-							When it's green, WULing is complete.  Don't leave the page before then.
-							You can De-WUL somebody by Alt + clicking a WUL link.
-							The link border is blue if you're WULing, purple if De-WULing.
-							The border is dashed if this action will not change anything (i.e. you're WULing someone you've already WUL'd).</p>
-						</div>
-					</fieldset>
-				</section>
 				<section tab="ignore">
 					<fieldset>
 						<legend>Ignore Users</legend>
@@ -334,25 +315,6 @@
 						<div id="pref_ignoreLinks">
 							<p>Show links to Ignore/Unignore and Show/Hide posts.</p>
 						</div>
-					</fieldset>
-				</section>
-				<section tab="position">
-					<fieldset>
-						<legend>Position</legend>
-						<p>The position of floating panels measured by the distance, in pixels, between the bottom left corner
-						of the screen and the bottom left corner of the panel.</p>
-						<fieldset>
-							<legend>Within Topics</legend>
-							<p>The position when on a topic page.</p>
-							<div id="pref_floatXT" title="Horizontal"></div>
-							<div id="pref_floatYT" title="Vertical"></div>
-						</fieldset>
-						<fieldset>
-							<legend>Elsewhere</legend>
-							<p>The position when on all other pages.</p>
-							<div id="pref_floatX" title="Horizontal"></div>
-							<div id="pref_floatY" title="Vertical"></div>
-						</fieldset>
 					</fieldset>
 				</section>
 				<section tab="integratedTools">
@@ -377,16 +339,9 @@
 						</div>
 					</fieldset>
 				</section>
-				<section tab="kbBrowsing">
+				<section tab="threads">
 					<fieldset>
-						<legend><div id="pref_keyboardBrowsing"></div></legend>
-						<p>Lets you browse the boards without a mouse.
-						This feature is incomplete and broken in many ways.  It will probably be removed in a later version.</p>
-					</fieldset>
-				</section>
-				<section tab="miscellaneous">
-					<fieldset>
-						<legend>Miscellaneous</legend>
+						<legend>Threads</legend>
 						<div id="pref_missingLinks" title="Restore Missing Links">
 							<p>If the reply, quote, or edit links are missing from a post, like in a locked thread, 
 							then add them back in with a lighter color and dashed border.
@@ -412,6 +367,51 @@
 							a reply ID, and the reply with the given ID exists on the page you're viewing,
 							then scroll to the reply with the given ID instead of navigating to the URL.</p>
 						</div>
+					</fieldset>
+				</section>
+				<section tab="wuls">
+					<fieldset>
+						<legend>WULs</legend>
+						<p>Stands for Watched User List.  WULs are the de facto currency of the boards.
+						Adding a user to your Watched User List (i.e. WULing them or giving them a WUL)
+						is also used as a sign of respect or thanks.</p>
+						<div id="pref_WULLinks">
+							<p>Show links to WUL the author below posts in threads.</p>
+						</div>
+						<div id="pref_autoWUL">
+							<p>Automate the WULing process when you click on a WUL link.
+							The link background will turn white, then yellow, then green.
+							When it's green, WULing is complete.  Don't leave the page before then.
+							You can De-WUL somebody by Alt + clicking a WUL link.
+							The link border is blue if you're WULing, purple if De-WULing.
+							The border is dashed if this action will not change anything (i.e. you're WULing someone you've already WUL'd).</p>
+						</div>
+					</fieldset>
+				</section>
+				<section tab="position">
+					<fieldset>
+						<legend>Position</legend>
+						<p>The position of floating panels measured by the distance, in pixels, between the bottom left corner
+						of the screen and the bottom left corner of the panel.</p>
+						<fieldset>
+							<legend>Within Topics</legend>
+							<p>The position when on a topic page.</p>
+							<div id="pref_floatXT" title="Horizontal"></div>
+							<div id="pref_floatYT" title="Vertical"></div>
+						</fieldset>
+						<fieldset>
+							<legend>Elsewhere</legend>
+							<p>The position when on all other pages.</p>
+							<div id="pref_floatX" title="Horizontal"></div>
+							<div id="pref_floatY" title="Vertical"></div>
+						</fieldset>
+					</fieldset>
+				</section>
+				<section tab="kbBrowsing">
+					<fieldset>
+						<legend><div id="pref_keyboardBrowsing"></div></legend>
+						<p>Lets you browse the boards without a mouse.
+						This feature is incomplete and broken in many ways.  It will probably be removed in a later version.</p>
 					</fieldset>
 				</section>
 			</div>
