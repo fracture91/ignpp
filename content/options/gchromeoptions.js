@@ -1251,6 +1251,35 @@ window.addEventListener("load", function(e) {
 	window.Preferences = new PreferenceViewManager(output);
 	Preferences.addFromObject(prefsCatcher, rules);
 	Preferences.addListeners();
+	vestitools_style.isChrome = true;
+	Preferences.usercolorController = new usercolorController(true);
+	Preferences.usercolorController.init({
+		color: Preferences.prefs.UCcolor, 
+		bgcolor: Preferences.prefs.UCbgcolor,
+		bordercolor: Preferences.prefs.UCbordercolor,
+		weight: Preferences.prefs.UCweight,
+		style: Preferences.prefs.UCstyle,
+		decoration: Preferences.prefs.UCdecoration
+		},
+		{
+		get: "getButton",
+		post: "postButton",
+		refresh: "refreshButton",
+		},
+		"username", Preferences.prefs.applyUsercolors);
+	
+	/*
+	We need to override these methods so they're called on the background page, 
+	since they depend on the state of background's particular instance.
+	*/
+	var vtsOverrides = 
+		["applyColors", "getColors", "postColors", "refreshColors", "defaultGetColorsCallback",
+		"defaultPostColorsCallback", "defaultRefreshColorsCallback"];
+		
+	vtsOverrides.forEach(function(e, i, a){
+		GM_API.remoteOverride("vestitools_style." + e);
+		});
+	
 	}, true);
 
 

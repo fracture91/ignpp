@@ -240,6 +240,83 @@ var GM_API = new function() {
 	this.showOptions = function() {
 		chrome.extension.sendRequest({type: "showOptions"});
 		}
+	
+	/*
+	Given a string that points to some method, return an array where the first element points
+	to the penultimate object in that string, and the second element is a string naming the last object.
+	For example, "view.model.rules.init" would give you [window.view.model.rules, "init"].
+	*/
+	this.walkName = function(name) {
+		var chain = name.split(".");
+		var root = window;
+		for(var i=0, len=chain.length-1; i<len; i++) {
+			root = root[chain[i]];
+			}
+		/*
+		At this point, root points at the object at the second last point in the chain,
+		and i=chain.length-1, so we can override the method here.
+		In the above example, root would point to rules and chain[i] is "init".
+		*/
+		return [root, chain[i]];
+		}
+	
+	/*
+	Given a string that points to some method (e.g. "view.model.rules.init"),
+	override that method so that it uses remoteCall instead.
+	*/
+	this.remoteOverride = function(name) {
+		var walk = this.walkName(name);
+		walk[0][walk[1]] = this.remoteHelper(name);
+		}
+		
+	/*
+	Given a name, return a function that, when called, calls remoteCall with that name
+	along with any additional arguments.
+	*/
+	this.remoteHelper = function(name) {
+		var that = this;
+		return function() {
+			var args = Array.prototype.slice.call(arguments);
+			args.unshift(name);
+			return that.remoteCall.apply(that, args);
+			}
+		}
+	
+	this.remoteCallFuncId = "__REMOTECALLFUNCTIONARGUMENT__";
+	
+	/*
+	This function will perform a remote call for some method indicated by name,
+	and pass along any additional arguments it gets.
+	That is, it will call the function of the given name on the background page.
+	If any arguments are functions, they will be called on _this_ page.
+	*/
+	this.remoteCall = function(name/*, other arguments to be passed through...*/) {
+		var args = Array.prototype.slice.call(arguments);
+		args.shift();
+		
+		/*
+		The background page will call callbacks by responding with their position
+		in the args array and arguments to be passed to the callback.
+		*/
+		var callback = function(response){
+			if(typeof args[response.position] == "function") {
+				args[response.position].apply(window, response.arguments);
+				}
+			}
+			
+		/*
+		Since functions get JSON'd to null, we need to set those arguments to something else
+		so the background page can identify them as functions to call back.
+		*/
+		var remoteArgs = args.slice();
+		for(var i=0, len=remoteArgs.length; i<len; i++) {
+			if(typeof remoteArgs[i] == "function") {
+				remoteArgs[i] = this.remoteCallFuncId;
+				}
+			}
+		
+		chrome.extension.sendRequest({type:"remoteCall", name: name, arguments: remoteArgs}, callback);
+		}
 
 	
 	}

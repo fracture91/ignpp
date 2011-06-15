@@ -4,8 +4,8 @@
 <prefwindow id="vestitools-prefs"
      title="IGN++ Options"
 	 windowtype="IGN++ Options"
-	 onload="initOptions()"
-	 ondialogaccept="dialogAccept()"
+	 onload="onLoad()"
+	 ondialogaccept="onDialogAccept()"
 	 buttons="extra1,accept,cancel"
 	 buttonlabelextra1="Restore Defaults"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -583,6 +583,7 @@
   
 </prefpane>
 
+<script type="application/x-javascript" src="chrome://vestitools/content/options/usercolorcontroller.js"/>
 <script type="application/x-javascript" src="chrome://vestitools/content/options/options.js"/>
  
 </prefwindow>

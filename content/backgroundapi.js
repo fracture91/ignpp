@@ -133,6 +133,26 @@ GM_API.xmlhttpRequest = function(detailsOrPort) {
 	return rv;
 	}
 	
+GM_API.oldRemoteCall = GM_API.remoteCall;
+GM_API.remoteCall = function(name, args, sendResponse) {
+	
+	//make sure callback arguments get remotely called
+	for(var i=0, len=args.length; i<len; i++) {
+		if(args[i] == this.remoteCallFuncId) {
+			args[i] = (function(position) {
+				return function() {
+					sendResponse({position: position,
+								arguments: Array.prototype.slice.call(arguments)});
+					}
+				})(i);
+			}
+		}
+		
+	var walk = this.walkName(name);
+	walk[0][walk[1]].apply(walk[0], args);
+	
+	}
+	
 
 GM_API.expose();
 

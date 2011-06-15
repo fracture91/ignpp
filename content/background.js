@@ -145,6 +145,9 @@ var Background = new function() {
 			case "showoptions":
 				GM_showOptions(sender.tab);
 				break;
+			case "remotecall":
+				GM_API.remoteCall(request.name, request.arguments, sendResponse);
+				break;
 			case "checkin":
 				//options page just checking in
 				break;
