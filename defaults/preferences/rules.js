@@ -36,7 +36,12 @@ rules.ignoreList = {
 	customPattern: /^([\w.\-]{3,20})$/,
 	customErrorFunc: function(val) {
 		val = val.split(",");
+		val.sort();
 		for(var i=0, len=val.length; i<len; i++) {
+			if(i < len-1 && val[i] == val[i+1]) {
+				//since the array is sorted, identical elements are adjacent
+				return '"' + val[i] + '" appears more than once (each username must be unique).';
+				}
 			if(!val[i].match(this.customPattern)) {
 				return '"' + val[i] + '" is not a valid username (must match ' + this.customPattern + " ).";
 			}
