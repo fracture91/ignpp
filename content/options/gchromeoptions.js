@@ -931,7 +931,7 @@ PreferenceViewManager.prototype = {
 	An array of arrays of arguments to be passed to addMyListener when addListeners is called
 	*/
 	listeners: [
-		[document, ["keyup","click","change"], "validateInputListener", true],
+		[document, ["keyup","change","input"], "validateInputListener", true],
 		[document, "click", "controlButtonListener", true],
 		[document, "click", "mainControlButtonListener", true],
 		[window, "beforeunload", "beforeUnloadListener", true],
@@ -952,8 +952,13 @@ PreferenceViewManager.prototype = {
 	Validate whatever preference this input is from
 	*/
 	validateInputListener: function(e) {
-		var pref = this.get(e.target);
-		if(pref) return pref.onInput(e);
+		//For performance reasons, only validate in these cases:
+		if(e.type == "input" && e.target.tagName.match(/input|textarea/i) ||
+			e.type.match(/keyup|change/) && e.target.tagName == "SELECT"  ||
+			e.type == "change" && e.target.type == "checkbox") {
+			var pref = this.get(e.target);
+			if(pref) return pref.onInput(e);
+			}
 		},
 		
 	/*
