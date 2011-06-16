@@ -176,13 +176,11 @@ var vestitools_style = new function vt_Style() {
 			
 			//update colors every x hours while the browser is open
 			if(!updated) {
-				
 				var that = this;
 				setTimeout(function(){
 					that.checkColorsAndApply(true);
 					that.setUpColorInterval();
 					}, ((this.updateFrequency + GM_getValue("lastUsercolorCheck", 0) - this.getTimeInHours()) * 3600000) );
-					
 				}
 			else this.setUpColorInterval();
 			
@@ -229,10 +227,9 @@ var vestitools_style = new function vt_Style() {
 		
 		//if it's not registered already, load and register it
 		//agent_sheet is less safe, but we need it to control button appearance for some reason
-		if(!sss.sheetRegistered(mainDataUri, sss.AGENT_SHEET))
+		if(!sss.sheetRegistered(mainDataUri, sss.AGENT_SHEET)) {
 			return sss.loadAndRegisterSheet(mainDataUri, sss.AGENT_SHEET);
-
-			
+			}
 		}
 	
 	/*	
@@ -240,25 +237,20 @@ var vestitools_style = new function vt_Style() {
 	Apply the usercolor stylesheet to the browser regardless.
 	*/
 	this.checkColorsAndApply = function(timeForce) {
-		
 		var beenUpdated = false;
 		
 		if(GM_getValue("applyUsercolors", true)) {
-
-			var currentTime = this.getTimeInHours();
 			//Number of hours since January 1, 1970
-
+			var currentTime = this.getTimeInHours();
+			
 			//if if hasn't been updated in x hours, update it
 			if(timeForce || ((currentTime - GM_getValue("lastUsercolorCheck", 0)) >= this.updateFrequency)) {
-				
 				var that = this;
-				this.getColors(function(xhr, success){
+				this.getColors(undefined, function(xhr, success){
 					that.defaultRefreshColorsCallback(xhr, success);
 					});
 				beenUpdated = true;
-				
 				}
-			
 			}
 			
 		/*
@@ -267,9 +259,7 @@ var vestitools_style = new function vt_Style() {
 		at least see their old usercolors.
 		*/
 		this.applyColors();
-		
 		return beenUpdated;
-		
 		}
 
 	/*
@@ -323,8 +313,6 @@ var vestitools_style = new function vt_Style() {
 			
 			}
 		else callback();
-			
-		return 1;
 		
 		}
 		
@@ -358,42 +346,64 @@ var vestitools_style = new function vt_Style() {
 		}
 		
 	/*
+	Get an XMLHttpRequest.
+	*/
+	this.getXHR = function() {
+		if(typeof XMLHttpRequest == "undefined") {
+			return Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);
+			}
+		else {
+			return new XMLHttpRequest();
+			}
+		}
+		
+	/*
+	Returns true if the XHR's status is considered successful.
+	*/
+	this.XHRStatusSuccessful = function(xhr) {
+		return xhr.status >= 200 && xhr.status < 300 || xhr.status === 304;
+		}
+		
+	/*
+	Returns true if the XHR, as an interaction with the usercolor server, is considered successful.
+	*/
+	this.XHRUsercolorSuccess = function(xhr) {
+		return this.XHRStatusSuccessful(xhr) && !xhr.responseText.match(/^(null|false)$/i);
+		}
+		
+	/*
 	Post the usercolors in styles object as the colors of the user with the given name.
-	Call callback if xhr goes through.
+	Call callback when xhr goes through or if there's an error.
+	Callback is passed the xhr and a boolean indicating success.
+	Callback is optional.
 	Styles is always validated.
 	*/
 	this.postColors = function(name, styles, callback) {
-	
+		if(typeof callback != "function") callback = function(){};
 		styles = this.validateStyles(styles);
-		
 		name = this.validateUsername(name);
-		if(!name) return -1;
 		
-		if(typeof callback != "function") callback = function(d) {};
-		
-		var _data = "username=" + name;
-		//add the style fields and values to the data string
-		for(var i in styles) {
-			_data += "&" + i + "=" + styles[i];
-			}
-					
-		var t = this;
-		
-		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
-									.createInstance(Ci.nsIXMLHttpRequest) : new XMLHttpRequest();
-		xhr.open("POST", this.colorsSubmitUrl, true);
-		xhrHeaders(xhr, {'Content-Type': 'application/x-www-form-urlencoded'});
-		xhr.onreadystatechange = function() {
-			if(xhr.readyState==4 && xhr.status==200) {
-				var success = !xhr.responseText.match(/^(null|false)$/i);
-				callback(xhr, success);
+		if(name) {
+			var _data = "username=" + name;
+			//add the style fields and values to the data string
+			for(var i in styles) {
+				_data += "&" + i + "=" + styles[i];
 				}
+			
+			var that = this;
+			xhr = this.getXHR();
+			xhr.open("POST", this.colorsSubmitUrl, true);
+			xhrHeaders(xhr, {'Content-Type': 'application/x-www-form-urlencoded'});
+			xhr.onreadystatechange = function() {
+				if(xhr.readyState==4) {
+					callback(xhr, that.XHRUsercolorSuccess(xhr));
+					}
+				}
+			xhr.send(_data);
 			}
-			
-		xhr.send(_data);
-			
-		return 0;
-		
+		else {
+			callback({responseText: "invalidUsername"}, false);
+			}
 		}
 		
 	/*
@@ -451,45 +461,30 @@ var vestitools_style = new function vt_Style() {
 		}
 	
 	/*
-	Both parameters are optional.
-	If given a username, the function will find the colors for that user.
-	If not given a username, the function will get the entire usercolor list.
-	Returns 0 if successful in sending the request, -1 if the name isn't valid (and was provided).
+	If name is defined, the function will find the colors for the named user.
+	If name is not defined, the function will get the entire usercolor list.
+	The callback is passed the XHR, a boolean indicating success, and the user's styles if applicable.
+	callback is optional.
 	*/
 	this.getColors = function(name, callback) {
-		
-		if((typeof name == "function") && (typeof callback != "function")) {
-			callback = name;
-			name = null;
-			}
-		else if((typeof name == "string") && (typeof callback != "function")) callback = function(d, u){};
-		else if((typeof name != "string") && (typeof callback != "function")) {
-			callback = function(d){};
-			name = null;
-			}
+		if(typeof callback != "function") callback = function(){};
 		
 		//check for a bad name
 		if(name) {
 			name = this.validateUsername(name);
-			if(!name) return -1;
+			if(!name) {
+				callback({responseText: "invalidUsername"}, false, {});
+				return;
+				}
 			}
-		
-		xhr = (typeof XMLHttpRequest == "undefined") ? Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]  
-									.createInstance(Ci.nsIXMLHttpRequest) : new XMLHttpRequest();
-		xhr.open("GET", 
-					(name ? this.colorsUserUrl + name
-							: this.colorsListUrl),
-					true);
-					
-		xhrHeaders(xhr, {"Pragma": "no-cache",
-						"Cache-Control": "no-cache"});
-		
-		var t = this;
-		
+			
+		var that = this;
+		xhr = this.getXHR();
+		xhr.open("GET", (name ? this.colorsUserUrl + name : this.colorsListUrl), true);
+		xhrHeaders(xhr, {"Pragma": "no-cache", "Cache-Control": "no-cache"});
 		xhr.onreadystatechange = function() {
-			if(xhr.readyState==4 && xhr.status==200) {
-				
-				var success = !xhr.responseText.match(/^(null|false)$/i);
+			if(xhr.readyState==4) {
+				var success = that.XHRUsercolorSuccess(xhr);
 				
 				if(!name) {
 					//note that colorsObject is not modified, nothing is changed
@@ -497,18 +492,20 @@ var vestitools_style = new function vt_Style() {
 					callback(xhr, success);
 					}
 				else {
-					var user = JSON.parse(xhr.responseText);
-					t.validateUser(user);
-					var styles = user.styles;
 					//this will only parse out styles for the callback - does not save them
+					var user;
+					try{
+						//passing empty string to parse throws an error, among other things
+						user = JSON.parse(xhr.responseText);
+						}
+					catch(e){}
+					user = that.validateUser(user);
+					var styles = user.styles;
 					callback(xhr, success, styles);
 					}
-				
 				}
-			};
+			}
 		xhr.send(null);
-		
-		return 0;
 		
 		}
 		
@@ -538,16 +535,12 @@ var vestitools_style = new function vt_Style() {
 	Also validates styles and returns it.
 	*/
 	this.saveStyles = function(styles) {
-		
 		styles = this.validateStyles(styles);
-		
 		//now styles only contains properties that must be saved with prefix "UC"
-		
-		for(var i in styles)
-				GM_setValue("UC" + i, styles[i] + "");
-		
+		for(var i in styles) {
+			GM_setValue("UC" + i, styles[i] + "");
+			}		
 		return styles;
-		
 		}
 		
 	/*
@@ -565,16 +558,12 @@ var vestitools_style = new function vt_Style() {
 	Returns null if not found (username is not validated).
 	*/
 	this.findUser = function(name) {
-		
-		//make sure this has been read from disk if necessary
-		var dummy = this.colorsObject;
-		
-		for(var i=0, len = _colorsObject.length; i<len; i++)
-			if(_colorsObject[i].username == name)
+		for(var i=0, len=_colorsObject.length; i<len; i++) {
+			if(_colorsObject[i].username == name) {
 				return _colorsObject[i];
-				
+				}
+			}
 		return null;
-		
 		}
 	
 	/*
@@ -629,16 +618,13 @@ var vestitools_style = new function vt_Style() {
 	Otherwise, return val.
 	*/
 	this.validateStyle = function(type, val) {
-		
 		if(val === null || styleElements[type] && typeof val == "string" && styleElements[type].exp.test(val)) {
 			//it's valid
 			}
 		else {
 			val = null;
 			}
-			
 		return val;
-		
 		}
 	
 	/*
@@ -717,14 +703,10 @@ var vestitools_style = new function vt_Style() {
 	Return the valid users array.
 	*/
 	this.validateUsers = function(users) {
-		
-		// https://developer.mozilla.org/web-tech/2010/07/26/determining-with-absolute-accuracy-whether-or-not-a-javascript-object-is-an-array/
-		//isArray isn't available before FF 3.6 - other solution is yucky, but works
-		if((Array.isArray && !Array.isArray(users)) || 
-			(!Array.isArray && Object.prototype.toString.call(users) !== "[object Array]")) {
+		if(!Array.isArray(users)) {
 			users = [];
 			}
-		
+			
 		for(var i=0, len=users.length; i<len; i++) {
 			users[i] = this.validateUser(users[i]);
 			if(!users[i].username) {
@@ -735,7 +717,6 @@ var vestitools_style = new function vt_Style() {
 			}
 		
 		return users;
-		
 		}
 	
 	var mozDocument = '@-moz-document domain(boards.ign.com), domain(betaboards.ign.com),\ndomain(vnboards.ign.com), domain(forums.ign.com) {\n'

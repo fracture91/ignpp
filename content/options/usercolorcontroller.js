@@ -232,22 +232,25 @@ usercolorController.prototype = {
 		},
 	
 	/*
+	Returns an error message listing xhr.status and xhr.responseText.
+	*/
+	XHRErrorMessage: function(xhr) {
+		return "Error. Status: " + xhr.status + " Response: " + xhr.responseText;
+		},
+	
+	/*
 	Get main usercolors list from the server and save/apply.
 	Button log is updated to indicate status of the request (including errors).
 	*/
 	refreshColors: function(e) {
-		
 		this.buttonLog("refresh", "Getting all colors from the server...");
 
 		var that = this;
-		vestitools_style.getColors(function(xhr, success) {
-
+		vestitools_style.getColors(undefined, function(xhr, success) {
 			vestitools_style.defaultRefreshColorsCallback(xhr, success);
-
 			that.buttonLog("refresh", 
-				success ? "All colors successfully found, saved, and applied." : ("Server error: " + xhr.responseText));
+				success ? "All colors successfully found, saved, and applied." : that.XHRErrorMessage(xhr));
 			});
-			
 		},
 	
 	/*
@@ -256,28 +259,28 @@ usercolorController.prototype = {
 	Button log is updated to indicate status of the request (including errors).
 	*/
 	getColors: function(e) {
-		
 		this.buttonLog("get", "Getting your colors from the server...");
 		
 		var that = this;
-		var getRv = vestitools_style.getColors(GM_getValue("username", "unknown"), function(xhr, success, styles) {
-			
-			that.setStylesInput(styles);
-			
+		vestitools_style.getColors(GM_getValue("username", "unknown"), function(xhr, success, styles) {
 			vestitools_style.defaultGetColorsCallback(xhr, success, styles);
 			
-			that.buttonLog("get", 
-				success ? "Personal colors successfully found and saved." :
-							"No personal colors found on the server (" + xhr.responseText + "), using defaults.");
+			var msg = "Personal colors successfully found and saved.";
+			if(!success) {
+				if(xhr.responseText == "null" || xhr.responseText == "false") {
+					msg = "No personal colors found on the server (" + xhr.responseText + "), using defaults.";
+					}
+				else {
+					msg = that.XHRErrorMessage(xhr);
+					}
+				}
 			
-			that.updatePreview();
-			
+			that.buttonLog("get", msg);
+			if(success) {
+				that.setStylesInput(styles);
+				that.updatePreview();
+				}
 			});
-			
-		if(getRv < 0) {
-			this.buttonLog("get", "getColors error: " + getRv);
-			}
-		
 		},
 	
 	/*
@@ -286,7 +289,6 @@ usercolorController.prototype = {
 	Button log is updated to indicate status of the request (including errors).
 	*/
 	postColors: function(e) {
-		
 		var styles = this.getStylesInput();
 		var username = GM_getValue("username", "unknown");
 		
@@ -294,18 +296,13 @@ usercolorController.prototype = {
 		
 		//this will handle validation of styles as well
 		var that = this;
-		var postRv = vestitools_style.postColors(username, styles, function(xhr, success) {
-				that.buttonLog("post", success ? "Colors successfully posted." : ("Server error: " + xhr.responseText));
+		vestitools_style.postColors(username, styles, function(xhr, success) {
+				that.buttonLog("post", success ? "Colors successfully posted and saved." : that.XHRErrorMessage(xhr));
 				vestitools_style.defaultPostColorsCallback(xhr, success, username, styles);
 				});
 		
 		//set the inputs to the now-validated values
 		this.setStylesInput(styles);
-		
-		if(postRv < 0) {
-			this.buttonLog("post", "postColors error: " + postRv);
-			}
-		
 		},
 	
 	/*
