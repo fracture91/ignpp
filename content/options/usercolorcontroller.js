@@ -79,9 +79,12 @@ usercolorController.prototype = {
 			var input = this.inputs[i];
 			var target = this.isPreferenceView(input) ? input.input : input;
 			
-			var types = ["keyup", "change", "click"];
-			if(!this.isChrome && !vestitools_style.colorStyleExp.test(i)) {
-				types.push("command");
+			var types = [];
+			if(vestitools_style.colorStyleExp.test(i)) {
+				types.push("input");
+				}
+			else {
+				types = types.concat(this.isChrome ? ["change", "keyup"] : "command");
 				}
 			
 			for(var j=0, len=types.length; j<len; j++) {
