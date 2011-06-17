@@ -77,18 +77,10 @@ usercolorController.prototype = {
 				})(i);
 				
 			var input = this.inputs[i];
-			var target = this.isPreferenceView(input) ? input.input : input;
-			
-			var types = [];
-			if(vestitools_style.colorStyleExp.test(i)) {
-				types.push("input");
-				}
-			else {
-				types = types.concat(this.isChrome ? ["change", "keyup"] : "command");
-				}
+			var types = this.getChangeEvents(input);
 			
 			for(var j=0, len=types.length; j<len; j++) {
-				target.addEventListener(types[j], listener, false);
+				input.addEventListener(types[j], listener, false);
 				}
 			}
 		
@@ -103,9 +95,14 @@ usercolorController.prototype = {
 			}
 		
 		//listener for when applyUsercolors changes, so we can toggle it in real time
-		var target = this.isPreferenceView(this.apply) ? this.apply.input : this.apply;
-		target.addEventListener(this.isChrome ? "click" : "command", function(e) {
-			that.setApplyUsercolors(e.target.checked);
+		var guard = false;
+		this.apply.addEventListener(this.getChangeEvents(this.apply)[0], function(e) {
+			//setApplyUsercolors will trigger this listener - we don't want that
+			if(!guard) {
+				guard = true;
+				that.setApplyUsercolors(e.target.checked);
+				guard = false;
+				}
 			}, false);
 		},
 	
@@ -127,13 +124,6 @@ usercolorController.prototype = {
 			obj = document.getElementById(obj);
 			}
 		return obj;
-		},
-	
-	/*
-	Returns true if obj is an instance of PreferenceView (if that class even exists).
-	*/
-	isPreferenceView: function(obj) {
-		return typeof PreferenceView == "function" && obj instanceof PreferenceView;
 		},
 	
 	/*
@@ -164,12 +154,14 @@ usercolorController.prototype = {
 	/*
 	Set the current input so it corresponds with the given styles object.
 	Does not validate!
-	Will also call updateColorPreviews.
+	Will fireGenericChangeEvent for each input, which should trigger preview updates.
 	*/
 	setStylesInput: function(styles) {
-		for(var i in this.inputs) 
-			this.inputs[i].value = styles[i] + "";
-		this.updateColorPreviews();
+		for(var i in this.inputs) {
+			var input = this.inputs[i];
+			input.value = styles[i] + "";
+			this.fireGenericChangeEvent(input);
+			}
 		},
 	
 	/*
@@ -281,7 +273,6 @@ usercolorController.prototype = {
 			that.buttonLog("get", msg);
 			if(success) {
 				that.setStylesInput(styles);
-				that.updatePreview();
 				}
 			});
 		},
@@ -307,6 +298,57 @@ usercolorController.prototype = {
 		//set the inputs to the now-validated values
 		this.setStylesInput(styles);
 		},
+		
+	/*
+	Fire an event of the given type on some element.
+	*/
+	fireEvent: function(type, el) {
+		var createArg = "Event";
+		if(type.match(/change/)) {
+			createArg = "HTMLEvents";
+			}
+			
+		var event = el.ownerDocument.createEvent(createArg);
+		event.initEvent(type, true, true);
+		return el.dispatchEvent(event);
+		},
+		
+	/*
+	Given an element, return an array of strings of event names
+	which must be listened to in order to detect any change in that element.
+	isChrome will override this.isChrome.
+	*/
+	getChangeEvents: function(el, isChrome) {
+		if(typeof isChrome == "undefined") {
+			isChrome = this.isChrome;
+			}
+		var tagName = el.tagName.toLowerCase();
+		switch(tagName) {
+			case "textarea":
+			case "textbox":
+			case "input":
+				if(tagName != "input" || el.type != "checkbox") {
+					return ["input"];
+					}
+				//else fallthrough
+			case "checkbox":
+				return isChrome ? ["change"] : ["command"];
+			case "select":
+			case "menulist":
+				return isChrome ? ["change", "keyup"] : ["command"];
+			}
+		return [];
+		},
+		
+	/*
+	This will fire some event to indicate a change in the given element.
+	Different elements require different events, and they can vary with browser in use.
+	*/
+	fireGenericChangeEvent: function(el, isChrome) {
+		/*Since we should be listening for all events returned by getChangeEvents,
+		firing just the first one should work.*/
+		this.fireEvent(this.getChangeEvents(el, isChrome)[0], el);
+		},
 	
 	/*
 	Change the value of applyUsercolors to val, and call applyUsercolors to apply or get rid of them
@@ -315,6 +357,7 @@ usercolorController.prototype = {
 	setApplyUsercolors: function(val) {
 		GM_setValue("applyUsercolors", !!val);
 		vestitools_style.applyColors();
+		this.fireGenericChangeEvent(this.apply);
 		},
 	
 	/*
@@ -335,8 +378,7 @@ usercolorController.prototype = {
 	updateColorPreview: function(type) {
 		var input = this.inputs[type];
 		var value = this.validateStyle(type, input.value);
-		var colorTarget = this.isPreferenceView(input) ? input.container : input.parentNode;
-		colorTarget.style.backgroundColor = value!=null ? "#" + value : null;
+		input.parentNode.style.backgroundColor = value!=null ? "#" + value : null;
 		},
 	
 	/*

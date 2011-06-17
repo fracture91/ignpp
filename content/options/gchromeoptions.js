@@ -944,7 +944,7 @@ PreferenceViewManager.prototype = {
 	addListeners: function() {
 		for(var i=0, len=this.listeners.length; i<len; i++) {
 			var tlis = this.listeners[i];
-			this.addMyListener(tlis[0], tlis[1], tlis[2], tlis[4]);
+			this.addMyListener(tlis[0], tlis[1], tlis[2], tlis[4]/*todo: 4 a bug?*/);
 			}
 		},
 	
@@ -952,10 +952,10 @@ PreferenceViewManager.prototype = {
 	Validate whatever preference this input is from
 	*/
 	validateInputListener: function(e) {
-		//For performance reasons, only validate in these cases:
-		if(e.type == "input" && e.target.tagName.match(/input|textarea/i) ||
-			e.type.match(/keyup|change/) && e.target.tagName == "SELECT"  ||
-			e.type == "change" && e.target.type == "checkbox") {
+		/*For performance reasons, only validate if the event type is relevant.
+		This function should be called for input, change, and keyup.*/
+		var relevantEvents = usercolorController.prototype.getChangeEvents(e.target, true);
+		if(relevantEvents.indexOf(e.type) != -1) {
 			var pref = this.get(e.target);
 			if(pref) return pref.onInput(e);
 			}
@@ -1259,19 +1259,19 @@ window.addEventListener("load", function(e) {
 	vestitools_style.isChrome = true;
 	Preferences.usercolorController = new usercolorController(true);
 	Preferences.usercolorController.init({
-		color: Preferences.prefs.UCcolor, 
-		bgcolor: Preferences.prefs.UCbgcolor,
-		bordercolor: Preferences.prefs.UCbordercolor,
-		weight: Preferences.prefs.UCweight,
-		style: Preferences.prefs.UCstyle,
-		decoration: Preferences.prefs.UCdecoration
+		color: Preferences.prefs.UCcolor.input, 
+		bgcolor: Preferences.prefs.UCbgcolor.input,
+		bordercolor: Preferences.prefs.UCbordercolor.input,
+		weight: Preferences.prefs.UCweight.input,
+		style: Preferences.prefs.UCstyle.input,
+		decoration: Preferences.prefs.UCdecoration.input
 		},
 		{
 		get: "getButton",
 		post: "postButton",
 		refresh: "refreshButton",
 		},
-		"username", Preferences.prefs.applyUsercolors);
+		"username", Preferences.prefs.applyUsercolors.input);
 	
 	/*
 	We need to override these methods so they're called on the background page, 
