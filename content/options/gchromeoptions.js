@@ -328,10 +328,15 @@ PreferenceView.prototype = {
 	/*
 	Should be called when the saved value has been changed by some external force.
 	Will change the currently inputted value to match the new one if it hasn't been changed already.
+	Will check if the current value is changed from last saved if necessary.
 	*/
 	onSetValue: function(newVal) {
 		if(!this.isChangedFromLastSaved()) {
 			this.model.lastSavedValue = this.value = newVal;
+			}
+		else if(this.value == newVal) {
+			//this is important, otherwise the pref will falsely appear to be changed
+			this.checkChanged();
 			}
 		},
 		
