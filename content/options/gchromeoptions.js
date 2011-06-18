@@ -755,6 +755,8 @@ PreferenceViewManager.prototype = {
 		allDefault: "All preferences are already in their default state.",
 		notAllValid: "Some preferences were not valid and, consequently, not saved."
 		},
+		
+	inputEvents: new InputEvents(true),
 	
 	/*
 	Call add using the pairs of values from obj as name: default
@@ -959,7 +961,7 @@ PreferenceViewManager.prototype = {
 	validateInputListener: function(e) {
 		/*For performance reasons, only validate if the event type is relevant.
 		This function should be called for input, change, and keyup.*/
-		var relevantEvents = usercolorController.prototype.getChangeEvents(e.target, true);
+		var relevantEvents = this.inputEvents.getChangeEvents(e.target);
 		if(relevantEvents.indexOf(e.type) != -1) {
 			var pref = this.get(e.target);
 			if(pref) return pref.onInput(e);

@@ -38,6 +38,8 @@ function usercolorController(isChrome) {
 	*/
 	this.isChrome = isChrome;
 	
+	this.inputEvents = new InputEvents(this.isChrome);
+	
 	}
 	
 usercolorController.prototype = {
@@ -77,7 +79,7 @@ usercolorController.prototype = {
 				})(i);
 				
 			var input = this.inputs[i];
-			var types = this.getChangeEvents(input);
+			var types = this.inputEvents.getChangeEvents(input);
 			
 			for(var j=0, len=types.length; j<len; j++) {
 				input.addEventListener(types[j], listener, false);
@@ -95,7 +97,7 @@ usercolorController.prototype = {
 			}
 		
 		//listener for when applyUsercolors changes, so we can toggle it in real time
-		this.apply.addEventListener(this.getChangeEvents(this.apply)[0], function(e) {
+		this.apply.addEventListener(this.inputEvents.getChangeEvents(this.apply)[0], function(e) {
 			that.setApplyUsercolors(e.target.checked);
 			}, false);
 		},
@@ -154,7 +156,7 @@ usercolorController.prototype = {
 		for(var i in this.inputs) {
 			var input = this.inputs[i];
 			input.value = vestitools_style.toPrefString(i, styles[i]);
-			this.fireGenericChangeEvent(input);
+			this.inputEvents.fireGenericChangeEvent(input);
 			}
 		},
 	
@@ -294,57 +296,6 @@ usercolorController.prototype = {
 				});
 		
 		
-		},
-		
-	/*
-	Fire an event of the given type on some element.
-	*/
-	fireEvent: function(type, el) {
-		var createArg = "Event";
-		if(type.match(/change/)) {
-			createArg = "HTMLEvents";
-			}
-			
-		var event = el.ownerDocument.createEvent(createArg);
-		event.initEvent(type, true, true);
-		return el.dispatchEvent(event);
-		},
-		
-	/*
-	Given an element, return an array of strings of event names
-	which must be listened to in order to detect any change in that element.
-	isChrome will override this.isChrome.
-	*/
-	getChangeEvents: function(el, isChrome) {
-		if(typeof isChrome == "undefined") {
-			isChrome = this.isChrome;
-			}
-		var tagName = el.tagName.toLowerCase();
-		switch(tagName) {
-			case "textarea":
-			case "textbox":
-			case "input":
-				if(tagName != "input" || el.type != "checkbox") {
-					return ["input"];
-					}
-				//else fallthrough
-			case "checkbox":
-				return isChrome ? ["change"] : ["command"];
-			case "select":
-			case "menulist":
-				return isChrome ? ["change", "keyup"] : ["command"];
-			}
-		return [];
-		},
-		
-	/*
-	This will fire some event to indicate a change in the given element.
-	Different elements require different events, and they can vary with browser in use.
-	*/
-	fireGenericChangeEvent: function(el, isChrome) {
-		/*Since we should be listening for all events returned by getChangeEvents,
-		firing just the first one should work.*/
-		this.fireEvent(this.getChangeEvents(el, isChrome)[0], el);
 		},
 	
 	/*

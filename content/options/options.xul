@@ -583,6 +583,7 @@
   
 </prefpane>
 
+<script type="application/x-javascript" src="chrome://vestitools/content/options/inputevents.js"/>
 <script type="application/x-javascript" src="chrome://vestitools/content/options/usercolorcontroller.js"/>
 <script type="application/x-javascript" src="chrome://vestitools/content/options/options.js"/>
  
