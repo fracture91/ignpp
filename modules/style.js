@@ -396,13 +396,13 @@ var vestitools_style = new function vt_Style() {
 			xhrHeaders(xhr, {'Content-Type': 'application/x-www-form-urlencoded'});
 			xhr.onreadystatechange = function() {
 				if(xhr.readyState==4) {
-					callback(xhr, that.XHRUsercolorSuccess(xhr));
+					callback(xhr, that.XHRUsercolorSuccess(xhr), name, styles);
 					}
 				}
 			xhr.send(_data);
 			}
 		else {
-			callback({responseText: "invalidUsername"}, false);
+			callback({responseText: "invalidUsername"}, false, name, styles);
 			}
 		}
 		

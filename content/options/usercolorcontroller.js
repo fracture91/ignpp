@@ -284,13 +284,16 @@ usercolorController.prototype = {
 		
 		//this will handle validation of styles as well
 		var that = this;
-		vestitools_style.postColors(username, styles, function(xhr, success) {
+		vestitools_style.postColors(username, styles, function(xhr, success, username, styles) {
 				that.buttonLog("post", success ? "Colors successfully posted and saved." : that.XHRErrorMessage(xhr));
 				vestitools_style.defaultPostColorsCallback(xhr, success, username, styles);
+				//set the inputs to the now-validated values
+				if(success) {
+					that.setStylesInput(styles);
+					}
 				});
 		
-		//set the inputs to the now-validated values
-		this.setStylesInput(styles);
+		
 		},
 		
 	/*
