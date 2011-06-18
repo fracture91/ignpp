@@ -531,6 +531,13 @@ var vestitools_style = new function vt_Style() {
 		}
 		
 	/*
+	Given a (validated) style type and value, returns a string that value should be stored as.
+	*/
+	this.toPrefString = function(type, value) {
+		return this.colorStyleExp.test(type) && value == null ? "" : value + "";
+		}
+	
+	/*
 	Given a styles object, save it to prefs as the user's last usercolors.
 	Also validates styles and returns it.
 	*/
@@ -538,7 +545,7 @@ var vestitools_style = new function vt_Style() {
 		styles = this.validateStyles(styles);
 		//now styles only contains properties that must be saved with prefix "UC"
 		for(var i in styles) {
-			GM_setValue("UC" + i, styles[i] + "");
+			GM_setValue("UC" + i, this.toPrefString(i, styles[i]));
 			}		
 		return styles;
 		}

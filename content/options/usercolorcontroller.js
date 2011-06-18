@@ -153,7 +153,7 @@ usercolorController.prototype = {
 	setStylesInput: function(styles) {
 		for(var i in this.inputs) {
 			var input = this.inputs[i];
-			input.value = styles[i] + "";
+			input.value = vestitools_style.toPrefString(i, styles[i]);
 			this.fireGenericChangeEvent(input);
 			}
 		},
