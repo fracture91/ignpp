@@ -39,31 +39,63 @@
 		<section tab="usercolors" selected="true">
 			<fieldset>
 				<legend>Usercolors</legend>
-				<div id="pref_UCcolor" title="Text"></div>
-				<div id="pref_UCbgcolor" title="Background"></div>
-				<div id="pref_UCbordercolor" title="Border"></div>
-				<div id="pref_UCweight" title="Weight"></div>
-				<div id="pref_UCstyle" title="Style"></div>
-				<div id="pref_UCdecoration" title="Decoration"></div>
-				<div>
-					<span id="username"></span>
-				</div>
-				<div>
-					<input type="button" value="Get Personal Usercolors" id="getButton">
-					<div class="log"></div>
-					<p></p>
-				</div>
-				<div>
-					<input type="submit" value="Post Personal Usercolors" id="postButton">
-					<div class="log"></div>
-					<p></p>
+				<p>Usercolors are colors and font styles you can add to your name on the boards.
+				More specifically, they apply to any link to your profile.
+				Your usercolors are shared with all other IGN++ users.
+				You should visit the boards at least once before using this form.
+				<a href="http://club.ign.com/b/about?username=heyf00L&which=boards" target="_blank">heyf00L</a> 
+				manages the usercolor server - it's the same one 
+				<a href="http://derekdev.com/mozilla/ignbq/" target="_blank">IGNBQ</a> uses.</p>
+				<fieldset>
+					<legend>Your Usercolors</legend>
+					<p>You can change your usercolors with the controls below.  Your selections
+					will be shown in the preview on the right.  The color fields require a
+					<a href="http://en.wikipedia.org/wiki/Web_colors#Hex_triplet" target="_blank">six-digit hexadecimal triplet</a>.
+					You can leave them blank to use the default color.</p>
+					<div class="usercolorColumn colors">
+						<div id="pref_UCcolor" title="Text Color"></div>
+						<div id="pref_UCbgcolor" title="Background Color"></div>
+						<div id="pref_UCbordercolor" title="Border Color"></div>
+					</div>
+					<div class="usercolorColumn">
+						<div id="pref_UCweight" title="Text Weight"></div>
+						<div id="pref_UCstyle" title="Text Style"></div>
+						<div id="pref_UCdecoration" title="Text Decoration"></div>
+					</div>
+					<div id="usercolorPreview">
+						<label>Preview</label>
+						<div><span id="username"></span></div>
+					</div>
+					<div class="clear"></div>
+					<div>
+						<input type="submit" value="Post Your Usercolors" id="postButton">
+						<span class="log"></span>
+						<p>Post your usercolors to the server so that other people can see them, then save them.
+						You should be able to immediately see your usercolors on the boards without refreshing.</p>
+					</div>
+					<div>
+						<input type="button" value="Get Your Usercolors" id="getButton">
+						<span class="log"></span>
+						<p>Get your usercolors from the server, put them in the form above, and save them.
+						Note that successfully finding your usercolors this way does not necessarily mean
+						that they are visible to other users - the server removes inactive users from
+						the shared list periodically.</p>
+					</div>
+				</fieldset>
+				<div id="pref_applyUsercolors">
+					<p>Make usercolors visible on the boards.
+					If not enabled, you will not see any usercolors.
+					Note that, unlike other preferences, this one will be saved immediately after being changed.
+					This change will also be reflected immediately on any boards tabs you have open.</p>
 				</div>
 				<div>
 					<input type="button" value="Refresh All Usercolors" id="refreshButton">
-					<div class="log"></div>
-					<p></p>
+					<span class="log"></span>
+					<p>Refresh your usercolor list so that you can see everybody else's usercolors.  
+					This is done automatically every 12 hours, and on startup if they haven't
+					been refreshed for that long.  Beware of refreshing repeatedly - if you do so,
+					you may be getting cached usercolor lists which aren't truly up-to-date.</p>
 				</div>
-				<div id="pref_applyUsercolors"></div>
 				<div class="hidden">
 					<div id="pref_showUsercolorsQuickstats"></div>
 					<div id="pref_showUsercolorsPeopleLinks"></div>
