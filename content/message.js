@@ -334,8 +334,6 @@ var Message = new function Message_Obj() {
 				"Content-Type": "application/x-www-form-urlencoded",
 				"Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8",
 				"Cache-Control" : "no-cache, no-cache",
-				"Content-Length" : _data.length,
-				"Cookie" : document.cookie,
 				"Pragma" : "no-cache",
 				},
 			onload: function(details) {
