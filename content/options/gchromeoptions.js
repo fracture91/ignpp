@@ -127,20 +127,18 @@ PreferenceView.prototype = {
 		},
 		
 	/*
-	Set the currently inputted value, the given value is cleaned beforehand and checked for changes.
+	See this.setValue.
 	*/
 	set value(v) {
 		this.setValue(v);
 		},
 		
 	/*
-	Just like setting this.value, but you can pass false as check to skip checking if
-	the value is changed and changedFromDefault.  Useful if setting many times quickly or
-	if you know you don't need to check some things.
+	Set the currently inputted value. The given value is cleaned beforehand and checked for changes.
+	Will fireGenericChangeEvent for this pref's input with fromSetValue=true on the event.
+	Returns the original value.
 	*/
-	setValue: function(val, check) {
-	
-		if(!defined(check)) check = true;
+	setValue: function(val) {
 		var clean = this.model.clean(val);
 		if(this.model.type=="boolean") {
 			this.input.checked = clean.value;
@@ -151,12 +149,16 @@ PreferenceView.prototype = {
 		this.valid = true;
 		this.errors = {};
 		
-		if(check) {
-			this.checkNewValue(val, clean.value);
-			}
-		return val;
+		this.checkNewValue(val, clean.value);
 		
+		/*This would trigger the change listener for this pref,
+		which would validate and checkNewValue again for no reason.
+		However, adding fromSetValue to the event guards against this.*/
+		this.inputEvents.fireGenericChangeEvent(this.input, {fromSetValue: true});
+		return val;
 		},
+		
+	inputEvents: new InputEvents(true),
 		
 	/*
 	This is called when this.setValue is called to make sure view classes are up to date
@@ -198,10 +200,10 @@ PreferenceView.prototype = {
 		
 	/*
 	Should be called when the user may have changed the input.
-	Will validate input and checkChanged/FromDefault.
+	Will validate input and checkChanged/FromDefault if event.fromSetValue is not true.
 	*/
 	onInput: function(e) {
-		if(e.target == this.input) {
+		if(!e.fromSetValue && e.target == this.input) {
 			var val = this.value;
 			var clean = this.clean(val);
 			this.validate(clean, val);

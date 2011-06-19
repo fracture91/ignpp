@@ -98,7 +98,7 @@ usercolorController.prototype = {
 		
 		//listener for when applyUsercolors changes, so we can toggle it in real time
 		this.apply.addEventListener(this.inputEvents.getChangeEvents(this.apply)[0], function(e) {
-			that.setApplyUsercolors(e.target.checked);
+			if(!e.fromSetApplyUsercolors) that.setApplyUsercolors(e.target.checked);
 			}, false);
 		},
 	
@@ -305,6 +305,7 @@ usercolorController.prototype = {
 	setApplyUsercolors: function(val) {
 		GM_setValue("applyUsercolors", !!val);
 		vestitools_style.applyColors();
+		this.inputEvents.fireGenericChangeEvent(this.apply, {fromSetApplyUsercolors: true});
 		},
 	
 	/*

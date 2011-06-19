@@ -9,14 +9,17 @@ InputEvents.prototype = {
 	
 	/*
 	Fire an event of the given type on some element.
+	If map is provided, the stuff in that object is mapped to the event
+	before initEvent is called.
 	*/
-	fireEvent: function(type, el) {
+	fireEvent: function(type, el, map) {
 		var createArg = "Event";
 		if(type.match(/change/)) {
 			createArg = "HTMLEvents";
 			}
 			
 		var event = el.ownerDocument.createEvent(createArg);
+		if(map) for(var i in map) event[i] = map[i];
 		event.initEvent(type, true, true);
 		return el.dispatchEvent(event);
 		},
@@ -52,10 +55,10 @@ InputEvents.prototype = {
 	This will fire some event to indicate a change in the given element.
 	Different elements require different events, and they can vary with browser in use.
 	*/
-	fireGenericChangeEvent: function(el, isChrome) {
+	fireGenericChangeEvent: function(el, map, isChrome) {
 		/*Since we should be listening for all events returned by getChangeEvents,
 		firing just the first one should work.*/
-		this.fireEvent(this.getChangeEvents(el, isChrome)[0], el);
+		this.fireEvent(this.getChangeEvents(el, isChrome)[0], el, map);
 		}
 	
 	}
