@@ -4,7 +4,7 @@
 	"name": "IGN++",
 	"version": "2.2.0.20001",
 	"description": "Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.",
-	"minimum_chrome_version": "11.0.696.71",
+	"minimum_chrome_version": "12.0.742.100",
 
 	"icons": {
 		"16": "skin/default/icons/icon16.png",
