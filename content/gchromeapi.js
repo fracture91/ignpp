@@ -254,7 +254,7 @@ var GM_API = new function() {
 			}
 		/*
 		At this point, root points at the object at the second last point in the chain,
-		and i=chain.length-1, so we can override the method here.
+		and i=chain.length-1, so we can obtain the method from here.
 		In the above example, root would point to rules and chain[i] is "init".
 		*/
 		return [root, chain[i]];
@@ -291,8 +291,7 @@ var GM_API = new function() {
 	If any arguments are functions, they will be called on _this_ page.
 	*/
 	this.remoteCall = function(name/*, other arguments to be passed through...*/) {
-		var args = Array.prototype.slice.call(arguments);
-		args.shift();
+		var args = Array.prototype.slice.call(arguments, 1);
 		
 		/*
 		The background page will call callbacks by responding with their position
