@@ -27,8 +27,17 @@ if [ "$#" -lt '1' -o "$1" == '/' ]; then
 		p
 	}' install.rdf)
 	filename="ignpp$IGNVER"
+	alpha=$(echo "$IGNVER" | sed -n '/[a-z]/p')
 else
 	filename="$1"
+	#assume this is not a public version
+	alpha="a"
+fi
+
+if [ "$alpha" == "" ]; then
+	console="disable"
+else
+	console="enable"
 fi
 
 if [ "$#" -lt '2' ]; then
@@ -40,15 +49,17 @@ fi
 
 path="$directory/$filename"
 
-#we need to work in a different directory since cssid.sh will change the contents of some files
+#we need to work in a different directory since cssid.sh and console.sh
+#will change the contents of some files
 build="$directory/build"
 echo "Creating build directory $build ..."
 mkdir -p "$build"
 cp -r ./* "$build"
 
-original=`pwd`
+original=$(pwd)
 cd "$build"
 ./cssid.sh pub
+./console.sh "$console"
 
 
 echo "Creating $path.zip ..."
