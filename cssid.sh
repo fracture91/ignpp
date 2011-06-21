@@ -1,39 +1,44 @@
 #!/bin/sh
 
-if [ "$1" = "-h" -o "$#" -lt "1" ]; then
-	echo "Usage: ./cssid.sh IDNAME [file]"
-	echo "Where IDNAME is either 'dev' or 'pub'."
-	echo "file defaults to skin/default/main.css"
-	echo
-	echo "This script changes the ID used in chrome-extension URIs in a CSS file.  \
-If IDNAME is 'dev', it will change the ID to match the development ID specified in cssid.cfg.  \
-If IDNAME is 'pub', it will change the ID to match the public ID.  \
-The public ID should be constant, but the dev ID will change with each unpacked installation."
+set -e
+
+if [ "$1" = '-h' -o "$#" -lt '1' ]; then
+cat <<EOF
+Usage: $(basename $0) IDNAME [file]
+Where IDNAME is either 'dev' or 'pub'.
+file is optional and defaults to skin/default/main.css
+
+This script changes the ID used in chrome-extension URIs in a CSS file.
+If IDNAME is 'dev', it will change the ID to match the development ID
+specified in cssid.cfg.
+If IDNAME is 'pub', it will change the ID to match the public ID.
+The public ID should be constant, but the dev ID will change with each unpacked installation.
+EOF
 	exit 0
 fi
 
 
-#IGNDEV and IGNPUB should be defined here
+#pubid and devid should be defined here
 source ./cssid.cfg
 
-if [ "$1" = "dev" ]; then
-	IGNID=$IGNDEV
-elif [ "$1" = "pub" ]; then
-	IGNID=$IGNPUB
+if [ "$1" = 'dev' ]; then
+	id="$devid"
+elif [ "$1" = 'pub' ]; then
+	id="$pubid"
 else
 	echo "First argument must be 'dev' or 'pub'"
-	exit 0
+	exit 1
 fi
 
-if [ "$#" -lt "2" ]; then
-	IGNFILE="skin/default/main.css"
+if [ "$#" -lt '2' ]; then
+	file='skin/default/main.css'
 else
-	IGNFILE="$2"
+	file="$2"
 fi
 
 
 
-sed "s/chrome-extension:\/\/[^\/]*\//chrome-extension:\/\/$IGNID\//g" "$IGNFILE" > "$IGNFILE.new"
-cp "$IGNFILE.new" "$IGNFILE"
-rm "$IGNFILE.new"
-echo "IDs in file $IGNFILE changed to $1 ID ($IGNID)"
+sed "s_chrome-extension://[^/]*/_chrome-extension://$id/_g" "$file" > "$file.new"
+cp "$file.new" "$file"
+rm "$file.new"
+echo "IDs in file $file changed to $1 ID ($id)"
