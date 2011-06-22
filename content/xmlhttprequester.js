@@ -162,10 +162,15 @@ function(unsafeContentWin, req, event, details) {
 				}
 				
 			else {
-				
-				////in Chrome, post a message to the open Port with details
-				unsafeContentWin.postMessage({event: event, details: responseState});
-				
+				if(unsafeContentWin instanceof chrome.Port) {
+					////post a message to the open Port with details
+					unsafeContentWin.postMessage({event: event, details: responseState});
+					}
+				else {
+					////client is not using a Port, call the method on details directly
+					////(see backgroundapi.js - GM_API.xmlhttpRequest)
+					details[event](responseState);
+					}
 				}
 		} 
 	}

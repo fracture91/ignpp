@@ -98,8 +98,7 @@ var Autowul = new function() {
 					data: _data,
 					headers: {
 						"Content-Type": "application/x-www-form-urlencoded",
-						"Accept" : "text/html, text/plain",
-						"Content-Length" : _data.length
+						"Accept" : "text/html, text/plain"
 						},
 					onload: function(details) {
 						

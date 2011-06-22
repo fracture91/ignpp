@@ -1,6 +1,7 @@
 
 //removed to pass review
-///*
+//CONSOLE START
+// /*
 
 var Console = new function(){
 	
@@ -132,8 +133,8 @@ var Console = new function(){
 	
 	}
 	
-	
-//*/
+//CONSOLE END
+// */
 
 //returns a string containing members of the object, and members of the members, etc.
 //Depth specifies maximum number of recursions, default is infinite

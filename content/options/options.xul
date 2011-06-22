@@ -4,8 +4,8 @@
 <prefwindow id="vestitools-prefs"
      title="IGN++ Options"
 	 windowtype="IGN++ Options"
-	 onload="initOptions()"
-	 ondialogaccept="dialogAccept()"
+	 onload="onLoad()"
+	 ondialogaccept="onDialogAccept()"
 	 buttons="extra1,accept,cancel"
 	 buttonlabelextra1="Restore Defaults"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -90,375 +90,12 @@
   
 	<tabbox>
 		<tabs>
+			<tab label="Usercolors"/>
 			<tab label="Post Settings"/>
 			<tab label="Display Settings"/>
-			<tab label="Usercolors"/>
 			<tab label="Miscellaneous"/>
 		</tabs>
 		<tabpanels>
-			<tabpanel>
-				<tabbox orient="horizontal">
-					<tabs orient="vertical">
-						<tab label="General"/>
-						<tab label="Link Hijacking"/>
-						<tab label="Redirection"/>
-						<tab label="Integration"/>
-						<tab label="Autocensor"/>
-						<tab label="WYSIWYG"/>
-						<tab label="Pretext"/>
-						<tab label="Selection Quote"/>
-					</tabs>
-					<tabpanels>
-						<tabpanel>
-							<groupbox>
-								<caption label="General"/>
-								<checkbox id="autoCloseField" label="Autoclose" preference="pref_autoClose"/>
-								<description class="indent">
-									Automatically close panels after posting.  Content is lost.
-								</description>
-								<checkbox id="scrollToPanelsField" label="Scroll to panels" preference="pref_scrollToPanels"/>
-								<description class="indent">
-									Scroll to panels you open if they aren't entirely visible.
-								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Link Hijacking"/>
-								<description>
-									Clicking on links makes a IGN++ panel appear instead of going to the normal post form.
-								</description>
-								<checkbox id="topicHijackingField" label="Topic" preference="pref_topicHijacking"/>
-								<checkbox id="replyHijackingField" label="Reply" preference="pref_replyHijacking"/>
-								<checkbox id="quoteHijackingField" label="Quote" preference="pref_quoteHijacking"/>
-								<checkbox id="PMHijackingField" label="PM" preference="pref_PMHijacking"/>
-								<checkbox id="editHijackingField" label="Edit" preference="pref_editHijacking"/>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Redirection"/>
-								<description>
-									Go to the page that IGN normally brings you to after posting.
-								</description>
-								<checkbox id="topicRedirectionField" label="Topic" preference="pref_topicRedirection"/>
-								<checkbox id="replyRedirectionField" label="Reply" preference="pref_replyRedirection"/>
-								<checkbox id="replyWERedirectionField" label="Reply Without Entering" preference="pref_replyWERedirection"/>
-								<checkbox id="editRedirectionField" label="Edit" preference="pref_editRedirection"/>
-								<checkbox id="goHomeField" label="Go Home" preference="pref_goHome"/>
-								<description class="indent">
-									Go back to the main board instead.
-								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-							<caption label="Integration"/>
-							<description>
-								Embed panels into the page rather than floating above it.
-							</description>
-							<checkbox id="topicIntegrationField" label="Topic" preference="pref_topicIntegration"/>
-							<checkbox id="replyIntegrationField" label="Reply" preference="pref_replyIntegration"/>
-							<checkbox id="PMIntegrationField" label="PM" preference="pref_PMIntegration"/>
-							<checkbox id="panelFollowField" label="Follow" preference="pref_panelFollow"/>
-							<description class="indent">
-								When you quote multiple people, the panel moves so it's under the post.
-							</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Autocensor"/>
-								<description>
-									Automatically censor bannable words.
-								</description>
-								<checkbox id="autocensorPostsField" label="Posts" preference="pref_autocensorPosts"/>
-								<checkbox id="autocensorPMsField" label="PMs" preference="pref_autocensorPMs"/>
-								<checkbox id="autocensorContextualField" label="Contextual" preference="pref_autocensorContextual"/>
-								<description class="indent">
-									Censor words only bannable in certain contexts.
-								</description>
-								<checkbox id="autocensorAsterisksField" label="Asterisks" preference="pref_autocensorAsterisks"/>
-								<spacer flex="1"/>
-								<description>
-									The censor is not perfect.  You are responsible for what you post.  
-									Post subjects are not censored.
-								</description>
-								<spacer flex="1"/>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="WYSIWYG"/>
-								<description>
-									What you see is what you get, your post appears as it would after it's posted.
-								</description>
-								<checkbox id="wysiwygDefaultField" label="Use By Default" preference="pref_wysiwygDefault"/>
-								<checkbox id="overlayWysiwygField" label="Overlay Normal Forms" preference="pref_overlayWysiwyg"/>
-								<description class="indent">
-									Add the WYSIWYG editor to IGN's normal post forms.
-								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Pretext"/>
-								<description>
-									Boardcode that's inserted for you automatically in certain situations.
-								</description>
-								<grid>
-									<columns>
-										<column/>
-										<column flex="1"/>
-									</columns>
-									<rows>
-										<row>
-											<label value="Start:" control="pretextStartField"/>
-											<textbox id="pretextStartField" preference="pref_pretextStart" multiline="true"/>
-										</row>
-										<row>
-											<label value="Before:" control="pretextBeforeField"/>
-											<textbox id="pretextBeforeField" preference="pref_pretextBefore" multiline="true"/>
-										</row>
-										<row>
-											<label value="After:" control="pretextAfterField"/>
-											<textbox id="pretextAfterField" preference="pref_pretextAfter" multiline="true"/>
-										</row>
-										<row>
-											<label value="End:" control="pretextEndField"/>
-											<textbox id="pretextEndField" preference="pref_pretextEnd" multiline="true"/>
-										</row>
-										<row>
-											<label value="Edit:" control="pretextEditField"/>
-											<textbox id="pretextEditField" preference="pref_pretextEdit" multiline="true"/>
-										</row>
-									</rows>
-								</grid>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption>
-									<checkbox id="selectionQuoteField" label="Selection Quote" preference="pref_selectionQuote"/>
-								</caption>
-								<description>
-									If you click "Quote" when part of a message is selected, only the selected part is quoted.
-								</description>
-								<checkbox id="strictSelectionQuoteField" label="Strict Selection Quote" preference="pref_strictSelectionQuote"/>
-								<description class="indent">
-									Can only select inside the quoted post.
-								</description>
-								<checkbox id="strictSelectionQuoteAuthorField" label="Strict Author" preference="pref_strictSelectionQuoteAuthor"/>
-								<description class="indent">
-									If you select outside of the quoted post, it will always try to use the correct username as the author.
-								</description>
-							</groupbox>
-						</tabpanel>
-					</tabpanels>
-				</tabbox>
-			</tabpanel>
-			<tabpanel>
-				<tabbox orient="horizontal">
-					<tabs orient="vertical">
-						<tab label="Position"/>
-						<tab label="Autorefresh"/>
-						<tab label="WULs"/>
-						<tab label="Ignore"/>
-						<tab label="Integrated Tools"/>
-						<tab label="KB Browsing"/>
-						<tab label="Miscellaneous"/>
-					</tabs>
-					<tabpanels>
-						<tabpanel>
-							<groupbox>
-								<caption label="Position"/>
-								<description>
-									The position of the bottom left corner of floating panels.
-								</description>
-								
-								<hbox>
-								<groupbox>
-									<caption label="Board"/>
-									<vbox>
-										<hbox>
-											<description>X</description>
-											<textbox id="floatXField" label="floatX" preference="pref_floatX" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-										<hbox>
-											<description>Y</description>
-											<textbox id="floatYField" label="floatY" preference="pref_floatY" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-									</vbox>
-								</groupbox>
-								<groupbox>
-									<caption label="Topic"/>
-									<vbox>
-										<hbox>
-											<description>X</description>
-											<textbox id="floatXTField" label="floatXT" preference="pref_floatXT" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-										<hbox>
-											<description>Y</description>
-											<textbox id="floatYTField" label="floatYT" preference="pref_floatYT" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-									</vbox>
-								</groupbox>
-								</hbox>
-								
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Autorefresh"/>
-								<description>
-									Retrieve new content that would normally only be available after a page refresh.
-								</description>
-								<vbox>
-									<hbox>
-										<groupbox>
-											<caption>
-												<checkbox id="autorefreshTopicsField" label="Topics" preference="pref_autorefreshTopics"/>
-											</caption>
-											<hbox>
-												<description>Interval</description>
-												<textbox id="autorefreshTopicsIntField" label="autorefreshTopicsInt" preference="pref_autorefreshTopicsInt" type="number" min="50" max="99999999" increment="250"/>
-											</hbox>
-										</groupbox>
-										<groupbox>
-											<caption>
-												<checkbox id="autorefreshPMCountField" label="PM Count" preference="pref_autorefreshPMCount"/>
-											</caption>
-											<hbox>
-												<description>Interval</description>
-												<textbox id="autorefreshPMCountIntField" label="autorefreshPMCountInt" preference="pref_autorefreshPMCountInt" type="number" min="50" max="99999999" increment="250"/>
-											</hbox>
-										</groupbox>
-									</hbox>
-									<groupbox>
-										<caption>
-											<checkbox id="autorefreshRepliesField" label="Replies" preference="pref_autorefreshReplies"/>
-										</caption>
-										<hbox>
-											<vbox>
-												<hbox>
-													<description>Interval</description>
-													<textbox id="autorefreshRepliesIntField" label="autorefreshRepliesInt" preference="pref_autorefreshRepliesInt" type="number" min="50" max="99999999" increment="250"/>
-												</hbox>
-												<checkbox id="autorefreshRepliesAfterPostingField" label="After Posting" preference="pref_autorefreshRepliesAfterPosting"/>
-											</vbox>
-											<vbox>
-												<checkbox id="autorefreshEditsField" label="Edits" preference="pref_autorefreshEdits"/>
-												<checkbox id="autorefreshPollsField" label="Polls" preference="pref_autorefreshPolls"/>
-											</vbox>
-										</hbox>
-									</groupbox>
-									<checkbox id="autorefreshRecentField" label="Recent Posts" preference="pref_autorefreshRecent"/>
-								</vbox>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="WULs"/>
-								<checkbox id="WULLinksField" label="Links" preference="pref_WULLinks"/>
-								<description class="indent">
-									Add WUL/deWUL links below each post.
-								</description>
-								<checkbox id="autoWULField" label="AutoWUL" preference="pref_autoWUL"/>
-								<description class="indent">
-									Automate the WUL/deWUL process for as many users as you like, simultaneously.
-								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<vbox>
-								<groupbox>
-									<caption label="Ignore Users"/>
-									<checkbox id="ignoreRepliesField" label="Replies" preference="pref_ignoreReplies"/>
-									<description class="indent">
-										Hide selected users' posts, icons, and signatures in topics.
-									</description>
-									<checkbox id="ignoreTopicsField" label="Topics" preference="pref_ignoreTopics"/>
-									<description class="indent">
-										Hide selected users' topics in boards.
-									</description>
-									<hbox>
-										<textbox id="manualIgnoreField" label="Manual Ignore Field" value="Add/Remove"/>
-										<button id="eraseIgnoreListButton" label="Erase List"/>
-									</hbox>
-									<textbox id="ignoreListField" label="Ignore List" preference="pref_ignoreList"/>
-								</groupbox>
-								<checkbox id="ignoreLinksField" label="Links" preference="pref_ignoreLinks"/>
-								<description class="indent">
-									Add Hide/Ignore links below each post.
-								</description>
-							</vbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Integrated Tools"/>
-								<checkbox id="integrateControlsField" label="Integrate controls" preference="pref_integrateControls"/>
-								<description class="indent">
-									Add control buttons to Boards drop down menu.
-								</description>
-								<checkbox id="vestiWikiSearchField" label="Vesti Wiki search" preference="pref_vestiWikiSearch"/>
-								<description class="indent">
-									Add Vesti Wiki button to the search bar.
-								</description>
-								<checkbox id="googleSearchField" label="Google search" preference="pref_googleSearch"/>
-								<description class="indent">
-									Override the normal search with a site-specific Google search.
-								</description>
-								<checkbox id="searchInTabField" label="Search in new tab" preference="pref_searchInTab"/>
-								<checkbox id="extraBoardOptionsField" label="Extra board options" preference="pref_extraBoardOptions"/>
-								<description class="indent">
-									Add more helpful links to the Boards drop down menu.
-								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Keyboard Browsing"/>
-								<checkbox id="keyboardBrowsingField" label="Enable" preference="pref_keyboardBrowsing"/>
-								<description class="indent">
-									Enable the keyboard browsing feature, which lets you navigate the page without a mouse.
-									Note that this feature is incomplete and pretty easy to mess up.
-									Doesn't really work on the Classic theme.
-								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Miscellaneous"/>
-								<checkbox id="missingLinksField" label="Add missing links" preference="pref_missingLinks"/>
-								<description class="indent">
-									If the reply, quote, or edit links are missing from a post, like in a locked thread, add them back in.
-								</description>
-								<checkbox id="wikiLinksField" label="Add wiki links" preference="pref_wikiLinks"/>
-								<description class="indent">
-									Add links to users' Vesti Wiki page to each reply.
-								</description>
-								<checkbox id="replyNumbersField" label="Add reply numbers" preference="pref_replyNumbers"/>
-								<description class="indent">
-									Add an ordinal number to each reply.
-								</description>
-								<hbox>
-									<vbox>
-										<spacer flex="1"/>
-										<description>
-											Scroll to reply:
-										</description>
-									</vbox>
-									<checkbox id="scrollToReplyOnLoadField" label="On load" preference="pref_scrollToReplyOnLoad"/>
-									<checkbox id="scrollToReplyOnClickField" label="On click" preference="pref_scrollToReplyOnClick"/>
-								</hbox>
-								<description class="indent">
-									Scroll to the reply with the ID indicated in the URL (.../r1234567/).
-								</description>
-							</groupbox>
-						</tabpanel>
-					</tabpanels>
-				</tabbox>
-			</tabpanel>
 			<tabpanel id="usercolorsPanel">
 				<vbox>
 					<hbox>
@@ -552,6 +189,369 @@
 			<tabpanel>
 				<tabbox orient="horizontal">
 					<tabs orient="vertical">
+						<tab label="General"/>
+						<tab label="Autocensor"/>
+						<tab label="Editors"/>
+						<tab label="Pretext"/>
+						<tab label="Selection Quote"/>
+						<tab label="Redirection"/>
+						<tab label="Integration"/>
+						<tab label="Link Hijacking"/>
+					</tabs>
+					<tabpanels>
+						<tabpanel>
+							<groupbox>
+								<caption label="General"/>
+								<checkbox id="autoCloseField" label="Autoclose" preference="pref_autoClose"/>
+								<description class="indent">
+									Automatically close panels after posting.  Content is lost.
+								</description>
+								<checkbox id="scrollToPanelsField" label="Scroll to panels" preference="pref_scrollToPanels"/>
+								<description class="indent">
+									Scroll to panels you open if they aren't entirely visible.
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Autocensor"/>
+								<description>
+									Automatically censor bannable words.
+								</description>
+								<checkbox id="autocensorPostsField" label="Posts" preference="pref_autocensorPosts"/>
+								<checkbox id="autocensorPMsField" label="PMs" preference="pref_autocensorPMs"/>
+								<checkbox id="autocensorContextualField" label="Contextual" preference="pref_autocensorContextual"/>
+								<description class="indent">
+									Censor words only bannable in certain contexts.
+								</description>
+								<checkbox id="autocensorAsterisksField" label="Asterisks" preference="pref_autocensorAsterisks"/>
+								<spacer flex="1"/>
+								<description>
+									The censor is not perfect.  You are responsible for what you post.  
+									Post subjects are not censored.
+								</description>
+								<spacer flex="1"/>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Editors"/>
+								<checkbox id="wysiwygDefaultField" label="Use WYSIWYG Mode By Default" preference="pref_wysiwygDefault"/>
+								<description class="indent">
+									What you see is what you get, your post appears as it would after it's posted.
+								</description>
+								<checkbox id="overlayWysiwygField" label="Overlay Normal Forms" preference="pref_overlayWysiwyg"/>
+								<description class="indent">
+									Add the WYSIWYG editor to IGN's normal post forms.
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Pretext"/>
+								<description>
+									Boardcode that's inserted for you automatically in certain situations.
+								</description>
+								<grid>
+									<columns>
+										<column/>
+										<column flex="1"/>
+									</columns>
+									<rows>
+										<row>
+											<label value="Start:" control="pretextStartField"/>
+											<textbox id="pretextStartField" preference="pref_pretextStart" multiline="true"/>
+										</row>
+										<row>
+											<label value="Before:" control="pretextBeforeField"/>
+											<textbox id="pretextBeforeField" preference="pref_pretextBefore" multiline="true"/>
+										</row>
+										<row>
+											<label value="After:" control="pretextAfterField"/>
+											<textbox id="pretextAfterField" preference="pref_pretextAfter" multiline="true"/>
+										</row>
+										<row>
+											<label value="End:" control="pretextEndField"/>
+											<textbox id="pretextEndField" preference="pref_pretextEnd" multiline="true"/>
+										</row>
+										<row>
+											<label value="Edit:" control="pretextEditField"/>
+											<textbox id="pretextEditField" preference="pref_pretextEdit" multiline="true"/>
+										</row>
+									</rows>
+								</grid>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption>
+									<checkbox id="selectionQuoteField" label="Selection Quote" preference="pref_selectionQuote"/>
+								</caption>
+								<description>
+									If you click "Quote" when part of a message is selected, only the selected part is quoted.
+								</description>
+								<checkbox id="strictSelectionQuoteField" label="Strict Selection Quote" preference="pref_strictSelectionQuote"/>
+								<description class="indent">
+									Can only select inside the quoted post.
+								</description>
+								<checkbox id="strictSelectionQuoteAuthorField" label="Strict Author" preference="pref_strictSelectionQuoteAuthor"/>
+								<description class="indent">
+									If you select outside of the quoted post, it will always try to use the correct username as the author.
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Redirection"/>
+								<description>
+									Go to the page that IGN normally brings you to after posting.
+								</description>
+								<checkbox id="topicRedirectionField" label="Topic" preference="pref_topicRedirection"/>
+								<checkbox id="replyRedirectionField" label="Reply" preference="pref_replyRedirection"/>
+								<checkbox id="replyWERedirectionField" label="Reply Without Entering" preference="pref_replyWERedirection"/>
+								<checkbox id="editRedirectionField" label="Edit" preference="pref_editRedirection"/>
+								<checkbox id="goHomeField" label="Go Home" preference="pref_goHome"/>
+								<description class="indent">
+									Go back to the main board instead.
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+							<caption label="Integration"/>
+							<description>
+								Embed panels into the page rather than floating above it.
+							</description>
+							<checkbox id="topicIntegrationField" label="Topic" preference="pref_topicIntegration"/>
+							<checkbox id="replyIntegrationField" label="Reply" preference="pref_replyIntegration"/>
+							<checkbox id="PMIntegrationField" label="PM" preference="pref_PMIntegration"/>
+							<checkbox id="panelFollowField" label="Follow" preference="pref_panelFollow"/>
+							<description class="indent">
+								When you quote multiple people, the panel moves so it's under the post.
+							</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Link Hijacking"/>
+								<description>
+									Clicking on links makes an IGN++ panel appear instead of going to the normal post form.
+								</description>
+								<checkbox id="topicHijackingField" label="Topic" preference="pref_topicHijacking"/>
+								<checkbox id="replyHijackingField" label="Reply" preference="pref_replyHijacking"/>
+								<checkbox id="quoteHijackingField" label="Quote" preference="pref_quoteHijacking"/>
+								<checkbox id="PMHijackingField" label="PM" preference="pref_PMHijacking"/>
+								<checkbox id="editHijackingField" label="Edit" preference="pref_editHijacking"/>
+							</groupbox>
+						</tabpanel>
+					</tabpanels>
+				</tabbox>
+			</tabpanel>
+			<tabpanel>
+				<tabbox orient="horizontal">
+					<tabs orient="vertical">
+						<tab label="Autorefresh"/>
+						<tab label="Ignore"/>
+						<tab label="Integrated Tools"/>
+						<tab label="Threads"/>
+						<tab label="WULs"/>
+						<tab label="Position"/>
+						<tab label="KB Browsing"/>
+					</tabs>
+					<tabpanels>
+						<tabpanel>
+							<groupbox>
+								<caption label="Autorefresh"/>
+								<description>
+									Retrieve new content that would normally only be available after a page refresh.
+								</description>
+								<vbox>
+									<hbox>
+										<groupbox>
+											<caption>
+												<checkbox id="autorefreshTopicsField" label="Topics" preference="pref_autorefreshTopics"/>
+											</caption>
+											<hbox>
+												<description>Interval</description>
+												<textbox id="autorefreshTopicsIntField" label="autorefreshTopicsInt" preference="pref_autorefreshTopicsInt" type="number" min="50" max="99999999" increment="250"/>
+											</hbox>
+										</groupbox>
+										<groupbox>
+											<caption>
+												<checkbox id="autorefreshPMCountField" label="PM Count" preference="pref_autorefreshPMCount"/>
+											</caption>
+											<hbox>
+												<description>Interval</description>
+												<textbox id="autorefreshPMCountIntField" label="autorefreshPMCountInt" preference="pref_autorefreshPMCountInt" type="number" min="50" max="99999999" increment="250"/>
+											</hbox>
+										</groupbox>
+									</hbox>
+									<groupbox>
+										<caption>
+											<checkbox id="autorefreshRepliesField" label="Replies" preference="pref_autorefreshReplies"/>
+										</caption>
+										<hbox>
+											<vbox>
+												<hbox>
+													<description>Interval</description>
+													<textbox id="autorefreshRepliesIntField" label="autorefreshRepliesInt" preference="pref_autorefreshRepliesInt" type="number" min="50" max="99999999" increment="250"/>
+												</hbox>
+												<checkbox id="autorefreshRepliesAfterPostingField" label="After Posting" preference="pref_autorefreshRepliesAfterPosting"/>
+											</vbox>
+											<vbox>
+												<checkbox id="autorefreshEditsField" label="Edits" preference="pref_autorefreshEdits"/>
+												<checkbox id="autorefreshPollsField" label="Polls" preference="pref_autorefreshPolls"/>
+											</vbox>
+										</hbox>
+									</groupbox>
+									<checkbox id="autorefreshRecentField" label="Recent Posts" preference="pref_autorefreshRecent"/>
+								</vbox>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<vbox>
+								<groupbox>
+									<caption label="Ignore Users"/>
+									<checkbox id="ignoreRepliesField" label="Replies" preference="pref_ignoreReplies"/>
+									<description class="indent">
+										Hide selected users' posts, icons, and signatures in topics.
+									</description>
+									<checkbox id="ignoreTopicsField" label="Topics" preference="pref_ignoreTopics"/>
+									<description class="indent">
+										Hide selected users' topics in boards.
+									</description>
+									<hbox>
+										<textbox id="manualIgnoreField" label="Manual Ignore Field" value="Add/Remove"/>
+										<button id="eraseIgnoreListButton" label="Erase List"/>
+									</hbox>
+									<textbox id="ignoreListField" label="Ignore List" preference="pref_ignoreList"/>
+								</groupbox>
+								<checkbox id="ignoreLinksField" label="Links" preference="pref_ignoreLinks"/>
+								<description class="indent">
+									Add Hide/Ignore links below each post.
+								</description>
+							</vbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Integrated Tools"/>
+								<checkbox id="integrateControlsField" label="Integrate controls" preference="pref_integrateControls"/>
+								<description class="indent">
+									Add control buttons to Boards drop down menu.
+								</description>
+								<checkbox id="vestiWikiSearchField" label="Vesti Wiki search" preference="pref_vestiWikiSearch"/>
+								<description class="indent">
+									Add Vesti Wiki button to the search bar.
+								</description>
+								<checkbox id="googleSearchField" label="Google search" preference="pref_googleSearch"/>
+								<description class="indent">
+									Override the normal search with a site-specific Google search.
+								</description>
+								<checkbox id="searchInTabField" label="Search in new tab" preference="pref_searchInTab"/>
+								<checkbox id="extraBoardOptionsField" label="Extra board options" preference="pref_extraBoardOptions"/>
+								<description class="indent">
+									Add more helpful links to the Boards drop down menu.
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Threads"/>
+								<checkbox id="missingLinksField" label="Add missing links" preference="pref_missingLinks"/>
+								<description class="indent">
+									If the reply, quote, or edit links are missing from a post, like in a locked thread, add them back in.
+								</description>
+								<checkbox id="wikiLinksField" label="Add wiki links" preference="pref_wikiLinks"/>
+								<description class="indent">
+									Add links to users' Vesti Wiki page to each reply.
+								</description>
+								<checkbox id="replyNumbersField" label="Add reply numbers" preference="pref_replyNumbers"/>
+								<description class="indent">
+									Add an ordinal number to each reply.
+								</description>
+								<hbox>
+									<vbox>
+										<spacer flex="1"/>
+										<description>
+											Scroll to reply:
+										</description>
+									</vbox>
+									<checkbox id="scrollToReplyOnLoadField" label="On load" preference="pref_scrollToReplyOnLoad"/>
+									<checkbox id="scrollToReplyOnClickField" label="On click" preference="pref_scrollToReplyOnClick"/>
+								</hbox>
+								<description class="indent">
+									Scroll to the reply with the ID indicated in the URL (.../r1234567/).
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="WULs"/>
+								<checkbox id="WULLinksField" label="Links" preference="pref_WULLinks"/>
+								<description class="indent">
+									Add WUL/deWUL links below each post.
+								</description>
+								<checkbox id="autoWULField" label="AutoWUL" preference="pref_autoWUL"/>
+								<description class="indent">
+									Automate the WUL/deWUL process for as many users as you like, simultaneously.
+								</description>
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Position"/>
+								<description>
+									The position of the bottom left corner of floating panels.
+								</description>
+								
+								<hbox>
+								<groupbox>
+									<caption label="Board"/>
+									<vbox>
+										<hbox>
+											<description>X</description>
+											<textbox id="floatXField" label="floatX" preference="pref_floatX" type="number" min="-99999" max="99999" increment="5"/>
+										</hbox>
+										<hbox>
+											<description>Y</description>
+											<textbox id="floatYField" label="floatY" preference="pref_floatY" type="number" min="-99999" max="99999" increment="5"/>
+										</hbox>
+									</vbox>
+								</groupbox>
+								<groupbox>
+									<caption label="Topic"/>
+									<vbox>
+										<hbox>
+											<description>X</description>
+											<textbox id="floatXTField" label="floatXT" preference="pref_floatXT" type="number" min="-99999" max="99999" increment="5"/>
+										</hbox>
+										<hbox>
+											<description>Y</description>
+											<textbox id="floatYTField" label="floatYT" preference="pref_floatYT" type="number" min="-99999" max="99999" increment="5"/>
+										</hbox>
+									</vbox>
+								</groupbox>
+								</hbox>
+								
+							</groupbox>
+						</tabpanel>
+						<tabpanel>
+							<groupbox>
+								<caption label="Keyboard Browsing"/>
+								<checkbox id="keyboardBrowsingField" label="Enable" preference="pref_keyboardBrowsing"/>
+								<description class="indent">
+									Enable the keyboard browsing feature, which lets you navigate the page without a mouse.
+									Note that this feature is incomplete and pretty easy to mess up.
+									Doesn't really work on the Classic theme.
+								</description>
+							</groupbox>
+						</tabpanel>
+					</tabpanels>
+				</tabbox>
+			</tabpanel>
+			<tabpanel>
+				<tabbox orient="horizontal">
+					<tabs orient="vertical">
 						<tab label="EULA"/>
 						<tab label="Credits"/>
 						<tab label="Dev"/>
@@ -583,6 +583,8 @@
   
 </prefpane>
 
+<script type="application/x-javascript" src="chrome://vestitools/content/options/inputevents.js"/>
+<script type="application/x-javascript" src="chrome://vestitools/content/options/usercolorcontroller.js"/>
 <script type="application/x-javascript" src="chrome://vestitools/content/options/options.js"/>
  
 </prefwindow>

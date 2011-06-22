@@ -10,7 +10,8 @@ Correspondence of build with alphanumeric FF version:
 	
 Build must include "leading" zeros where necessary.
 
-You can't do something like 2.1.0a1 in Chrome.  Must use only integers <65536 and >-1.
+You can't do something like 2.1.0a1 in Chrome.
+Must use only integers <65536 and >-1.
 
 Examples:
 

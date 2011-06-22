@@ -103,8 +103,24 @@ function Replies(ref, after) {
 		this.pages = Parse.pages(ref.innerHTML);
 		}
 		
-	this.currentPage = this.pages ? +getFirstByClassName(this.pages, "currentpage").textContent : 1;
-	this.lastPage = this.pages ? +getLastByClassName(this.pages, "prevnext").parentNode.previousElementSibling.textContent : 1;
+	if(this.pages) {
+		this.lastPage = +getLastByClassName(this.pages, "prevnext").parentNode.previousElementSibling.textContent;
+		this.currentPage = getFirstByClassName(this.pages, "currentpage");
+		if(this.currentPage) {
+			this.currentPage = +this.currentPage.textContent;
+			}
+		else {
+			/*
+			IGN has a bug where this class and the current page don't show up in fast threads.
+			For example, url says p3, but paginator shows [Prev][1][2][Next]   - See issue #241.
+			This seems to happen when the current page should be the last page, so increment lastPage as well.
+			*/
+			this.currentPage = ++this.lastPage;
+			}
+		}
+	else {
+		this.lastPage = this.currentPage = 1;
+		}
 	
 	}
 	
@@ -141,25 +157,31 @@ Replies.prototype = {
 	get ignoreList(){return GM_getValue("ignoreList", "");},
 	set ignoreList(s){return GM_setValue("ignoreList", s);},
 	
+	/*
+	Given a Reply or a username, ignore that username or the Reply's author.
+	If unIgnore is true, unIgnore the user instead (defaults to false).
+	*/
 	ignore: function(reply, unIgnore) {
-		
 		if(!defined(unIgnore)) unIgnore = false;
+		var user = typeof reply == "string" ? reply : reply.author;
 		
-		var target, list = this.ignoreList.split(","), user = reply.author;
-		if(!user) user = reply; //can take a string instead
+		var list = this.ignoreList;
+		//if this.ignoreList == "", split returns [""], which is an invalid list
+		list = list == "" ? [] : list.split(",");
 		
 		if(unIgnore) {
-			if((target = list.indexOf(user))!=-1) {
+			var target = list.indexOf(user);
+			if(target!=-1) {
 				list.splice(target, 1);
-				this.ignoreList = list.toString();
+				this.ignoreList = list.join(",");
 				}
 			}
 		else if(list.indexOf(user)==-1) {
 			list.push(user);
-			this.ignoreList = list.toString();
+			this.ignoreList = list.join(",");
 			}
 			
-		//hide all other replies by this user in this Replies object
+		//hide/show all other replies by this user in this Replies object
 		this.forEachReply(function(r) {
 			if(r.author == user) {
 				if(unIgnore) r.unIgnore();

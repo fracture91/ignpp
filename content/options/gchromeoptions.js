@@ -1,6 +1,8 @@
 
 //the localStorage on the options page is the same as on the background page
-GM_localStorage = localStorage;
+GM_API.localStorage = localStorage;
+
+GM_API.expose();
 
 //just checking in with the background page to make sure we receive setvalue updates
 chrome.extension.sendRequest({type: "checkin"});
@@ -125,20 +127,18 @@ PreferenceView.prototype = {
 		},
 		
 	/*
-	Set the currently inputted value, the given value is cleaned beforehand and checked for changes.
+	See this.setValue.
 	*/
 	set value(v) {
 		this.setValue(v);
 		},
 		
 	/*
-	Just like setting this.value, but you can pass false as check to skip checking if
-	the value is changed and changedFromDefault.  Useful if setting many times quickly or
-	if you know you don't need to check some things.
+	Set the currently inputted value. The given value is cleaned beforehand and checked for changes.
+	Will fireGenericChangeEvent for this pref's input with fromSetValue=true on the event.
+	Returns the original value.
 	*/
-	setValue: function(val, check) {
-	
-		if(!defined(check)) check = true;
+	setValue: function(val) {
 		var clean = this.model.clean(val);
 		if(this.model.type=="boolean") {
 			this.input.checked = clean.value;
@@ -149,12 +149,16 @@ PreferenceView.prototype = {
 		this.valid = true;
 		this.errors = {};
 		
-		if(check) {
-			this.checkNewValue(val, clean.value);
-			}
-		return val;
+		this.checkNewValue(val, clean.value);
 		
+		/*This would trigger the change listener for this pref,
+		which would validate and checkNewValue again for no reason.
+		However, adding fromSetValue to the event guards against this.*/
+		this.inputEvents.fireGenericChangeEvent(this.input, {fromSetValue: true});
+		return val;
 		},
+		
+	inputEvents: new InputEvents(true),
 		
 	/*
 	This is called when this.setValue is called to make sure view classes are up to date
@@ -196,10 +200,10 @@ PreferenceView.prototype = {
 		
 	/*
 	Should be called when the user may have changed the input.
-	Will validate input and checkChanged/FromDefault.
+	Will validate input and checkChanged/FromDefault if event.fromSetValue is not true.
 	*/
 	onInput: function(e) {
-		if(e.target == this.input) {
+		if(!e.fromSetValue && e.target == this.input) {
 			var val = this.value;
 			var clean = this.clean(val);
 			this.validate(clean, val);
@@ -326,10 +330,15 @@ PreferenceView.prototype = {
 	/*
 	Should be called when the saved value has been changed by some external force.
 	Will change the currently inputted value to match the new one if it hasn't been changed already.
+	Will check if the current value is changed from last saved if necessary.
 	*/
 	onSetValue: function(newVal) {
 		if(!this.isChangedFromLastSaved()) {
 			this.model.lastSavedValue = this.value = newVal;
+			}
+		else if(this.value == newVal) {
+			//this is important, otherwise the pref will falsely appear to be changed
+			this.checkChanged();
 			}
 		},
 		
@@ -748,6 +757,8 @@ PreferenceViewManager.prototype = {
 		allDefault: "All preferences are already in their default state.",
 		notAllValid: "Some preferences were not valid and, consequently, not saved."
 		},
+		
+	inputEvents: new InputEvents(true),
 	
 	/*
 	Call add using the pairs of values from obj as name: default
@@ -929,7 +940,7 @@ PreferenceViewManager.prototype = {
 	An array of arrays of arguments to be passed to addMyListener when addListeners is called
 	*/
 	listeners: [
-		[document, ["keyup","click","change"], "validateInputListener", true],
+		[document, ["keyup","change","input"], "validateInputListener", true],
 		[document, "click", "controlButtonListener", true],
 		[document, "click", "mainControlButtonListener", true],
 		[window, "beforeunload", "beforeUnloadListener", true],
@@ -942,7 +953,7 @@ PreferenceViewManager.prototype = {
 	addListeners: function() {
 		for(var i=0, len=this.listeners.length; i<len; i++) {
 			var tlis = this.listeners[i];
-			this.addMyListener(tlis[0], tlis[1], tlis[2], tlis[4]);
+			this.addMyListener(tlis[0], tlis[1], tlis[2], tlis[4]/*todo: 4 a bug?*/);
 			}
 		},
 	
@@ -950,8 +961,13 @@ PreferenceViewManager.prototype = {
 	Validate whatever preference this input is from
 	*/
 	validateInputListener: function(e) {
-		var pref = this.get(e.target);
-		if(pref) return pref.onInput(e);
+		/*For performance reasons, only validate if the event type is relevant.
+		This function should be called for input, change, and keyup.*/
+		var relevantEvents = this.inputEvents.getChangeEvents(e.target);
+		if(relevantEvents.indexOf(e.type) != -1) {
+			var pref = this.get(e.target);
+			if(pref) return pref.onInput(e);
+			}
 		},
 		
 	/*
@@ -1083,7 +1099,7 @@ OutputArea = function(area) {
 	this.addMyListener(this.area, "submit", "submitListener", true);
 	this.addMyListener(this.area, "click", "clickListener", true);
 	}
-	
+
 OutputArea.prototype = {
 
 	getCurrentOutput: function() {
@@ -1249,6 +1265,35 @@ window.addEventListener("load", function(e) {
 	window.Preferences = new PreferenceViewManager(output);
 	Preferences.addFromObject(prefsCatcher, rules);
 	Preferences.addListeners();
+	vestitools_style.isChrome = true;
+	Preferences.usercolorController = new usercolorController(true);
+	Preferences.usercolorController.init({
+		color: Preferences.prefs.UCcolor.input, 
+		bgcolor: Preferences.prefs.UCbgcolor.input,
+		bordercolor: Preferences.prefs.UCbordercolor.input,
+		weight: Preferences.prefs.UCweight.input,
+		style: Preferences.prefs.UCstyle.input,
+		decoration: Preferences.prefs.UCdecoration.input
+		},
+		{
+		get: "getButton",
+		post: "postButton",
+		refresh: "refreshButton",
+		},
+		"username", Preferences.prefs.applyUsercolors.input);
+	
+	/*
+	We need to override these methods so they're called on the background page, 
+	since they depend on the state of background's particular instance.
+	*/
+	var vtsOverrides = 
+		["applyColors", "getColors", "postColors", "refreshColors", "defaultGetColorsCallback",
+		"defaultPostColorsCallback", "defaultRefreshColorsCallback"];
+		
+	vtsOverrides.forEach(function(e, i, a){
+		GM_API.remoteOverride("vestitools_style." + e);
+		});
+	
 	}, true);
 
 

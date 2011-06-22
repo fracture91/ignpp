@@ -2,9 +2,9 @@
 "update_url":"http://clients2.google.com/service/update2/crx",
 
 	"name": "IGN++",
-	"version": "2.2.0.10011",
+	"version": "2.2.0.50001",
 	"description": "Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.",
-	"minimum_chrome_version": "11.0.696.71",
+	"minimum_chrome_version": "12.0.742.100",
 
 	"icons": {
 		"16": "skin/default/icons/icon16.png",
@@ -18,7 +18,9 @@
 		"tabs",
 		"http://boards.ign.com/*",
 		"http://forums.ign.com/*",
-		"http://betaboards.ign.com/*"
+		"http://betaboards.ign.com/*",
+		"http://derekdev.com/mozilla/ignbq/*",
+		"unlimitedStorage"
 	],
 	
 	"options_page": "content/options/gchromeoptions.html",
@@ -33,9 +35,18 @@
 			],
 			"css": ["skin/default/main.css"],
 			"js": [
-				"content/gchromewrap.js",
+				"content/gchromeapi.js",
 				"content/gchromeinitialize.js"
 			]
+		},
+		{
+			"matches": [
+				"http://boards.ign.com/*",
+				"http://forums.ign.com/*",
+				"http://betaboards.ign.com/*"
+			],
+			"js": ["content/gchromecolors.js"],
+			"run_at": "document_start"
 		}
 	]
 
