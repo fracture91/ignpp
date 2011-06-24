@@ -66,7 +66,6 @@ pref("extensions.vestitools.googleSearch", true);
 pref("extensions.vestitools.integrateControls", true);
 pref("extensions.vestitools.searchInTab", true);
 pref("extensions.vestitools.extraBoardOptions", true);
-pref("extensions.vestitools.keyboardBrowsing", false);
 pref("extensions.vestitools.missingLinks", true);
 pref("extensions.vestitools.replyNumbers", true);
 pref("extensions.vestitools.postsPerPage", 10);

@@ -862,22 +862,6 @@ float: left;
 
 }
 
-/* keyboard-only browsing */
-.selectorBox {
-position: absolute;
-background: yellow;
-z-index: 1000;
-}
-#sbTop, #sbBottom {
-min-width: 1px;
-height: 2px !important;
-}
-#sbRight, #sbLeft {
-min-height: 1px;
-width: 2px !important;
-}
-
-
 
 
 /* map extension images to image elements with designated class names */

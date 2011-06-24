@@ -69,7 +69,6 @@
 		<preference id="pref_integrateControls" name="extensions.vestitools.integrateControls" type="bool"/>
 		<preference id="pref_searchInTab" name="extensions.vestitools.searchInTab" type="bool"/>
 		<preference id="pref_extraBoardOptions" name="extensions.vestitools.extraBoardOptions" type="bool"/>
-		<preference id="pref_keyboardBrowsing" name="extensions.vestitools.keyboardBrowsing" type="bool"/>
 		<preference id="pref_missingLinks" name="extensions.vestitools.missingLinks" type="bool"/>
 		<preference id="pref_wikiLinks" name="extensions.vestitools.wikiLinks" type="bool"/>
 		<preference id="pref_replyNumbers" name="extensions.vestitools.replyNumbers" type="bool"/>
@@ -356,7 +355,6 @@
 						<tab label="Threads"/>
 						<tab label="WULs"/>
 						<tab label="Position"/>
-						<tab label="KB Browsing"/>
 					</tabs>
 					<tabpanels>
 						<tabpanel>
@@ -533,17 +531,6 @@
 								</groupbox>
 								</hbox>
 								
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Keyboard Browsing"/>
-								<checkbox id="keyboardBrowsingField" label="Enable" preference="pref_keyboardBrowsing"/>
-								<description class="indent">
-									Enable the keyboard browsing feature, which lets you navigate the page without a mouse.
-									Note that this feature is incomplete and pretty easy to mess up.
-									Doesn't really work on the Classic theme.
-								</description>
 							</groupbox>
 						</tabpanel>
 					</tabpanels>

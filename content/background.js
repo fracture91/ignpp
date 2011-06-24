@@ -94,8 +94,7 @@ var Background = new function() {
 		"content/autowul.js",
 		"content/conditionalstyle.js",
 		"content/integratedtools.js",
-		"content/autorefresh.js",
-		"content/kbonly.js"
+		"content/autorefresh.js"
 		];
 		
 	/*
