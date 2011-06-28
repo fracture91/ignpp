@@ -1,6 +1,8 @@
-////from the Greasemonkey Compiler, updated to include features in newer GM versions
-////also updated for usage in Google Chrome in background page
-////my comments have 2x slashes for clarification, GM devs' have normal amount
+/****
+From the Greasemonkey Compiler, updated to include features in newer GM versions.
+Also updated for usage in Google Chrome in background page.
+My comments have 4 asterisks or slashes for clarification, GM devs' are normal.
+****/
 
 ////in Chrome, unsafeContentWin should be undefined
 function vestitools_xmlhttpRequester(unsafeContentWin, chromeWindow, originUrl) {
@@ -10,39 +12,45 @@ function vestitools_xmlhttpRequester(unsafeContentWin, chromeWindow, originUrl) 
 	this.aborted = false;
 }
 
-// this function gets called by user scripts in content security scope to
-// start a cross-domain xmlhttp request.
-//
-// details should look like:
-// {method,url,onload,onerror,onreadystatechange,headers,data}
-// headers should be in the form {name:value,name:value,etc}
-// can't support mimetype because i think it's only used for forcing
-// text/xml and we can't support that
+/*
+This function gets called by user scripts in content security scope to
+start a cross-domain xmlhttp request.
+
+Details should look like:
+{method,url,onload,onerror,onreadystatechange,headers,data}
+Headers should be in the form {name:value,name:value,etc}
+Can't support mimetype because i think it's only used for forcing
+text/xml and we can't support that.
+*/
 
 ////in Chrome, this is called from background when Port connection is started from content
 vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
-	// important to store this locally so that content cannot trick us up with
-	// a fancy getter that checks the number of times it has been accessed,
-	// returning a dangerous URL the time that we actually use it.
+	/*
+	Important to store this locally so that content cannot trick us up with
+	a fancy getter that checks the number of times it has been accessed,
+	returning a dangerous URL the time that we actually use it.
+	*/
 	var url = details.url;
 
-	// make sure that we have an actual string so that we can't be fooled with
-	// tricky toString() implementations.
+	/*
+	Make sure that we have an actual string so that we can't be fooled with
+	tricky toString() implementations.
+	*/
 	if (typeof url != "string") {
 		throw new Error("Invalid url: url must be of type string");
 	}
 
 	////Only check the scheme in Firefox.  Dangerous for Chrome?  Maybe.
-	////Might want to also use this for reading files in Chrome later on, anyway.
-	////http://code.google.com/p/chromium/issues/detail?id=41024
 	if(window.Components && window.Components.classes) {
 	
 		var ioService=Components.classes["@mozilla.org/network/io-service;1"]
 			.getService(Components.interfaces.nsIIOService);
 		var scheme = ioService.extractScheme(url);
 
-		// This is important - without it, GM_xmlhttpRequest can be used to get
-		// access to things like files and chrome. Careful.
+		/*
+		This is important - without it, GM_xmlhttpRequest can be used to get
+		access to things like files and chrome. Careful.
+		*/
 		switch (scheme) {
 			case "http":
 			case "https":
@@ -74,15 +82,17 @@ vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 	
 }
 
-/*
+/****
 All supported XHR events.
 setupRequestEvent is called for each one.
-*/
+****/
 vestitools_xmlhttpRequester.prototype.events =
 	["onload", "onerror", "onreadystatechange"];
 
-// this function is intended to be called in chrome's security context, so
-// that it can access other domains without security warning
+/*
+This function is intended to be called in chrome's security context, so
+that it can access other domains without security warning.
+*/
 vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, details, req) {
 
 	this.events.forEach(function(e, i, a) {
@@ -103,12 +113,11 @@ vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 	
 	var body = details.data ? details.data : null;
 	if (details.binary) {
-		// xhr supports binary?
+		//xhr supports binary?
 		if (!req.sendAsBinary) {
 			var err = new Error("Unavailable feature: " +
 				"This version of Firefox does not support sending binary data " +
 				"(you should consider upgrading to version 3 or newer.)");
-			//GM_logError(err);
 			throw err;
 		}
 		req.sendAsBinary(body);
@@ -117,16 +126,20 @@ vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 	}
 	
 	if(this.aborted) {
-		//abort has already been called, but it was called before the request was sent
-		//abort the request now
+		/****
+		Abort has already been called, but it was called before the request was sent.
+		Abort the request now.
+		****/
 		req.abort();
 		}
 
 }
 
-// arranges for the specified 'event' on xmlhttprequest 'req' to call the
-// method by the same name which is a property of 'details' in the content
-// window's security context.
+/*
+Arranges for the specified 'event' on xmlhttprequest 'req' to call the
+method by the same name which is a property of 'details' in the content
+window's security context.
+*/
 vestitools_xmlhttpRequester.prototype.setupRequestEvent =
 function(unsafeContentWin, req, event, details) {
 
@@ -134,8 +147,10 @@ function(unsafeContentWin, req, event, details) {
 		req[event] = function() {
 		
 			var responseState = {
-				// can't support responseXML because security won't
-				// let the browser call properties on it
+				/*
+				can't support responseXML because security won't
+				let the browser call properties on it
+				*/
 				responseText: req.responseText,
 				readyState: req.readyState,
 				responseHeaders: null,
@@ -158,10 +173,12 @@ function(unsafeContentWin, req, event, details) {
 		
 			////if Firefox...
 			if(window.XPCNativeWrapper) {
-				// Pop back onto browser thread and call event handler.
-				// Have to use nested function here instead of GM_hitch because
-				// otherwise details[event].apply can point to window.setTimeout, which
-				// can be abused to get increased priveledges.
+				/*
+				Pop back onto browser thread and call event handler.
+				Have to use nested function here instead of GM_hitch because
+				otherwise details[event].apply can point to window.setTimeout, which
+				can be abused to get increased priviliges.
+				*/
 				new XPCNativeWrapper(unsafeContentWin, "setTimeout()").setTimeout(callback, 0);
 				}
 			else {
