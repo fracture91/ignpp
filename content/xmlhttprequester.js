@@ -2,8 +2,7 @@
 ////also updated for usage in Google Chrome in background page
 ////my comments have 2x slashes for clarification, GM devs' have normal amount
 
-////in Chrome, unsafeContentWin refers to the Port for this request
-////new requester is made for each Port, Port is made for each XHR from content
+////in Chrome, unsafeContentWin should be undefined
 function vestitools_xmlhttpRequester(unsafeContentWin, chromeWindow, originUrl) {
 	this.unsafeContentWin = unsafeContentWin;
 	this.chromeWindow = chromeWindow;
@@ -121,9 +120,6 @@ vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 // arranges for the specified 'event' on xmlhttprequest 'req' to call the
 // method by the same name which is a property of 'details' in the content
 // window's security context.
-
-////in Chrome, each event is just set up to send a message to content
-////through Port with details - content handles actually calling the event callbacks
 vestitools_xmlhttpRequester.prototype.setupRequestEvent =
 function(unsafeContentWin, req, event, details) {
 
@@ -149,28 +145,21 @@ function(unsafeContentWin, req, event, details) {
 				responseState.finalUrl = finalURLSupported ? req.channel.URI.spec : null;
 			}
 		
+			function callback(){
+				details[event](responseState);
+				}
+		
 			////if Firefox...
 			if(window.XPCNativeWrapper) {
-			
 				// Pop back onto browser thread and call event handler.
 				// Have to use nested function here instead of GM_hitch because
 				// otherwise details[event].apply can point to window.setTimeout, which
 				// can be abused to get increased priveledges.
-				new XPCNativeWrapper(unsafeContentWin, "setTimeout()")
-					.setTimeout(function(){details[event](responseState);}, 0);
-				
+				new XPCNativeWrapper(unsafeContentWin, "setTimeout()").setTimeout(callback, 0);
 				}
-				
 			else {
-				if(unsafeContentWin instanceof chrome.Port) {
-					////post a message to the open Port with details
-					unsafeContentWin.postMessage({event: event, details: responseState});
-					}
-				else {
-					////client is not using a Port, call the method on details directly
-					////(see backgroundapi.js - GM_API.xmlhttpRequest)
-					details[event](responseState);
-					}
+				////Chrome just calls it directly
+				callback();
 				}
 		} 
 	}

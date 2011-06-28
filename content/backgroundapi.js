@@ -88,7 +88,7 @@ GM_API.XHRDockHag = function (port) {
 	/*
 	This dock hag's xmlhttpRequester, which handles all the actual network communication.
 	*/
-	this.requester = new vestitools_xmlhttpRequester(this.port, window, this.port.sender.tab.url);
+	this.requester = new vestitools_xmlhttpRequester(undefined, window, this.port.sender.tab.url);
 	
 	/*
 	Object that contentStartRequest returns that lets us abort the request.
@@ -103,15 +103,77 @@ GM_API.XHRDockHag = function (port) {
 	
 GM_API.XHRDockHag.prototype = {
 	
+	/*
+	All possible XHR event handlers.
+	*/
+	handlers: ["onload", "onerror", "onreadystatechange"],
+	
+	/*
+	This should be called for each event that happens on this.requester that
+	the content page wants to listen to.
+	It should ALWAYS be called for the readystatechange event so this dock hag
+	can be properly destroyed when the request is finished.
+	*/
+	onEvent: function(event, hasCallback, responseState) {
+		if(this.port) {
+			if(hasCallback) {
+				this.port.postMessage({event: event, details: responseState});
+				}
+			if(event == "onreadystatechange") {
+				if(responseState.readyState == 4) {
+					var that = this;
+					/*
+					If the request is done, call abort to disconnect the port.
+					It is behind a setTimeout to make sure all other handlers are called first.
+					This abort call is very important, otherwise you get a huge memory leak.
+					*/
+					setTimeout(function() {
+						that.abort();
+						}, 0);
+					}
+				}
+			}
+		},
+	
+	/*
+	Should be called whenever this.port receives a message.
+	The message should have a details property that contains your standard GM_xmlhttpRequest object,
+	except all desired handlers are set to true rather than actual functions.
+	Gets details ready and calls this.requester.contentStartRequest.
+	this.gynecologist is set to a usable state.
+	*/
 	onMessage: function(msg) {
 		//only one message is sent for this connection that has details
+	
+		var that = this;
+		/*
+		Make it so that, for each handler that is true in msg.details (or always for onreadystatechange),
+		the handler is changed to a function that calls this.onEvent.
+		*/
+		this.handlers.forEach(function(e, i, a) {
+			if(msg.details[e] || e == "onreadystatechange") {
+				msg.details[e] = (function(event) {
+					return function(responseState){
+						that.onEvent(event, msg.details[event], responseState);
+						}
+					})(e);
+				}
+			});
+		
 		this.gynecologist = this.requester.contentStartRequest(msg.details);
 		},
 		
+	/*
+	Should be called when port disconnects.
+	Aborts any request in progress.
+	*/
 	onDisconnect: function() {
 		if(this.gynecologist) this.gynecologist.abort();
 		},
 		
+	/*
+	Disconnect from the port, which will abort the XHR.
+	*/
 	abort: function() {
 		this.port.disconnect();
 		//port's onDisconnect event is only called if other side disconnects
@@ -138,7 +200,7 @@ GM_API.xmlhttpRequest = function(detailsOrPort) {
 		gynecologist = new this.XHRDockHag(detailsOrPort);
 		}
 	else {
-		gynecologist = (new vestitools_xmlhttpRequester(null, window, window.location))
+		gynecologist = (new vestitools_xmlhttpRequester(undefined, window, window.location))
 						.contentStartRequest(detailsOrPort);
 		}
 	rv.abort = function(){ gynecologist.abort() };
