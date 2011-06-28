@@ -96,15 +96,27 @@ GM_API.XHRDockHag = function (port) {
 	this.gynecologist = null;
 	
 	var that = this;
+	this.port.onMessage.addListener(function(msg) { that.onMessage(msg) });
+	this.port.onDisconnect.addListener(function() { that.onDisconnect() });
 	
-	this.port.onMessage.addListener(function(msg) {
+	}
+	
+GM_API.XHRDockHag.prototype = {
+	
+	onMessage: function(msg) {
 		//only one message is sent for this connection that has details
-		that.gynecologist = that.requester.contentStartRequest(msg.details);
-		});
+		this.gynecologist = this.requester.contentStartRequest(msg.details);
+		},
 		
-	this.port.onDisconnect.addListener(function(msg) {
-		if(that.gynecologist) that.gynecologist.abort();
-		});
+	onDisconnect: function() {
+		if(this.gynecologist) this.gynecologist.abort();
+		},
+		
+	abort: function() {
+		this.port.disconnect();
+		//port's onDisconnect event is only called if other side disconnects
+		this.onDisconnect();
+		}
 	
 	}
 
@@ -121,15 +133,15 @@ if you were calling it from a content script.
 */
 GM_API.xmlhttpRequest = function(detailsOrPort) {
 	var rv = {abort: this.unsupported};
+	var gynecologist = null;
 	if(detailsOrPort instanceof chrome.Port) {
-		var aDockHag = new this.XHRDockHag(detailsOrPort);
-		rv.abort = function(){ aDockHag.port.disconnect() };
+		gynecologist = new this.XHRDockHag(detailsOrPort);
 		}
 	else {
-		var xhr = new vestitools_xmlhttpRequester(null, window, window.location);
-		var gynecologist = xhr.contentStartRequest(detailsOrPort);
-		rv.abort = function(){ gynecologist.abort() };
+		gynecologist = (new vestitools_xmlhttpRequester(null, window, window.location))
+						.contentStartRequest(detailsOrPort);
 		}
+	rv.abort = function(){ gynecologist.abort() };
 	return rv;
 	}
 	
