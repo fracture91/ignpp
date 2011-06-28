@@ -74,13 +74,20 @@ vestitools_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 	
 }
 
+/*
+All supported XHR events.
+setupRequestEvent is called for each one.
+*/
+vestitools_xmlhttpRequester.prototype.events =
+	["onload", "onerror", "onreadystatechange"];
+
 // this function is intended to be called in chrome's security context, so
 // that it can access other domains without security warning
 vestitools_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, details, req) {
 
-	this.setupRequestEvent(this.unsafeContentWin, req, "onload", details);
-	this.setupRequestEvent(this.unsafeContentWin, req, "onerror", details);
-	this.setupRequestEvent(this.unsafeContentWin, req, "onreadystatechange", details);
+	this.events.forEach(function(e, i, a) {
+		this.setupRequestEvent(this.unsafeContentWin, req, e, details);
+		}, this);
 
 	req.open(details.method, safeUrl);
 

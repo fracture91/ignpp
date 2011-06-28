@@ -104,11 +104,6 @@ GM_API.XHRDockHag = function (port) {
 GM_API.XHRDockHag.prototype = {
 	
 	/*
-	All possible XHR event handlers.
-	*/
-	handlers: ["onload", "onerror", "onreadystatechange"],
-	
-	/*
 	This should be called for each event that happens on this.requester that
 	the content page wants to listen to.
 	It should ALWAYS be called for the readystatechange event so this dock hag
@@ -150,7 +145,7 @@ GM_API.XHRDockHag.prototype = {
 		Make it so that, for each handler that is true in msg.details (or always for onreadystatechange),
 		the handler is changed to a function that calls this.onEvent.
 		*/
-		this.handlers.forEach(function(e, i, a) {
+		vestitools_xmlhttpRequester.prototype.events.forEach(function(e, i, a) {
 			if(msg.details[e] || e == "onreadystatechange") {
 				msg.details[e] = (function(event) {
 					return function(responseState){
