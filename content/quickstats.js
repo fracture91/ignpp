@@ -57,7 +57,6 @@ var Quickstats = new function() {
 			//it also unnecessarily escapes single quotes
 			.replace(/\\'/g, "'");
 		
-		GM_log(details.responseText);
 		//and given this terribleness, wrap in a try/catch just in case
 		try{
 			var json = JSON.parse(details.responseText);
@@ -285,7 +284,8 @@ Quickstats.constructor.prototype.Builder.prototype = {
 		var watchedUsers = this.getProp("WatchedUsers", []);
 		var received = addCommas(this.getProp("WatchedByCount", -1));
 		var given = addCommas(watchedUsers.length);
-		this.pair("WULs", received + " / " + given);
+		this.pair("WULs", received + " / " + given,
+			"Times added to someone's Watched User List", "Received / Given");
 		
 		var newPMCount = this.getProp("NewPMCount", -1);
 		if(newPMCount > 0) {
@@ -318,11 +318,11 @@ Quickstats.constructor.prototype.Builder.prototype = {
 			}
 		
 		if(this.userExistsInList(watchedUsers)) {
-			this.type("WUL'd By", "wuldby in", "IDontExist", true);
+			this.type("WUL'd You", "wuldyou in", "IDontExist", true);
 			}
 		
 		//all this seems good for is checking Homer's real post count
-		this.pair("RPC", addCommas(this.getProp("PostCount", -1)), "Real Post Count");
+		this.pair("RPC", addCommas(this.getProp("PostCount", -1)), "Real Post Count?");
 		this.pair("UID", this.getProp("UserID", -1), "User ID");
 		
 		this.date("Login", "Last Login Date", "LastLoginDate");
