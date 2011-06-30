@@ -6,44 +6,13 @@ var Quickstats = new function() {
 	this.patt = /http:\/\/club\.ign\.com(\/b)?\/about/;
 	this.patt2 = /http:\/\/people\.ign\.com\//;
 	
-	this.defaultTime = "0001-01-01T00:00:00.000";
-	this.defaultIcon = "http://media.ignimgs.com/boards/img/default/icon_default_80.jpg";
+	this.serviceURL = "http://boards.ign.com/ServicesV31/UserServices.asmx/JSON_GetUserDetails";
 	
-	this.monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-	
-	this.getLeafByTag = function(el, name, unk) {
-		if(!defined(unk)) unk = "Error";
-		if(	el &&
-			(el = el.getElementsByTagName(name)) &&
-			(el = el[0]) &&
-			(el = el.firstChild) &&
-			(el = el.nodeValue))
-			return el;
-		return unk;
-		}
-		
-	this.pair = function(label, value, title, title2) {
-		function v(t) { return t ? ' title="' + t + '"' : ""; }
-		title = v(title); title2 = v(title2);
-		return '<tr><td' + title + '>' + label + '</td><td' + title2 + '>' + value + '</td></tr>';
-		}
-		
-	this.parseTime = function(str) {
-		var t = str.split('T');
-		var t2 = t[0].split('-');
-		var min = t[1];
-		var maj = this.monthNames[parseInt(t2[1].replace(/^0/, "")) - 1] + ' ' + t2[2].replace(/^0/, "") + ', ' + t2[0];
-		return [maj, min];
-		}
-		
-	this.type = function(label, className, el, name, unk) {
-		if(!defined(unk)) unk = "false";
-		var result = this.getLeafByTag(el, name, unk);
-		if(result!="true") return "";
-		return '<tr><td></td><td class="' + className + '">' + label + '</td></tr>'
-		}
-	
-	this.doIt = function(user, x, y) {
+	/*
+	Request quickstats for the given user.
+	Creates an Infopanel at coordinates x,y (in pixels).
+	*/
+	this.request = function(user, x, y) {
 		
 		var href = "http://club.ign.com/b/about?";
 		var unData = "username=" + user;
@@ -53,98 +22,398 @@ var Quickstats = new function() {
 		
 		var panel = Infopanels.open((user + 'QuickStats'), ('<a href="' + href + '">' + user + '</a>'), '<img class="loadingIcon">', [], x, y);
 		
-		var qs = this;
+		var that = this;
 		
 		GM_xmlhttpRequest({
-		method: 'GET',
-		url: 'http://boards.ign.com/ServicesV31/UserServices.asmx/GetUserDetails?username=' + user + '&viewingusername=' + I.username,
-		headers: {
-			'Accept': 'text/xml, text/html, text/plain',
-			},
-		onload: function(details) {
-			
-			if(!panel) return;
-			
-			var dt = details.responseText;
-			var dx = details.responseXML = new DOMParser().parseFromString(dt, "text/xml");
-			
-			var result, style = qs.getLeafByTag(dx, "Style", ""), html = "<table>";
-				
-				
-			if(result = qs.getLeafByTag(dx, "Title", false)) html += qs.pair("Title:", result);
-			html += qs.pair("Posts:", addCommas(qs.getLeafByTag(dx, "VirtualPostTotal")));
-			
-			var watchedUsers = dx.getElementsByTagName("WatchedUser"), len=0;
-			html += qs.pair("WULs:", addCommas(qs.getLeafByTag(dx, "WatchedByCount")) + " / " + addCommas(len = watchedUsers.length));
-			
-			if((result = qs.getLeafByTag(dx, "NewPMCount", 0)) > 0) html += qs.pair("PMs:", result, "Unread PMs");
-			
-			var time = qs.parseTime(qs.getLeafByTag(dx, "DateAdded", qs.defaultTime));	
-			html += qs.pair("Reg:", time[0], "Date Registered", time[1]);
-			
-			html += qs.type("Banned", "banned in", dx, "IsBanned");
-			html += qs.type("Admin", "admin in", dx, "IsAdministator");
-			html += qs.type("Manager", "manager in", dx, "IsManager");
-			result = qs.type("Mod", "mod in", dx, "IsModerator");
-			html += result=="" ? qs.type("ModType", "modType in", dx, "IsModType") : result;
-			//not sure what modType means, but all mods seem to have it
-			html += qs.type("VIP", "vip in", dx, "IsVip");
-			result = qs.type("Insider", "insider in", dx, "IsSubscriber");
-			html += result=="" ? qs.type("Outsider", "outsider in", dx, "IsOutsider", "true") : result;
-			//there is no "IsOutsider" node, but I know that they're an outsider since they're not an insider
-			//just using the function for its HTML generation purposes
-			
-			var wuldBy = false;
-			for(var i=0; i<len; i++) {
-				if(qs.getLeafByTag(watchedUsers[i], "Name", "") == I.username) {
-					wuldBy = true;
-					break;
-					}
+			method: "GET",
+			url: this.serviceURL + "?username=" + user + '&viewingusername=' + I.username,
+			headers: { "Accept": "application/json, text/javascript, text/plain" },
+			onload: function(details) {
+				that.onLoad(panel, details);
 				}
-				
-			if(wuldBy) html += qs.type("WUL'd By", "wuldby in", dx, "IDontExist", "true");
-			
-			//all this seems good for is checking Homer's real post count
-			html += qs.pair("RPC:", addCommas(qs.getLeafByTag(dx, "PostsCount")), "Real Post Count");
-			
-			var uid;	
-			html += qs.pair("UID:", uid = qs.getLeafByTag(dx, 'UserID', "0"), "User ID");
-			
-			time = qs.parseTime(qs.getLeafByTag(dx, "LastLoginDate", qs.defaultTime));	
-			html += qs.pair("Login:", time[0], "Last Login Date", time[1]);
-			
-			time = qs.parseTime(qs.getLeafByTag(dx, "LastPostDate", qs.defaultTime));	
-			html += qs.pair("Post:", time[0], "Last Post Date", time[1]);
-				
-			time = qs.parseTime(qs.getLeafByTag(dx, "DateUpdated", qs.defaultTime));	
-			html += qs.pair("Update:", time[0], "Last Profile Update Date...or something...", time[1]);
+			});
 		
-			html += '</table>' +
-			'<div class="bottomLinks">' +
-				'<a href="http://boards.ign.com/UserPages/WatchedUsers.aspx?usr=' + uid + '&action=update">WUL</a> | ' +
-				'<a href="http://boards.ign.com/UserPages/WatchedUsers.aspx?usr=' + uid + '&action=remove">deWUL</a> | ' +
-				'<a id="privateMessageButton" href="http://boards.ign.com/PrivateMessages/SendMessage.aspx?usr=' + uid + '">PM</a> | ' +
-				'<a href="http://boards.ign.com/UserPages/PostHistory.aspx?usr=' + uid + '">History</a> | ' +
-				'<a href="http://vestiwiki.yabd.org/wiki/index.php?title=' + user + '">Wiki</a>' + 
-			'</div>';
-			
-			var icon = dx.getElementsByTagName('Icon')[0];
-			if(!icon) html += '<div class="icon">No Icon</div>';
-			else {
-				var url = qs.getLeafByTag(icon, "ImageURL", qs.defaultIcon);
-				var alt = qs.getLeafByTag(icon, "Alias");
-				var height = qs.getLeafByTag(icon, "Height", "80");
-				var type = (height=="120") ? "MegIcon" : "TinIcon";
-				html += '<div class="icon"><img src="' + url + '" alt="' + type + ' - ' + alt + '" title="' + type + ' - ' + alt + '"></div>';
-				}
-			
-			panel.headingRef.firstChild.style.cssText = style;
-			panel.content = html;
-			
+		}
+		
+	/*
+	Number of hours that times are off UTC by.
+	*/
+	this.hoursOffset = -7;
+	
+	/*
+	This should be called when the XHR completes.
+	Updates the given panel with information from details.responseText.
+	*/
+	this.onLoad = function(panel, details) {
+		if(!panel) return;
+		
+		/*
+		The JSON we get in response isn't actually valid.
+		It includes instantiations of Date objects, which definitely aren't allowed.
+		The space is also missing sometimes (for zerosleep), and the number is sometimes negative.
+		We will replace them with the plain numbers before we parse.
+		*/
+		details.responseText = details.responseText.replace(/new ?Date\((-?\d*)\)/g, "$1")
+			//it also unnecessarily escapes single quotes
+			.replace(/\\'/g, "'");
+		
+		GM_log(details.responseText);
+		//and given this terribleness, wrap in a try/catch just in case
+		try{
+			var json = JSON.parse(details.responseText);
 			}
-			
-		});
+		catch(e) {
+			var json = {};
+			logError("JSON parsing", e);
+			}
 		
+		//convert necessary date numbers into Date objects for convenience
+		var anHour = 60*60*1000;
+		/*
+		The times seem to be UTC + this.hoursOffset, must provide UTC + 0.
+		If the time was recorded during a different DST state in its timezone, we'll lose an hour somewhere.
+		I'm not going to attempt to fix that.
+		*/
+		var offsetFix = -1 * this.hoursOffset * anHour;
+		for(var i in json) {
+			if(typeof json[i] == "number" && /date/i.test(i)) {
+				json[i] = new Date(json[i] + offsetFix);
+				}
+			}
+		
+		var builder = new this.Builder(json);
+		var frag = builder.build();
+
+		panel.headingRef.firstChild.style.cssText = builder.getProp("Style", "");
+		
+		panel.content = "";
+		panel.contentRef.appendChild(frag);
+		}
+	
+	}
+	
+/*
+This class will build the panel content from the given json from GetUserDetails.
+Running a build* method will lose all references to anything that method previously created.
+Necessary date numbers should be converted to proper Date objects beforehand.
+*/
+Quickstats.constructor.prototype.Builder = function(json) {
+	/*
+	JSON to build from.
+	*/
+	this.json = json;
+	
+	/*
+	The document fragment that will hold this.table, this.links, and this.icon.
+	*/
+	this.frag = null;
+	
+	/*
+	The table element this builder will use (set in build method).
+	*/
+	this.table = null;
+	
+	/*
+	The div that holds links on the bottom of the panel.
+	*/
+	this.links = null;
+	
+	/*
+	The div that holds the icon.
+	*/
+	this.icon = null;
+	}
+	
+Quickstats.constructor.prototype.Builder.prototype = {
+	
+	/*
+	Returns true if the given value's type is valid considering
+	the type of the default value.
+	Does a basic typeof check, checks for instanceof Date, and checks isArray.
+	*/
+	typeIsValid: function(value, def) {
+		return typeof value == typeof def && 
+			(!(def instanceof Date) || value instanceof Date) &&
+			(!Array.isArray(def) || Array.isArray(value));
+		},
+	
+	/*
+	What def defaults to in this.getProp.
+	*/
+	defaultValue: "Error",
+	
+	/*
+	Given an object, return the value of object[property].
+	def is optional.  By default, def is this.defaultValue.
+	object is optional.  By default, object is this.json.
+	If def is provided, and typeof value is not equal to typeof def,
+	def is returned instead of the value.
+	If def is an instance of Date but value is not, def is returned.
+	If typeof object is not "object", typeof property is not "string" or "number,
+	or the value is undefined, def is returned.
+	*/
+	getProp: function(property, def, object) {
+		var defProvided = defined(def);
+		if(!defProvided) def = this.defaultValue;
+		if(!defined(object)) object = this.json;
+		if(typeof object != "object" || typeof property != "string" && typeof property != "number") {
+			return def;
+			}
+		var val = object[property];
+		if(!defined(val) || defProvided && !this.typeIsValid(val, def)) {
+			return def;
+			}
+		return val;
+		},
+		
+	/*
+	Add a row (tr) to this.table containing the array of children.
+	Returns the added row.
+	*/
+	addRow: function(children) {
+		var row = document.createElement("tr");
+		for(var i=0, len=children.length; i<len; i++) {
+			row.appendChild(children[i]);
+			}
+		return this.table.appendChild(row);
+		},
+		
+	/*
+	Gets a map ready to be passed to createElementX.
+	Always returns an object that represents the prepared map.
+	map can be anything, but is always turned into an object.
+	map.textContent is set to content.
+	If map was originally a string, then map[assumed] is set to it.
+	*/
+	prepareMap: function(map, content, assumed) {
+		var assumedVal;
+		if(typeof map == "string") {
+			assumedVal = map;
+			}
+		if(typeof map != "object") {
+			map = {};
+			}
+		map.textContent = content;
+		if(assumedVal) map[assumed] = assumedVal;
+		return map;
+		},
+		
+	/*
+	Add a row to the table containing two columns: a label and a value.
+	The two optional maps are provided to createElementX (textContent cannot be changed).
+	If a map is a string, it is assumed to be a desired title.
+	The label always gets a semicolon appended to it.
+	Returns the added row.
+	*/
+	pair: function(label, value, labelMap, valueMap) {
+		label += ":";
+		var contents = [label, value];
+		var maps = [labelMap, valueMap];
+		var elements = [];
+		for(var i=0, len=contents.length; i<len; i++) {
+			var map = maps[i];
+			map = this.prepareMap(map, contents[i], "title");
+			elements.push(createElementX("td", map));
+			}
+		return this.addRow(elements);
+		},
+		
+	/*
+	Add a row to the table containing a pair with the given label and labelMap.
+	The Date instance is found by looking for the given property, defaults to this.defaultDate.
+	value is set similar to Date.toDateString(), valueMap is set to Date.toTimeString();
+	Returns the added row.
+	*/
+	date: function(label, labelMap, property) {
+		var date = this.getProp(property, this.defaultDate);
+		//add comma before year and remove leading zeros
+		var dateString = date.toDateString().replace(/ -?\d+$/, ",$&").replace(/(^| )0+(\d+)/g, "$1$2");
+		return this.pair(label, dateString, labelMap, date.toTimeString());
+		},
+		
+	/*
+	Conditionally add a row to the table containing two columns: an empty one and label.
+	The row is only added if this.getProp(property, def, object) returns true.
+	def and object are optional, like in this.getProp, but def defaults to false.
+	map is passed to createElementX like in this.pair,
+	but when it's a string it's assumed to be a desired className.
+	Returns the row if added, otherwise returns undefined.
+	*/
+	type: function(label, map, property, def, object) {
+		if(!defined(def)) def = false;
+		if(this.getProp(property, def, object)===true) {
+			map = this.prepareMap(map, label, "className");
+			return this.addRow([document.createElement("td"), createElementX("td", map)]);
+			}
+		},
+	
+	/*
+	Default date used in case one is missing.
+	*/
+	defaultDate: new Date(0),
+	
+	/*
+	Returns true if the given username appears in the given list of users.
+	Used for seeing if a user has been WUL'd.
+	username defaults to I.username.
+	*/
+	userExistsInList: function(list, username) {
+		if(!defined(username)) username = I.username;
+		for(var i=0, len=list.length; i<len; i++) {
+			if(this.getProp("Name", "", list[i]) == username) {
+				return true;
+				}
+			}
+		return false;
+		},
+	
+	/*
+	Build the table from this.json.
+	Returns the table element when done.
+	this.table will also be set to the table element.
+	*/
+	buildTable: function() {
+		this.table = document.createElement("table");
+		
+		var title = this.getProp("Title", "");
+		if(title != "") {
+			this.pair("Title", title);
+			}
+		
+		this.pair("Posts", addCommas(this.getProp("VirtualPostCount", -1)));
+		
+		var watchedUsers = this.getProp("WatchedUsers", []);
+		var received = addCommas(this.getProp("WatchedByCount", -1));
+		var given = addCommas(watchedUsers.length);
+		this.pair("WULs", received + " / " + given);
+		
+		var newPMCount = this.getProp("NewPMCount", -1);
+		if(newPMCount > 0) {
+			this.pair("PMs", newPMCount, "Unread PMs");
+			}
+		
+		this.date("Reg", "Date Registered", "DateAdded");
+		
+		this.type("Banned", "banned in", "IsBanned");
+		this.type("Admin", "admin in", "IsAdministator");
+		this.type("Manager", "manager in", "IsManager");
+		
+		if(!this.type("Mod", "mod in", "IsModerator")) {
+			/*
+			Not sure what modType means, but all mods seem to have it
+			so I'll only include it if necessary.
+			*/
+			this.type("ModType", "modType in", "IsModType");
+			}
+		
+		this.type("VIP", "vip in", "IsVip");
+		
+		if(!this.type("Insider", "insider in", "IsSubscriber")) {
+			/*
+			There is no "IDontExist" property, but I know that they're an outsider
+			since they're not an insider.  getProp won't find it and will return true.
+			Just using the function for its DOM generation purposes.
+			*/
+			this.type("Outsider", "outsider in", "IDontExist", true);
+			}
+		
+		if(this.userExistsInList(watchedUsers)) {
+			this.type("WUL'd By", "wuldby in", "IDontExist", true);
+			}
+		
+		//all this seems good for is checking Homer's real post count
+		this.pair("RPC", addCommas(this.getProp("PostCount", -1)), "Real Post Count");
+		this.pair("UID", this.getProp("UserID", -1), "User ID");
+		
+		this.date("Login", "Last Login Date", "LastLoginDate");
+		this.date("Post", "Last Post Date", "LastPostDate");
+		this.date("Update", "Last Profile Update Date...or something...", "DateUpdated");
+		
+		return this.table;
+		},
+		
+	/*
+	Append a link (anchor element) to this.links with the given content.
+	Also add a separator text node before it if necessary.
+	map is passed to createElementX for the link.
+	If map is a string, it is assumed to be the desired href for the link.
+	Returns the appended link element.
+	*/
+	link: function(content, map) {
+		map = this.prepareMap(map, content, "href");
+		if(this.links.childNodes.length > 0) {
+			this.links.appendChild(document.createTextNode(" | "));
+			}
+		return this.links.appendChild(createElementX("a", map));
+		},
+	
+	/*
+	Build the bottom links from this.json.
+	Returns the containing div when done.
+	this.links will also be set to the containing div.
+	*/
+	buildLinks: function() {
+		this.links = createElementX("div", {className: "bottomLinks"});
+		var uid = this.getProp("UserID", -1);
+		var name = this.getProp("Name");
+		
+		var args = [
+			["WUL", "http://boards.ign.com/UserPages/WatchedUsers.aspx?usr=" + uid + "&action=update"],
+			["deWUL", "http://boards.ign.com/UserPages/WatchedUsers.aspx?usr=" + uid + "&action=remove"],
+			["PM", {href: "http://boards.ign.com/PrivateMessages/SendMessage.aspx?usr=" + uid,
+					id: "privateMessageButton"}],
+			["History", "http://boards.ign.com/UserPages/PostHistory.aspx?usr=" + uid],
+			["Wiki", "http://vestiwiki.yabd.org/wiki/index.php?title=" + name]
+			];
+		
+		for(var i=0, len=args.length; i<len; i++) {
+			this.link(args[i][0], args[i][1]);
+			}
+		
+		return this.links;
+		},
+		
+	/*
+	URL of the default icon to use when no icon URL is given.
+	*/
+	defaultIcon: "http://media.ignimgs.com/boards/img/default/icon_default_80.jpg",
+	
+	/*
+	Build the icon from this.json.
+	Returns the containing div when done.
+	this.icon will also be set to the containing div.
+	*/
+	buildIcon: function() {
+		this.icon = createElementX("div", {className: "icon"});
+		
+		var def = {};
+		var root = this.getProp("Icon", def);
+		if(root != def) {
+			var height = this.getProp("Height", 80, root);
+			var type = height>=120 ? "MegIcon" : "TinIcon";
+			var alt = type + " - " + this.getProp("Alias", undefined, root);
+			this.icon.appendChild(createElementX("img", {
+				src: this.getProp("ImageURL", this.defaultIcon, root),
+				alt: alt,
+				title: alt
+				}));
+			}
+		else this.icon.textContent = "No Icon";
+		
+		return this.icon;
+		},
+	
+	/*
+	Calls buildTable, buildLinks, and buildIcon,
+	then adds them all to new document fragment this.frag.
+	Returns this.frag.
+	*/
+	build: function() {
+		this.frag = document.createDocumentFragment();
+		this.frag.appendChild(this.buildTable());
+		this.frag.appendChild(this.buildLinks());
+		this.frag.appendChild(this.buildIcon());
+		return this.frag;
 		}
 	
 	}
@@ -174,7 +443,7 @@ Listeners.add(document, 'click', function(e) {
 		
 		e.preventDefault();
 		
-		Quickstats.doIt(user, e.pageX, e.pageY+1);
+		Quickstats.request(user, e.pageX, e.pageY+1);
 		
 		}
 
