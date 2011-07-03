@@ -147,11 +147,11 @@ GM_API.XHRDockHag.prototype = {
 		*/
 		vestitools_xmlhttpRequester.prototype.events.forEach(function(e, i, a) {
 			if(msg.details[e] || e == "onreadystatechange") {
-				msg.details[e] = (function(event) {
+				msg.details[e] = (function(event, hasCallback) {
 					return function(responseState){
-						that.onEvent(event, msg.details[event], responseState);
+						that.onEvent(event, hasCallback, responseState);
 						}
-					})(e);
+					})(e, !!msg.details[e]);
 				}
 			});
 		
