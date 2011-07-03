@@ -3,10 +3,47 @@ var Quickstats = new function() {
 	
 	this.__defineGetter__("showUsercolors", function(){return GM_getValue("showUsercolorsQuickstats", false);});
 	
-	this.patt = /http:\/\/club\.ign\.com(\/b)?\/about/;
-	this.patt2 = /http:\/\/people\.ign\.com\//;
+	this.clubPattern = /^http:\/\/club\.ign\.com(\/b)?\/about.*$/;
+	this.peoplePattern = /^http:\/\/people\.ign\.com\/.*$/;
 	
 	this.serviceURL = "http://boards.ign.com/ServicesV31/UserServices.asmx/JSON_GetUserDetails";
+	
+	/*
+	Should be called when the user clicks somewhere.
+	Makes sure the target is a valid link, then requests quickstats for the user in the URL.
+	*/
+	this.onClick = function(e) {
+		if(e.which!=1 || !e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return;
+		
+		var target = e.target;
+		if(target.tagName != "A") {
+			target = getParentByTagName(target, "a");
+			}
+			
+		if(target && target.href) {
+			var isPeopleLink = this.peoplePattern.test(target.href);
+			if(isPeopleLink || this.clubPattern.test(target.href)) {
+				var url = new Url(target.href);
+				var username = isPeopleLink ? url.pathname.substring(1) : url.getField("username");
+				if(!isPeopleLink && !username) {
+					/*
+					Club links without any explicit username send the user to their own profile,
+					so we should use the user's own username to find quickstats.
+					*/
+					username = I.username;
+					}
+				if(I.validUsername.test(username)) {
+					e.preventDefault();
+					this.request(username, e.pageX, e.pageY+1);
+					}
+				}
+			}
+		}
+		
+	var that = this;
+	Listeners.add(document, "click", function(e) {
+		that.onClick(e);
+		}, true);
 	
 	/*
 	Request quickstats for the given user.
@@ -417,34 +454,3 @@ Quickstats.constructor.prototype.Builder.prototype = {
 		}
 	
 	}
-	
-	
-Listeners.add(document, 'click', function(e) {
-
-	if(e.which!=1 || !e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return;
-		
-	var evt = e.target;
-	var targetLink;
-
-	if(!evt.tagName) return;
-
-	if((evt.tagName=="A" && (targetLink = evt)) || (targetLink = getParentByTagName(evt, "a"))) {
-		var isPeopleLink = false;
-		if(
-			targetLink.href.search(Quickstats.patt)==-1 && 
-			!(isPeopleLink = targetLink.href.search(Quickstats.patt2)!=-1)
-			) return;
-	
-		var url = new Url(targetLink.href), 
-		user = isPeopleLink ? url.pathname.substring(1) : url.getField("username");
-		//alert(user);
-		if(!isPeopleLink && !user) user = I.username;
-		if(!I.validUsername.test(user)) return;
-		
-		e.preventDefault();
-		
-		Quickstats.request(user, e.pageX, e.pageY+1);
-		
-		}
-
-	}, true);
