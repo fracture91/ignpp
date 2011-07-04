@@ -2,7 +2,7 @@
 "update_url":"http://clients2.google.com/service/update2/crx",
 
 	"name": "IGN++",
-	"version": "2.3.0.10001",
+	"version": "2.3.0.10002",
 	"description": "Adds many helpful features to boards.ign.com.  Quick post, ignore users, autorefresh, WYSIWYG editor, etc.",
 	"minimum_chrome_version": "12.0.742.100",
 
