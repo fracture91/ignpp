@@ -256,12 +256,13 @@ padding-right: 2px;
 }
 .infoPanel td:last-child {
 text-shadow: 0 0 1px black;
+max-width: 156px;
 }
 .infoPanel table {
 z-index: 1;
 position: relative;
 max-width: 200px;
-margin-right: 5px;
+margin: 5px;
 border-spacing: 0;
 }
 .infoPanel .icon {
@@ -274,6 +275,9 @@ opacity: 0.25;
 -webkit-box-shadow: 0 0 10px 5px #b1b3bc;
 box-shadow: 0 0 10px 5px #b1b3bc;
 z-index: 0;
+}
+.infoPanel .icon > img {
+padding: 5px;
 }
 
 /* thread preview */
