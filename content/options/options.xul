@@ -370,7 +370,7 @@
 												<checkbox id="autorefreshTopicsField" label="Topics" preference="pref_autorefreshTopics"/>
 											</caption>
 											<hbox>
-												<description>Interval</description>
+												<label value="Interval" control="autorefreshTopicsIntField"/>
 												<textbox id="autorefreshTopicsIntField" label="autorefreshTopicsInt" preference="pref_autorefreshTopicsInt" type="number" min="50" max="99999999" increment="250"/>
 											</hbox>
 										</groupbox>
@@ -379,7 +379,7 @@
 												<checkbox id="autorefreshPMCountField" label="PM Count" preference="pref_autorefreshPMCount"/>
 											</caption>
 											<hbox>
-												<description>Interval</description>
+												<label value="Interval" control="autorefreshPMCountIntField"/>
 												<textbox id="autorefreshPMCountIntField" label="autorefreshPMCountInt" preference="pref_autorefreshPMCountInt" type="number" min="50" max="99999999" increment="250"/>
 											</hbox>
 										</groupbox>
@@ -389,46 +389,38 @@
 											<checkbox id="autorefreshRepliesField" label="Replies" preference="pref_autorefreshReplies"/>
 										</caption>
 										<hbox>
-											<vbox>
-												<hbox>
-													<description>Interval</description>
-													<textbox id="autorefreshRepliesIntField" label="autorefreshRepliesInt" preference="pref_autorefreshRepliesInt" type="number" min="50" max="99999999" increment="250"/>
-												</hbox>
-												<checkbox id="autorefreshRepliesAfterPostingField" label="After Posting" preference="pref_autorefreshRepliesAfterPosting"/>
-											</vbox>
-											<vbox>
-												<checkbox id="autorefreshEditsField" label="Edits" preference="pref_autorefreshEdits"/>
-												<checkbox id="autorefreshPollsField" label="Polls" preference="pref_autorefreshPolls"/>
-											</vbox>
+											<label value="Interval" control="autorefreshRepliesIntField"/>
+											<textbox id="autorefreshRepliesIntField" label="autorefreshRepliesInt" preference="pref_autorefreshRepliesInt" type="number" min="50" max="99999999" increment="250"/>
+											<checkbox id="autorefreshRepliesAfterPostingField" label="After Posting" preference="pref_autorefreshRepliesAfterPosting"/>
+											<checkbox id="autorefreshEditsField" label="Edits" preference="pref_autorefreshEdits"/>
+											<checkbox id="autorefreshPollsField" label="Polls" preference="pref_autorefreshPolls"/>
 										</hbox>
 									</groupbox>
 									<checkbox id="autorefreshRecentField" label="Recent Posts" preference="pref_autorefreshRecent"/>
 								</vbox>
 							</groupbox>
 						</tabpanel>
-						<tabpanel>
-							<vbox>
-								<groupbox>
-									<caption label="Ignore Users"/>
-									<checkbox id="ignoreRepliesField" label="Replies" preference="pref_ignoreReplies"/>
-									<description class="indent">
-										Hide selected users' posts, icons, and signatures in topics.
-									</description>
-									<checkbox id="ignoreTopicsField" label="Topics" preference="pref_ignoreTopics"/>
-									<description class="indent">
-										Hide selected users' topics in boards.
-									</description>
-									<hbox>
-										<textbox id="manualIgnoreField" label="Manual Ignore Field" value="Add/Remove"/>
-										<button id="eraseIgnoreListButton" label="Erase List"/>
-									</hbox>
-									<textbox id="ignoreListField" label="Ignore List" preference="pref_ignoreList"/>
-								</groupbox>
-								<checkbox id="ignoreLinksField" label="Links" preference="pref_ignoreLinks"/>
+						<tabpanel orient="vertical">
+							<groupbox>
+								<caption label="Ignore Users"/>
+								<checkbox id="ignoreRepliesField" label="Replies" preference="pref_ignoreReplies"/>
 								<description class="indent">
-									Add Hide/Ignore links below each post.
+									Hide selected users' posts, icons, and signatures in topics.
 								</description>
-							</vbox>
+								<checkbox id="ignoreTopicsField" label="Topics" preference="pref_ignoreTopics"/>
+								<description class="indent">
+									Hide selected users' topics in boards.
+								</description>
+								<hbox>
+									<textbox id="manualIgnoreField" label="Manual Ignore Field" value="Add/Remove"/>
+									<button id="eraseIgnoreListButton" label="Erase List"/>
+								</hbox>
+								<textbox id="ignoreListField" label="Ignore List" preference="pref_ignoreList"/>
+							</groupbox>
+							<checkbox id="ignoreLinksField" label="Links" preference="pref_ignoreLinks"/>
+							<description class="indent">
+								Add Hide/Ignore links below each post.
+							</description>
 						</tabpanel>
 						<tabpanel>
 							<groupbox>
@@ -507,11 +499,11 @@
 									<caption label="Board"/>
 									<vbox>
 										<hbox>
-											<description>X</description>
+											<label value="X" control="floatXField"/>
 											<textbox id="floatXField" label="floatX" preference="pref_floatX" type="number" min="-99999" max="99999" increment="5"/>
 										</hbox>
 										<hbox>
-											<description>Y</description>
+											<label value="Y" control="floatYField"/>
 											<textbox id="floatYField" label="floatY" preference="pref_floatY" type="number" min="-99999" max="99999" increment="5"/>
 										</hbox>
 									</vbox>
@@ -520,11 +512,11 @@
 									<caption label="Topic"/>
 									<vbox>
 										<hbox>
-											<description>X</description>
+											<label value="X" control="floatXTField"/>
 											<textbox id="floatXTField" label="floatXT" preference="pref_floatXT" type="number" min="-99999" max="99999" increment="5"/>
 										</hbox>
 										<hbox>
-											<description>Y</description>
+											<label value="Y" control="floatYTField"/>
 											<textbox id="floatYTField" label="floatYT" preference="pref_floatYT" type="number" min="-99999" max="99999" increment="5"/>
 										</hbox>
 									</vbox>

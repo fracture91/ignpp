@@ -1,37 +1,32 @@
 @import url(chrome://global/skin/);
 
-groupbox {
-max-width: 250px;
+prefpane, tabbox, tabpanels, tabpanel, groupbox, iframe {
+-moz-box-flex: 1;
+}
+
+prefpane > tabbox {
+/*If we don't do this, the bottom of the tabbox is cut off*/
+padding-bottom: 16px;
 }
 
 tabbox[orient="horizontal"] > tabs > tab {
-min-width: 100px;
+min-width: 110px;
+}
+
+description {
+max-width: 360px;
 }
 
 description.indent {
 opacity: 0.75;
-font-size: 11px;
 }
 
 textbox[multiline="true"] {
-height: 33px;
+height: 37px;
 }
 
 textbox[type="number"] {
 max-width: 50px;
-}
-
-iframe {
-width: 256px;
-height: 245px;
-}
-
-tabpanel {
-max-width: 400px;
-}
-
-#usercolorsPanel description {
-max-width: 350px;
 }
 
 #usercolorsPanel textbox {
