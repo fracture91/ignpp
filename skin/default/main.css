@@ -809,21 +809,29 @@ padding-bottom: 10px;
 outline: 1px solid transparent;
 }
 
-/* when reply autorefresh gets some new content, indicate this with a little gradient */
-.newReply, .newReply > td.boards_thread_subject {
-background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/newreply.png") !important;
-background-repeat: repeat-x !important;
-background-position: top left !important;
+/* when reply autorefresh gets some new content, indicate this with a little colored stripe on the left
+color blind people should still be able to distinguish the two stripes by their consistent positions */
+.newReply {
+/*yellow stripe*/
+background-image: -moz-linear-gradient(left, rgba(255,255,0, 0.3), rgba(255,255,0, 0.3) 5px, rgba(255,255,0, 0) 5px) !important;
+background-image: -webkit-linear-gradient(left, rgba(255,255,0, 0.3), rgba(255,255,0, 0.3) 5px, rgba(255,255,0, 0) 5px) !important;
 }
-.editedReply, .editedReply > td.boards_thread_subject {
-background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/editedreply.png") !important;
-background-repeat: repeat-x !important;
-background-position: top left !important;
+.editedReply {
+/*blue stripe, offset*/
+background-image: -moz-linear-gradient(left, rgba(0,0,255, 0), rgba(0,0,255, 0) 5px, rgba(0,0,255, 0.3) 5px, rgba(0,0,255, 0.3) 10px, rgba(0,0,255, 0) 10px) !important;
+background-image: -webkit-linear-gradient(left, rgba(0,0,255, 0), rgba(0,0,255, 0) 5px, rgba(0,0,255, 0.3) 5px, rgba(0,0,255, 0.3) 10px, rgba(0,0,255, 0) 10px) !important;
 }
-.newReply.editedReply, .newReply.editedReply > td.boards_thread_subject {
-background-image: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/editedreply.png"), url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/newreply.png") !important;
-background-repeat: repeat-x, repeat-x !important;
-background-position: top left, top left !important;
+.newReply.editedReply {
+/*yellow then blue*/
+background-image: -moz-linear-gradient(left, rgba(255,255,0, 0.3), rgba(255,255,0, 0.3) 5px, rgba(0,0,255, 0.3) 5px, rgba(0,0,255, 0.3) 10px, rgba(0,0,255, 0) 10px) !important;
+background-image: -webkit-linear-gradient(left, rgba(255,255,0, 0.3), rgba(255,255,0, 0.3) 5px, rgba(0,0,255, 0.3) 5px, rgba(0,0,255, 0.3) 10px, rgba(0,0,255, 0) 10px) !important;
+}
+tr.newReply, tr.editedReply {
+background-color: #b1b3bc !important;
+}
+tr.newReply > td:not(.boards_thread_subject),
+tr.editedReply > td:not(.boards_thread_subject) {
+background-color: transparent !important;
 }
 
 /* when recent replies autorefresh sees that a topic has new replies, add gradient and make bold */
