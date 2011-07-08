@@ -803,11 +803,6 @@ tr.hiddenReply .boards_thread_user_profile_container {
 padding-bottom: 10px;
 }
 
-/* autorefresh outline */
-#boards_full_width,
-#boards_board_list_table {
-outline: 1px solid transparent;
-}
 
 /* when reply autorefresh gets some new content, indicate this with a little colored stripe on the left
 color blind people should still be able to distinguish the two stripes by their consistent positions */

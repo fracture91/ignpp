@@ -554,7 +554,7 @@ RecentUpdater.prototype = {
 	getReplies: function(els) {
 		var len = els.length, arr = [];
 		for(var i=0; i<len; i++)
-			arr.push(new recentReply(els[i]));
+			arr.push(new this.recentReply(els[i]));
 		return arr;
 		},
 		
