@@ -481,7 +481,6 @@ var vestitools_style = new function vt_Style() {
 		var that = this;
 		xhr = this.getXHR();
 		xhr.open("GET", (name ? this.colorsUserUrl + name : this.colorsListUrl), true);
-		xhrHeaders(xhr, {"Pragma": "no-cache", "Cache-Control": "no-cache"});
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState==4) {
 				var success = that.XHRUsercolorSuccess(xhr);

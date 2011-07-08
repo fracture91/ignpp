@@ -332,9 +332,7 @@ var Message = new function Message_Obj() {
 			data: _data,
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded",
-				"Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8",
-				"Cache-Control" : "no-cache, no-cache",
-				"Pragma" : "no-cache",
+				"Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8"
 				},
 			onload: function(details) {
 				

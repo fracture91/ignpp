@@ -49,11 +49,7 @@ function Refresher(target, interval) {
 		GM_xmlhttpRequest({
 			method: "GET",
 			url: ref.target,
-			headers:{
-			"Accept": ref.accept,
-			"Pragma": "no-cache",
-			"Cache-Control": "no-cache"
-			},
+			headers: {"Accept": ref.accept},
 			onload:function(details) {
 			
 				if(thisRef.outlinee) thisRef.outlinee.style.outlineColor = (thisRef.dontRefresh) ? "red" : "transparent";
