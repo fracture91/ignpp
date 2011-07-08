@@ -371,6 +371,15 @@ Url.prototype = {
 		return end == -1 ? href.slice(start) : href.slice(start, end);
 		},
 		
+	get PMCountUrl() {
+		return this.protocol + "//" + this.host + "/PrivateMessages/NewPMCount.aspx?caption=&rand="
+				+ Math.floor(Math.random()*9999999999) + "&contenttype=javascript";
+		},
+		
+	get boardUrl() {
+		return this.protocol + "//" + this.host + "/" + this.boardName + "/b" + this.boardNumber + "/p" + this.pageNumber;
+		},
+		
 	get replyUrl() { 
 		return this.protocol + "//" + this.host + "/PostForms/PostReply.aspx?brd=" + this.boardNumber + "&topic=" + this.topicNumber;
 		},

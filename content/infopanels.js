@@ -148,8 +148,6 @@ Infopanel.prototype.className = Infopanels.className;
 
 Listeners.add(document, 'click', function(event) {
 	
-	Autorefresh.inFocus = true;
-	
 	var evt = event.target;
 	
 	var existing = Infopanels.get(evt);

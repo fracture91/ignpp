@@ -130,8 +130,6 @@ var Integratedtools = new function() {
 //by pressing enter on the wiki search button...oh well, it's desirable
 Listeners.add(document, 'click', function(e) {
 	
-	Autorefresh.inFocus = true;
-	
 	if(e.which!=1 || e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
 
 	var wasControl = true;

@@ -751,8 +751,6 @@ if(I.url.pageType=="topic") {
 
 Listeners.add(document, 'click', function(event) {
 	
-	Autorefresh.inFocus = true;
-	
 	if(event.which!=1 || event.ctrlKey || event.altKey || event.shiftKey || event.metaKey) return;
 
 	var evt = event.target;

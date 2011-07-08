@@ -381,8 +381,8 @@ var Message = new function Message_Obj() {
 							
 							//change page refresh target to url with reply id if we're on the last page
 							if(type=="edit" || pageReplies.currentPage == pageReplies.lastPage) {
-								Autorefresh.page.target = "http://" + I.url.host + that.lastBlock(dr);
-								if(Autorefresh.repliesAfterPosting) Autorefresh.page.action();
+								Autorefresh.page.url = I.url.protocol + "//" + I.url.host + that.lastBlock(dr);
+								if(Autorefresh.repliesAfterPosting) Autorefresh.page.request();
 								}
 							
 							}
