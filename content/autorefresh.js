@@ -28,6 +28,11 @@ function Refresher() {
 	this.subject = "Generic";
 	
 	/*
+	A Date representing when the last request ended.
+	*/
+	this.requestEndDate = new Date();
+	
+	/*
 	The target URL to request.  Can be a function that returns a string or just a string.
 	*/
 	this._url = window.location.href;
@@ -161,6 +166,7 @@ Refresher.prototype = {
 	onRequestEnd: function() {
 		this.refreshing = false;
 		this.gynecologist = null;
+		this.requestEndDate = new Date();
 		},
 	
 	/*
@@ -171,6 +177,14 @@ Refresher.prototype = {
 			this.gynecologist.abort();
 			this.onRequestEnd();
 			}
+		},
+		
+	/*
+	Returns true if current time - requestEndDate > interval.
+	now can be a Date object to use for efficiency's sake.
+	*/
+	isOutdated: function(now) {
+		return (now ? now : new Date()) - this.requestEndDate > this._interval;
 		}
 	
 	}
@@ -739,6 +753,18 @@ var Autorefresh = new function() {
 				}
 			});
 		}
+		
+	/*
+	Call request method of any refreshers which haven't been refreshed for interval milliseconds.
+	*/
+	this.refreshOutdated = function() {
+		var now = new Date();
+		this.refreshers.forEach(function(e, i, a) {
+			if(e.isOutdated(now)) {
+				e.request();
+				}
+			});
+		}
 	
 	/*
 	Get all necessary refreshers and their updaters started.
@@ -776,6 +802,7 @@ var Autorefresh = new function() {
 	*/
 	this.onKeyup = function(e) {
 		
+		this.inFocus = true;
 		if(e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
 		if(e.which!=65 && e.which!=82) return;
 		if(Listeners.elementAcceptsInput(e.target)) return;
@@ -807,8 +834,7 @@ var Autorefresh = new function() {
 		
 	Listeners.add(window, 'focus', function(e) {
 		that.inFocus = true;
-		/*if(I.url.pageType=="board" && that.topics) that.page.action();
-		if(that.pmCount) that.pms.action();*/
+		that.refreshOutdated();
 		}, true);
 		
 	Listeners.add(window, 'mouseover', function(e) {
