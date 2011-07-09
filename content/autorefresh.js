@@ -710,7 +710,19 @@ var Autorefresh = new function() {
 	True if this tab is in focus, false otherwise.
 	Managed by a bunch of listeners added below.
 	*/
-	this.inFocus = false;
+	var inFocus = false;
+	this.__defineGetter__("inFocus", function() {
+		if(chrome) {
+			/*
+			document.hasFocus() always returns true on Chrome, so we have to fall
+			back to this manually maintained variable.
+			See issue #229 and http://code.google.com/p/chromium/issues/detail?id=64846
+			*/
+			return inFocus;
+			}
+		return document.hasFocus();
+		});
+	this.__defineSetter__("inFocus", function(b){ inFocus = b });
 	
 	/*
 	True if focus should be considered when a request is deciding to continue or not.
@@ -827,27 +839,25 @@ var Autorefresh = new function() {
 		that.onKeyup(e);
 		}, true);
 	
-	//basically just add a bunch of event listeners to see if window is focused or not
-	Listeners.add(window, 'blur', function(e) {
-		that.inFocus = false;
-		}, true);
-		
 	Listeners.add(window, 'focus', function(e) {
 		that.inFocus = true;
 		that.refreshOutdated();
 		}, true);
-		
-	Listeners.add(window, 'mouseover', function(e) {
-		that.inFocus = true;
-		}, true);
-		
-	Listeners.add(window, 'mouseout', function(e) {
-		that.inFocus = true;
-		}, true);
-		
-	Listeners.add(window, 'scroll', function(e) {
-		that.inFocus = true;
-		}, true);
+	
+	if(chrome) {
+		//only Chrome needs these to maintain inFocus
+		Listeners.add(window, 'blur', function(e) {
+			that.inFocus = false;
+			}, true);
+			
+		Listeners.add(window, "click", function(e) {
+			that.inFocus = true;
+			}, true);
+			
+		Listeners.add(window, 'scroll', function(e) {
+			that.inFocus = true;
+			}, true);
+		}
 	
 	}
 	
