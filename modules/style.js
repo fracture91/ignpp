@@ -202,6 +202,17 @@ var vestitools_style = new function vt_Style() {
 		}
 	
 	/*
+	Returns an nsIURI like nsiIOService.newURI, but makes it a data URI
+	containing the provided CSS content properly encoded.
+	aOriginCharset and aBaseURI are now optional, default to null.
+	*/
+	this.newCSSDataUri = function(content, aOriginCharset, aBaseURI) {
+		if(typeof aOriginCharset == "undefined") aOriginCharset = null;
+		if(typeof aBaseURI == "undefined") aBaseURI = null;
+		return ios.newURI("data:text/css," + encodeURIComponent(content), aOriginCharset, aBaseURI);
+		}
+	
+	/*
 	Apply the stylesheet at mainFileUri to the browser.
 	Google Chrome should never have to use this.
 	*/
@@ -211,18 +222,16 @@ var vestitools_style = new function vt_Style() {
 		var temp = vestitools_files.readFile(this.mainFileUri);
 		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
 		//also need to fix chrome-extension URIs
-		if(temp) mainDataUri = ios.newURI(
-			"data:text/css,@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
-			temp.replace(/\n/g, "%0A")
+		if(temp) mainDataUri = this.newCSSDataUri(
+			"@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
 				/*
 				Ideally, I'd only need to replace __MSG_@@extension_id__ specifically with vestitools,
 				but I can't use it since it's broken.
 				See http://code.google.com/p/chromium/issues/detail?id=39899
 				*/
-				.replace(/chrome-extension:\/\/[^\/]*\//g, "chrome://vestitools/")
-				.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
-			" }",
-			null, null);
+				temp.replace(/chrome-extension:\/\/[^\/]*\//g, "chrome://vestitools/")
+					.replace(/vestitools\/skin\/default/g, "vestitools/skin") +
+			" }");
 		else return 0; //file wasn't read correctly
 		
 		//if it's not registered already, load and register it
@@ -301,8 +310,7 @@ var vestitools_style = new function vt_Style() {
 			var that = this;
 			vestitools_files.readFile(this.colorsFileUri, function(text) {
 				if(!that.chrome) {
-					var data = "data:text/css," + text.replace(/\n/g, "%0A");
-					colorsDataUri = ios.newURI(data, null, null);
+					colorsDataUri = that.newCSSDataUri(text);
 					sss.loadAndRegisterSheet(colorsDataUri, sss.USER_SHEET);
 					}
 				else {
