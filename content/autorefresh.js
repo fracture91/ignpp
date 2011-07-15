@@ -50,30 +50,76 @@ function Refresher() {
 	/*
 	The interval to refresh at, in milliseconds.
 	Set by this.init to the interval of the first ContentUpdater.
+	Whenever set, this.backgroundInterval is updated accordingly.
 	*/
-	this._interval = 10000;
+	this.interval = 10000;
 	
 	/*
 	Interval ID returned by setInterval.
 	*/
 	this._intervalID = null;
 	
+	/*
+	The interval to refresh at when this tab isn't focused, in milliseconds.
+	Managed by the setter for this.interval,
+	should always be this.backgroundIntervalMultiplierPref * this.interval.
+	*/
+	this.backgroundInterval;
+	
+	/*
+	Background interval ID returned by setInterval.
+	*/
+	this._backgroundIntervalID = null;
+	
 	}
 	
 Refresher.prototype = {
 	
+	get interval() {
+		return this._interval;
+		},
+		
+	set interval(n) {
+		//don't touch after calling setIntervals
+		if(!this._intervalID) {
+			this._interval = n;
+			this._backgroundInterval = this._interval * this.backgroundIntervalMultiplierPref;
+			}
+		},
+		
+	get backgroundInterval() {
+		return this._backgroundInterval;
+		},
+	
 	/*
-	setInterval to start refreshing.
-	Interval used is determined by the first ContentUpdater.
+	this.interval is set to the interval of the first ContentUpdater.
+	Call this.setIntervals to start refreshing.
 	*/
 	init: function() {
 		if(this.contentUpdaters[0]) {
-			this._interval = this.contentUpdaters[0].interval;
+			this.interval = this.contentUpdaters[0].interval;
 			}
+		this.setIntervals();
+		},
+		
+	/*
+	Start the timers to periodically call this.request.
+	*/
+	setIntervals: function() {
 		var that = this;
 		this._intervalID = setInterval(function() {
 			that.request();
-			}, this._interval);
+			}, this.interval);
+		this._backgroundIntervalID = setInterval(function() {
+			that.request(undefined, true);
+			}, this.backgroundInterval);
+		},
+	
+	/*
+	What this._interval should be multiplied by to get this._backgroundInterval.
+	*/
+	get backgroundIntervalMultiplierPref() {
+		return GM_getValue("autorefreshBackgroundIntervalMultiplier", 10);
 		},
 	
 	/*
@@ -113,49 +159,67 @@ Refresher.prototype = {
 			}
 		return false;
 		},
+		
+	/*
+	True if this should refresh when the tab isn't focused.
+	*/
+	get backgroundPref() {
+		return GM_getValue("autorefreshBackground", true);
+		},
 	
 	/*
-	Perform a request only if > 0 ContentUpdaters want to,
-	as determined by the return value of their isReady method.
-	Don't request if already refreshing.
-	
-	If override is true, do it regardless of anything else.
-	Any request in progress is aborted.
+	Returns true if this refresher is ready to make a request.
+	background should be true if this is a request originating from the background interval.
+	Only considered ready when not currently refreshing, at least one ContentUpdater isReady,
+	and the tab is in an acceptable focus state considering Autorefresh.focusMatters and background.
 	*/
-	request: function(override) {
-		
-		var badFocus = Autorefresh.focusMatters && !Autorefresh.inFocus;
-		if(this.refreshing || badFocus || !this.updatersAreReady()) {
-			if(override) {
-				this.abort();
+	isReady: function(background) {
+		if(!this.refreshing) {
+			//yay Karnaugh maps
+			var goodFocus = !Autorefresh.focusMatters && !background ||
+				Autorefresh.inFocus && !background ||
+				Autorefresh.focusMatters && !Autorefresh.inFocus && background && this.backgroundPref;
+			if(goodFocus && this.updatersAreReady()) {
+				return true;
 				}
-			else {
-				return;
-				}
+			}
+		return false;
+		},
+	
+	/*
+	Perform a request for this.url if this.isReady is true.
+	If override is true, do it regardless of anything else - any request in progress is aborted.
+	this.onLoad is called when the request is done.
+	*/
+	request: function(override, background) {
+		if(override) {
+			this.abort();
+			}
+		else if(!this.isReady(background)) {
+			return;
 			}
 		
 		this.refreshing = true;
 		var that = this;
-		this.gynecologist = GM_xmlhttpRequest({
+		this._gynecologist = GM_xmlhttpRequest({
 			method: "GET",
 			url: this.url,
 			headers: {"Accept": this.accept},
 			onload: function(details) {
-				that.onLoad(details, override);
+				that.onLoad(details, override, background);
 				}
 			});
-		
 		},
 		
 	/*
 	Call the onLoad method on each observer, providing details from the request
-	and the override value (passed along from this.request).
+	and the override/background value (passed along from this.request).
 	*/
-	onLoad: function(details, override) {
+	onLoad: function(details, override, background) {
 		this.onRequestEnd();
-		vlog(this.subject + " Refresher Load");
+		vlog(this.subject + (background ? " Background" : "") + " Refresher Load");
 		this.observers.forEach(function(e, i, a) {
-			e.onLoad(details, override);
+			e.onLoad(details, override, background);
 			});
 		},
 		
@@ -165,7 +229,7 @@ Refresher.prototype = {
 	*/
 	onRequestEnd: function() {
 		this.refreshing = false;
-		this.gynecologist = null;
+		this._gynecologist = null;
 		this.requestEndDate = new Date();
 		},
 	
@@ -173,8 +237,8 @@ Refresher.prototype = {
 	Abort the request in progress, if any.
 	*/
 	abort: function() {
-		if(this.gynecologist) {
-			this.gynecologist.abort();
+		if(this._gynecologist) {
+			this._gynecologist.abort();
 			this.onRequestEnd();
 			}
 		},
@@ -184,7 +248,7 @@ Refresher.prototype = {
 	now can be a Date object to use for efficiency's sake.
 	*/
 	isOutdated: function(now) {
-		return (now ? now : new Date()) - this.requestEndDate > this._interval;
+		return (now ? now : new Date()) - this.requestEndDate > this.interval;
 		}
 	
 	}
@@ -201,7 +265,7 @@ function PageRefresher() {
 		this.url = I.url.boardUrl;
 		}	
 	//this will be overridden by ContentUpdaters, but do it anyway
-	this._interval = I.url.pageType == "topic" ? Autorefresh.repliesInt : Autorefresh.topicsInt;
+	this.interval = I.url.pageType == "topic" ? Autorefresh.repliesInt : Autorefresh.topicsInt;
 	}
 extend(PageRefresher, Refresher);
 
@@ -213,7 +277,7 @@ function PMCountRefresher() {
 	Refresher.call(this);
 	this.subject = "PM Count";
 	this.url = this.getPMCountUrl;
-	this._interval = Autorefresh.pmCountInt;
+	this.interval = Autorefresh.pmCountInt;
 	this.accept = "text/javascript, text/plain";
 	}
 PMCountRefresher.prototype.getPMCountUrl = function() {
