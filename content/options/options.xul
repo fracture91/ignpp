@@ -48,6 +48,7 @@
 		<preference id="pref_floatY" name="extensions.vestitools.floatY" type="int"/>
 		<preference id="pref_floatXT" name="extensions.vestitools.floatXT" type="int"/>
 		<preference id="pref_floatYT" name="extensions.vestitools.floatYT" type="int"/>
+		<preference id="pref_autorefreshBackground" name="extensions.vestitools.autorefreshBackground" type="bool"/>
 		<preference id="pref_autorefreshTopics" name="extensions.vestitools.autorefreshTopics" type="bool"/>
 		<preference id="pref_autorefreshTopicsInt" name="extensions.vestitools.autorefreshTopicsInt" type="int"/>
 		<preference id="pref_autorefreshRecent" name="extensions.vestitools.autorefreshRecent" type="bool"/>
@@ -364,6 +365,7 @@
 									Retrieve new content that would normally only be available after a page refresh.
 								</description>
 								<vbox>
+									<checkbox id="autorefreshBackgroundField" label="Autorefresh Background Tabs" preference="pref_autorefreshBackground"/>
 									<hbox>
 										<groupbox>
 											<caption>

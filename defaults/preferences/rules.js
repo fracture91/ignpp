@@ -27,6 +27,11 @@ rules.pretextStart = rules.pretextEnd = rules.pretextBefore = rules.pretextAfter
 	multiline: true
 }
 
+rules.autorefreshBackgroundIntervalMultiplier = {
+	min: 1,
+	step: 1
+}
+
 rules.autorefreshTopicsInt = rules.autorefreshRepliesInt = autorefreshPMCountInt = {
 	min: 1000,
 	step: 1
