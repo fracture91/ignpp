@@ -263,9 +263,17 @@ function PageRefresher() {
 	this.subject = "Page";
 	if(I.url.pageType == "board") {
 		this.url = I.url.boardUrl;
-		}	
-	//this will be overridden by ContentUpdaters, but do it anyway
-	this.interval = I.url.pageType == "topic" ? Autorefresh.repliesInt : Autorefresh.topicsInt;
+		}
+	}
+PageRefresher.prototype = {
+
+	/*
+	True if the user wants to trigger a refresh after posting a reply.
+	*/
+	get afterPostingPref() {
+		return GM_getValue("autorefreshRepliesAfterPosting", true);
+		}
+		
 	}
 extend(PageRefresher, Refresher);
 
@@ -277,7 +285,6 @@ function PMCountRefresher() {
 	Refresher.call(this);
 	this.subject = "PM Count";
 	this.url = this.getPMCountUrl;
-	this.interval = Autorefresh.pmCountInt;
 	this.accept = "text/javascript, text/plain";
 	}
 PMCountRefresher.prototype.getPMCountUrl = function() {
@@ -307,7 +314,7 @@ function ContentUpdater(refresher, contentElement, hoverMatters) {
 	/*
 	True if the user wants autorefresh to occur for this content.
 	*/
-	this.autorefresh = false;
+	this.autorefresh = this.autorefreshPref;
 	
 	/*
 	The element this is responsible for updating.
@@ -329,7 +336,7 @@ function ContentUpdater(refresher, contentElement, hoverMatters) {
 	The interval this would like to receive updates at in milliseconds.
 	Does not guarantee that the refresher will honor it.
 	*/
-	this.interval = 10000;
+	this.interval = this.intervalPref;
 	
 	if(this.hoverMatters) {
 		this.addMouseOverListeners();
@@ -338,6 +345,20 @@ function ContentUpdater(refresher, contentElement, hoverMatters) {
 	}
 	
 ContentUpdater.prototype = {
+	
+	/*
+	The preference which determines the default state of this.autorefresh.
+	*/
+	get autorefreshPref() {
+		return false;
+		},
+		
+	/*
+	The preference which determines this.interval.
+	*/
+	get intervalPref() {
+		return 10000;
+		},
 	
 	/*
 	Add listeners to this.contentElement (if set) which keep track of this.mouseOverContentElement.
@@ -390,11 +411,19 @@ refresher should be a PageRefresher.
 */
 function TopicsUpdater(refresher) {
 	ContentUpdater.call(this, refresher, document.getElementById("boards_board_list_table"), true);
-	this.autorefresh = Autorefresh.topics;
-	this.interval = Autorefresh.topicsInt;
 	}
 	
 TopicsUpdater.prototype = {
+	
+	//override
+	get autorefreshPref() {
+		return GM_getValue("autorefreshTopics", true);
+		},
+		
+	//override
+	get intervalPref() {
+		return GM_getValue("autorefreshTopicsInt", 5000);
+		},
 	
 	/*
 	Given the response text from the refresher, return the innerHTML
@@ -441,8 +470,6 @@ this.url will change to a URL with a reply ID after the user posts a reply.
 */
 function RepliesUpdater(refresher) {
 	ContentUpdater.call(this, refresher, document.getElementById("boards_full_width"));
-	this.autorefresh = Autorefresh.replies;
-	this.interval = Autorefresh.repliesInt;
 	
 	/*
 	Since this.url can change, we need to keep a backup of the last valid URL
@@ -452,6 +479,30 @@ function RepliesUpdater(refresher) {
 	}
 
 RepliesUpdater.prototype = {
+	
+	//override
+	get autorefreshPref() {
+		return GM_getValue("autorefreshReplies", true);
+		},
+		
+	//override
+	get intervalPref() {
+		return GM_getValue("autorefreshRepliesInt", 5000);
+		},
+		
+	/*
+	True if the user wants this to catch new edits.
+	*/
+	get editsPref() {
+		return GM_getValue("autorefreshEdits", true);
+		},
+		
+	/*
+	True if the user wants this to catch poll changes.
+	*/
+	get pollsPref() {
+		return GM_getValue("autorefreshPolls", true);
+		},
 	
 	/*
 	Given the new Replies object, update the current paginator
@@ -530,12 +581,12 @@ RepliesUpdater.prototype = {
 			//if this post is already here
 			if(oldReply) {
 				//if there's a new edit
-				if(Autorefresh.edits && (newReply.editCount > oldReply.editCount)) {
+				if(this.editsPref && (newReply.editCount > oldReply.editCount)) {
 					this.applyEdit(oldReply, newReply);
 					newStuff = true;
 					}
 				//if it's the first post and there's a poll on the page
-				if(Autorefresh.polls && i==0 && oldReply.poll) {
+				if(this.pollsPref && i==0 && oldReply.poll) {
 					//if the poll has more votes, update it
 					if(oldReply.votes < newReply.votes) oldReply.poll = newReply.poll;
 					}
@@ -575,10 +626,25 @@ Recent posts area must be at least partially visible for this to be ready.
 */
 function RecentUpdater(refresher) {
 	ContentUpdater.call(this, refresher, document.getElementById("boards_add_info_my_recent_posts"), true);
-	this.autorefresh = Autorefresh.recent;
 	}
 
 RecentUpdater.prototype = {
+	
+	//override
+	get autorefreshPref() {
+		return GM_getValue("autorefreshRecent", true);
+		},
+	
+	//override
+	get intervalPref() {
+		//this doesn't have its own pref, uses interval of the Topic or Replies Updater
+		if(I.url.pageType == "topic"){
+			return RepliesUpdater.prototype.intervalPref;
+			}
+		else {
+			return TopicsUpdater.prototype.intervalPref;
+			}
+		},
 	
 	//override
 	isReady: function() {
@@ -683,11 +749,19 @@ extend(RecentUpdater, ContentUpdater);
 
 function PMCountUpdater(refresher) {
 	ContentUpdater.call(this, refresher);
-	this.autorefresh = Autorefresh.pmCount;
-	this.interval = Autorefresh.pmCountInt;
 	}
 
 PMCountUpdater.prototype = {
+	
+	//override
+	get autorefreshPref() {
+		return GM_getValue("autorefreshPMCount", true);
+		},
+		
+	//override
+	get intervalPref() {
+		return GM_getValue("autorefreshPMCountInt", 3000);
+		},
 	
 	/*
 	Given the response text from a request, return the number of PMs the user has.
@@ -758,17 +832,6 @@ The Autorefresh object constructs these objects and does some helper stuff.
 */
 
 var Autorefresh = new function() {
-	
-	this.__defineGetter__("topics", function(){return GM_getValue("autorefreshTopics", true);});
-	this.__defineGetter__("topicsInt", function(){return GM_getValue("autorefreshTopicsInt", 5000);});
-	this.__defineGetter__("recent", function(){return GM_getValue("autorefreshRecent", true);});
-	this.__defineGetter__("replies", function(){return GM_getValue("autorefreshReplies", true);});
-	this.__defineGetter__("repliesInt", function(){return GM_getValue("autorefreshRepliesInt", 5000);});
-	this.__defineGetter__("repliesAfterPosting", function(){return GM_getValue("autorefreshRepliesAfterPosting", true);});
-	this.__defineGetter__("edits", function(){return GM_getValue("autorefreshEdits", true);});
-	this.__defineGetter__("polls", function(){return GM_getValue("autorefreshPolls", true);});
-	this.__defineGetter__("pmCount", function(){return GM_getValue("autorefreshPMCount", true);});
-	this.__defineGetter__("pmCountInt", function(){return GM_getValue("autorefreshPMCountInt", 3000);});
 	
 	/*
 	True if this tab is in focus, false otherwise.

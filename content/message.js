@@ -377,12 +377,12 @@ var Message = new function Message_Obj() {
 							Panels.close(panel);
 							}
 							
-						if(I.url.pageType=="topic" && Autorefresh.replies && (type=="reply" || type=="edit") && pageReplies) {
+						if(I.url.pageType=="topic" && (type=="reply" || type=="edit") && pageReplies) {
 							
 							//change page refresh target to url with reply id if we're on the last page
 							if(type=="edit" || pageReplies.currentPage == pageReplies.lastPage) {
 								Autorefresh.page.url = I.url.protocol + "//" + I.url.host + that.lastBlock(dr);
-								if(Autorefresh.repliesAfterPosting) Autorefresh.page.request();
+								if(Autorefresh.page.afterPostingPref) Autorefresh.page.request();
 								}
 							
 							}
