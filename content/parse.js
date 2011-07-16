@@ -200,7 +200,7 @@ var Parse = new function() {
 				var src = node.getAttribute("src");
 				if(src) {
 				  var faceMatch;
-				  if(node.className && node.className == "BoardFace" && (faceMatch = src.match(/^http:\/\/media\.ign\.com\/boardfaces\/(\d+|facetal)\.gif$/i)))
+				  if(hasClass(node, "BoardFace") && (faceMatch = src.match(/^http:\/\/media\.ign\.com\/boardfaces\/(\d+|facetal)\.gif$/i)))
 					innerText = " [face_" + findFaceName(faceMatch[1]) + "] ";
 				  else if(/^http:\/\/[^\s]*\.(?:jpe?g|gif|png|bmp)$/i.test(src))
 					innerText = "[image=" + src + "]";
