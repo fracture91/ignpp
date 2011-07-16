@@ -23,6 +23,7 @@ var GM_API = new function() {
 		"getValue",
 		"setValue",
 		"getFile",
+		"idle",
 		"addStyle",
 		"xmlhttpRequest",
 		"time",
@@ -136,6 +137,37 @@ var GM_API = new function() {
 		return typeof file == "string" ? file : "";
 		}
 
+	/*
+	The date when the browser was last active (not idle).
+	*/
+	this.lastActivity = new Date();
+	
+	/*
+	Updates this.lastActivity according to the new idle state provided.
+	Client is responsible for calling this every second.
+	*/
+	this.onIdleStateUpdate = function(newState) {
+		if(newState == "active") {
+			//the user could have just been active or was active 14 seconds ago - assume just active
+			this.lastActivity = new Date();
+			}
+		else {
+			/*
+			minimum queryState threshold is 15 seconds, so we know the last time
+			the user was possibly active was 15 seconds ago.
+			*/
+			this.lastActivity = new Date(new Date() - 15000);
+			}
+		}
+	
+	/*
+	Given a threshold in milliseconds, return true if the browser has been idle for that long.
+	On Chrome, only thresholds above 15000 are accurate (within about 3 seconds).
+	*/
+	this.idle = function(threshold) {
+		return new Date() - this.lastActivity > threshold;
+		}
+		
 	/*
 	Adds the given CSS to the page as a style.
 	Asynchronous.

@@ -181,6 +181,7 @@ injectScript: function(script, url, unsafeContentWin) {
 	sandbox.GM_log=vestitools_gmCompiler.hitch(this, "log", unsafeContentWin);
 	sandbox.GM_time=vestitools_gmCompiler.hitch(this, "time", unsafeContentWin);
 	sandbox.GM_timeEnd=vestitools_gmCompiler.hitch(this, "timeEnd", unsafeContentWin);
+	sandbox.GM_idle=vestitools_gmCompiler.hitch(this, "idle");
 	
 	//unsupported
 	sandbox.GM_registerMenuCommand=function(){};
@@ -213,6 +214,16 @@ evalInSandbox: function(code, codebase, sandbox) {
 	} else {
 		throw new Error("Could not create sandbox.");
 	}
+},
+
+/*
+API method GM_idle.
+Returns true if the browser has been idle for threshold milliseconds.
+*/
+idle: function(threshold) {
+	var idleService = Components.classes["@mozilla.org/widget/idleservice;1"]
+					.getService(Components.interfaces.nsIIdleService);
+	return idleService.idleTime > threshold;
 },
 
 openInTab: function(unsafeContentWin, url) {

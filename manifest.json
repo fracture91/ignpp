@@ -15,6 +15,7 @@
 	},
 	
 	"permissions": [
+		"idle",
 		"tabs",
 		"http://boards.ign.com/*",
 		"http://forums.ign.com/*",

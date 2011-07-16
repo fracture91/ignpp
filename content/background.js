@@ -56,6 +56,11 @@ var Background = new function() {
 		}
 	
 	/*
+	Rate to poll for idle state at, in milliseconds.
+	*/
+	this.idlePollInterval = 1000;
+	
+	/*
 	Inject all scripts listed in this.scripts into the given tab.
 	*/
 	this.injectScripts = function(tab) {
@@ -99,10 +104,15 @@ var Background = new function() {
 		
 	/*
 	Listener for when the window loads, set up by this.init.
-	Initializes vestitools_files, vestitools_style, and copies over known files.
+	Initializes idle polling, vestitools_files, vestitools_style, and copies over known files.
 	*/
 	this.onLoad = function(e) {
 		var that = this;
+		setInterval(function() {
+			chrome.idle.queryState(15, function(newState) {
+				GM_API.onIdleStateUpdate(newState);
+				});
+			}, this.idlePollInterval);
 		vestitools_files.chromeInit(function() {
 			that.getFilesCopy(that.knownFiles, function(copy) {
 				for(var i in that.knownFiles)

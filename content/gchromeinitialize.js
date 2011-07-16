@@ -34,6 +34,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		case "ping":
 			sendResponse({time: (new Date()).getTime()});
 			break;
+		case "idlestate":
+			GM_API.onIdleStateUpdate(request.state);
+			break;
 		default:
 			GM_log("Unknown request to content: " + request.type);
 			break;
