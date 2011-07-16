@@ -385,6 +385,15 @@ Editor.prototype = {
 		
 		},
 		
+	/*
+	Autocensor only if the user prefers it for the given type of panel.
+	*/
+	conditionallyAutocensor: function(type) {
+		if(Editors.autocensor.posts && /^(topic|reply|edit)$/.test(type) || Editors.autocensor.pms && type=="pm") {
+			this.autocensor();
+			}
+		},
+		
 	autocensor: function() {
 		
 		var text = this.body;
@@ -1238,20 +1247,15 @@ Cleanup.add(function(){ Editors = null; });
 	
 
 //autocensor when post button is focused
+//Chrome doesn't fire this when the button is clicked (#252)
 Listeners.add(document, 'focus', function(e) {
 
 	if(!e.target || e.target.className != "postButton")
 		return;
 
-	if(!Editors.autocensor.posts && !Editors.autocensor.pms)
-		return;
-
 	var mypa = Panels.get(e.target);
 	if(!mypa || e.target != mypa.postButton) return;
-	
-	var type = mypa.type;
 
-	if( (Editors.autocensor.posts && /^(topic|reply|edit)$/.test(type)) || (Editors.autocensor.pms && type=="pm") )
-		mypa.editor.autocensor();
+	mypa.editor.conditionallyAutocensor(mypa.type);
 
 	}, true);

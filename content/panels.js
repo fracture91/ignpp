@@ -952,6 +952,10 @@ Listeners.add(document, 'click', function(event) {
 				if(evt.disabled) break;
 				var mypa = Panels.get(evt);
 				if(!mypa) break;
+				if(chrome) {
+					//Chrome doesn't fire a focus event when this is clicked, so do it now (#252)
+					mypa.editor.conditionallyAutocensor(mypa.type);
+					}
 				Message.post(mypa);
 				break;
 				
