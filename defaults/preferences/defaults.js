@@ -41,6 +41,7 @@ pref("extensions.vestitools.selectionQuote", true);
 pref("extensions.vestitools.strictSelectionQuote", false);
 pref("extensions.vestitools.strictSelectionQuoteAuthor", true);
 pref("extensions.vestitools.deletePanels", false);
+pref("extensions.vestitools.autorefreshIdleTimeout", 600000);
 pref("extensions.vestitools.autorefreshBackground", true);
 pref("extensions.vestitools.autorefreshBackgroundIntervalMultiplier", 10);
 pref("extensions.vestitools.autorefreshTopics", true);

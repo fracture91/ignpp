@@ -90,6 +90,13 @@ Refresher.prototype = {
 	get backgroundInterval() {
 		return this._backgroundInterval;
 		},
+		
+	/*
+	How long the browser must be idle until this stops refreshing, in milliseconds.
+	*/
+	get idleTimeoutPref() {
+		return GM_getValue("autorefreshIdleTimeout", 600000); //10 minutes
+		},
 	
 	/*
 	this.interval is set to the interval of the first ContentUpdater.
@@ -171,15 +178,17 @@ Refresher.prototype = {
 	Returns true if this refresher is ready to make a request.
 	background should be true if this is a request originating from the background interval.
 	Only considered ready when not currently refreshing, at least one ContentUpdater isReady,
+	the browser has not been idle for this.idleTimeoutPref or longer if focusMatters,
 	and the tab is in an acceptable focus state considering Autorefresh.focusMatters and background.
 	*/
 	isReady: function(background) {
 		if(!this.refreshing) {
+			var goodIdle = !Autorefresh.focusMatters || !GM_idle(this.idleTimeoutPref);
 			//yay Karnaugh maps
 			var goodFocus = !Autorefresh.focusMatters && !background ||
 				Autorefresh.inFocus && !background ||
 				Autorefresh.focusMatters && !Autorefresh.inFocus && background && this.backgroundPref;
-			if(goodFocus && this.updatersAreReady()) {
+			if(goodIdle && goodFocus && this.updatersAreReady()) {
 				return true;
 				}
 			}

@@ -27,6 +27,12 @@ rules.pretextStart = rules.pretextEnd = rules.pretextBefore = rules.pretextAfter
 	multiline: true
 }
 
+rules.autorefreshIdleTimeout = {
+	min: 15000,
+	max: 3600000, //1 hour
+	step: 1
+}
+
 rules.autorefreshBackgroundIntervalMultiplier = {
 	min: 1,
 	step: 1
