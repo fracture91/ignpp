@@ -5,6 +5,7 @@ var Quickstats = new function() {
 	
 	this.clubPattern = /^http:\/\/club\.ign\.com(\/b)?\/about.*$/;
 	this.peoplePattern = /^http:\/\/people\.ign\.com\/.*$/;
+	this.clubBoardPattern = /^http:\/\/my\.ign\.com\/club-board.*$/;
 	
 	this.serviceURL = "http://boards.ign.com/ServicesV31/UserServices.asmx/JSON_GetUserDetails";
 	
@@ -22,17 +23,19 @@ var Quickstats = new function() {
 			
 		if(target && target.href) {
 			var isPeopleLink = this.peoplePattern.test(target.href);
-			if(isPeopleLink || this.clubPattern.test(target.href)) {
+			var isClubBoardLink = this.clubBoardPattern.test(target.href);
+			var isClubLink = this.clubPattern.test(target.href);
+			if(isClubBoardLink || isPeopleLink || isClubLink) {
 				var url = new Url(target.href);
 				var username = isPeopleLink ? url.pathname.substring(1) : url.getField("username");
-				if(!isPeopleLink && !username) {
+				if(isClubLink && !username) {
 					/*
 					Club links without any explicit username send the user to their own profile,
 					so we should use the user's own username to find quickstats.
 					*/
 					username = I.username;
 					}
-				if(I.validUsername.test(username)) {
+				if(typeof username == "string" && I.validUsername.test(username)) {
 					e.preventDefault();
 					this.request(username, e.pageX, e.pageY+1);
 					}
