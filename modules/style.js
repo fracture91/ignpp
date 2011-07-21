@@ -737,11 +737,14 @@ var vestitools_style = new function vt_Style() {
 	
 	var profileLinkUrl = "http://club.ign.com/b/about?username=";
 	var peopleLinkUrl = "http://people.ign.com/";
+	var clubBoardLinkUrl = "http://my.ign.com/club-board?username=";
 	
 	var profileLinkSelector = ['a', '[href^="', profileLinkUrl, 'unknown', '"]'];
 	var peopleLinkSelector = profileLinkSelector.slice(0); //copy array
 	peopleLinkSelector[2] = peopleLinkUrl;
 	peopleLinkSelector[1] = '[href="';
+	var clubBoardLinkSelector = profileLinkSelector.slice(0);
+	clubBoardLinkSelector[2] = clubBoardLinkUrl;
 	var linkSelectorUsernameLoc = 3;
 	
 	var importantEnding = " !important;\n";
@@ -764,6 +767,7 @@ var vestitools_style = new function vt_Style() {
 		*/
 		var buf = [];
 		var showUsercolorsPeopleLinks = GM_getValue("showUsercolorsPeopleLinks", false);
+		var showUsercolorsClubBoardLinks = GM_getValue("showUsercolorsClubBoardLinks", false);
 		
 		function selectorPusher(e, i) {
 			//push the username where "unknown" would be located
@@ -791,6 +795,12 @@ var vestitools_style = new function vt_Style() {
 			if(showUsercolorsPeopleLinks) {
 				buf.push(",\n");
 				peopleLinkSelector.forEach(selectorPusher);
+				}
+				
+			//and select the user's club-board link as well if preferred
+			if(showUsercolorsClubBoardLinks) {
+				buf.push(",\n");
+				clubBoardLinkSelector.forEach(selectorPusher);
 				}
 				
 			buf.push(" {\n");
