@@ -67,6 +67,10 @@ function runTests() {
 		}
 	});
 
+	/*
+	Test OOP things.
+	*/
+	
 	assert(window.sideEffect, false);
 
 	var mysteryAnimal = new Animal("Mystery");
@@ -112,7 +116,48 @@ function runTests() {
 	lassie.size = 100;
 	assert(lassie.size, -400);
 	window.sideEffect = false;
-
+	
+	/*
+	Test extra functionality, "JS" things.
+	*/
+	var class1 = extend();
+	assert(typeof class1, "function");
+	assert(class1.prototype instanceof Object, true);
+	
+	function func1(){};
+	var class2 = extend(null, func1);
+	assert(class2, func1);
+	assert(class2.prototype instanceof Object, true);
+	
+	
+	var prop1ref = {}, prop2ref = {}, prop1override = {};
+	function func2(){};
+	func2.prototype = {
+		prop1: prop1ref,
+		prop2: prop2ref
+	}
+	var class3 = extend(func2, null, {
+		prop1: prop1override
+	});
+	class3instance = new class3();
+	assert(class3.prototype instanceof func2, true);
+	assert(Object.getPrototypeOf(class3instance) instanceof func2, true);
+	assert(class3.prototype.prop1, prop1override);
+	assert(class3.prototype.prop2, func2.prototype.prop2);
+	assert(class3instance.prop1, class3.prototype.prop1);
+	assert(class3instance.prop2, func2.prototype.prop2);
+	assert(func2.prototype.prop1, prop1ref); //make sure prototypes are independent
+	class3instance.prop2 = "hi"; //instance property, prototypes unchanged
+	assert(class3instance.prop2, "hi");
+	assert(class3.prototype.prop2, func2.prototype.prop2);
+	assert(func2.prototype.prop2, prop2ref);
+	
+	var class4 = extend(null, null, {
+		prop: "hi"
+	});
+	assert(typeof class4, "function");
+	assert(class4.prototype.prop, "hi");
+	
 }
 
 window.addEventListener("load", function() {
@@ -131,7 +176,7 @@ window.addEventListener("load", function() {
 </script></head>
 <body>
 <textarea id="results"></textarea>
-<p>Tests the following:
+<p>Tests the following traditional OOP things:
 	<ul>
 		<li>Makes sure instanceof works</li>
 		<li>Makes sure constructors only called when new operator is used</li>
@@ -140,6 +185,13 @@ window.addEventListener("load", function() {
 		<li>Basic property and method inheritance</li>
 		<li>Private properties with getters</li>
 		<li>Method, property, getter, setter overriding and chaining</li>
+	</ul>
+
+Tests this prototypical inheritance stuff:
+	<ul>
+		<li>Makes sure subclassInstance.__proto__ instanceof superclass</li>
+		<li>Setting prototypical property on instance creates <i>instance</i> property</li>
+		<li>Changing prototype of subclass leaves superclass prototype unaltered</li>
 	</ul>
 </p>
 </body>

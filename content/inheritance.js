@@ -68,6 +68,9 @@ Based on function by Juan Mendes: http://js-bits.blogspot.com/2010/08/javascript
 var extend = (function(){
 	function _inheritance_(){};
 	return function extend(superclass, subclass, newproto) {
+		if(typeof subclass != "function") {
+			subclass = function(){};
+		}
 		if(typeof superclass == "function") {
 			_inheritance_.prototype = superclass.prototype;
 			subclass.prototype = new _inheritance_();
