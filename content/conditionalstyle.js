@@ -37,12 +37,6 @@ var Condstyle = new function() {
 		}
 	
 	
-	var floatingPos = 
-	'body > .panel {' +
-	'left: ' + (I.url.pageType=="topic" ? GM_getValue("floatXT", 20) : GM_getValue("floatX", 20)) + 'px;' +
-	'bottom: ' + (I.url.pageType=="topic" ? GM_getValue("floatYT", 10) : GM_getValue("floatY", 10)) + 'px;' +
-	'}'
-	
 	//the following defaults to Classic's style if not included
 	
 	var freshFont =
@@ -68,7 +62,6 @@ var Condstyle = new function() {
 	
 	var style =
 		wysiwygStyle +
-		floatingPos +
 		minHeightFix;
 
 	GM_addStyle(style);

@@ -44,10 +44,6 @@
 		<preference id="pref_selectionQuote" name="extensions.vestitools.selectionQuote" type="bool"/>
 		<preference id="pref_strictSelectionQuote" name="extensions.vestitools.strictSelectionQuote" type="bool"/>
 		<preference id="pref_strictSelectionQuoteAuthor" name="extensions.vestitools.strictSelectionQuoteAuthor" type="bool"/>
-		<preference id="pref_floatX" name="extensions.vestitools.floatX" type="int"/>
-		<preference id="pref_floatY" name="extensions.vestitools.floatY" type="int"/>
-		<preference id="pref_floatXT" name="extensions.vestitools.floatXT" type="int"/>
-		<preference id="pref_floatYT" name="extensions.vestitools.floatYT" type="int"/>
 		<preference id="pref_autorefreshBackground" name="extensions.vestitools.autorefreshBackground" type="bool"/>
 		<preference id="pref_autorefreshTopics" name="extensions.vestitools.autorefreshTopics" type="bool"/>
 		<preference id="pref_autorefreshTopicsInt" name="extensions.vestitools.autorefreshTopicsInt" type="int"/>
@@ -355,7 +351,6 @@
 						<tab label="Integrated Tools"/>
 						<tab label="Threads"/>
 						<tab label="WULs"/>
-						<tab label="Position"/>
 					</tabs>
 					<tabpanels>
 						<tabpanel>
@@ -487,44 +482,6 @@
 								<description class="indent">
 									Automate the WUL/deWUL process for as many users as you like, simultaneously.
 								</description>
-							</groupbox>
-						</tabpanel>
-						<tabpanel>
-							<groupbox>
-								<caption label="Position"/>
-								<description>
-									The position of the bottom left corner of floating panels.
-								</description>
-								
-								<hbox>
-								<groupbox>
-									<caption label="Board"/>
-									<vbox>
-										<hbox>
-											<label value="X" control="floatXField"/>
-											<textbox id="floatXField" label="floatX" preference="pref_floatX" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-										<hbox>
-											<label value="Y" control="floatYField"/>
-											<textbox id="floatYField" label="floatY" preference="pref_floatY" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-									</vbox>
-								</groupbox>
-								<groupbox>
-									<caption label="Topic"/>
-									<vbox>
-										<hbox>
-											<label value="X" control="floatXTField"/>
-											<textbox id="floatXTField" label="floatXT" preference="pref_floatXT" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-										<hbox>
-											<label value="Y" control="floatYTField"/>
-											<textbox id="floatYTField" label="floatYT" preference="pref_floatYT" type="number" min="-99999" max="99999" increment="5"/>
-										</hbox>
-									</vbox>
-								</groupbox>
-								</hbox>
-								
 							</groupbox>
 						</tabpanel>
 					</tabpanels>
