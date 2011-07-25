@@ -5,7 +5,7 @@ ContentUpdaters can be added which will have onLoad methods called with details.
 Refresh interval determined by first updater added.
 init method must be called to start refreshing.
 */
-function Refresher() {
+var Refresher = extend(null, function () {
 	
 	/*
 	All objects subscribed.
@@ -71,9 +71,8 @@ function Refresher() {
 	*/
 	this._backgroundIntervalID = null;
 	
-	}
-	
-Refresher.prototype = {
+	},
+{
 	
 	get interval() {
 		return this._interval;
@@ -260,21 +259,21 @@ Refresher.prototype = {
 		return (now ? now : new Date()) - this.requestEndDate > this.interval;
 		}
 	
-	}
+	});
 	
 	
 /*
 Subclasses Refresher.
 Responsible for refreshing the current page.
 */
-function PageRefresher() {
+var PageRefresher = extend(Refresher, function () {
 	Refresher.call(this);
 	this.subject = "Page";
 	if(I.url.pageType == "board") {
 		this.url = I.url.boardUrl;
 		}
-	}
-PageRefresher.prototype = {
+	},
+{
 
 	/*
 	True if the user wants to trigger a refresh after posting a reply.
@@ -283,27 +282,27 @@ PageRefresher.prototype = {
 		return GM_getValue("autorefreshRepliesAfterPosting", true);
 		}
 		
-	}
-extend(PageRefresher, Refresher);
+	});
 
 /*
 Subclasses Refresher.
 Responsible for refreshing the little PM Count JS file.
 */
-function PMCountRefresher() {
+var PMCountRefresher = extend(Refresher, function () {
 	Refresher.call(this);
 	this.subject = "PM Count";
 	this.url = this.getPMCountUrl;
 	this.accept = "text/javascript, text/plain";
-	}
-PMCountRefresher.prototype.getPMCountUrl = function() {
-	/*
-	This has a randomized number in it, so we need to actually call it seperately
-	rather than set this.url to a string.
-	*/
-	return I.url.PMCountUrl;
-	}
-extend(PMCountRefresher, Refresher);
+	},
+{
+	getPMCountUrl: function() {
+		/*
+		This has a randomized number in it, so we need to actually call it seperately
+		rather than set this.url to a string.
+		*/
+		return I.url.PMCountUrl;
+		}
+	});
 	
 	
 	
@@ -312,7 +311,7 @@ Observes a refresher and updates some content on the page
 based on the refresher's network response.
 contentElement is optional, unless hoverMatters is true, then it's required.
 */
-function ContentUpdater(refresher, contentElement, hoverMatters) {
+var ContentUpdater = extend(null, function(refresher, contentElement, hoverMatters) {
 	
 	/*
 	The refresher this is observing.
@@ -351,9 +350,8 @@ function ContentUpdater(refresher, contentElement, hoverMatters) {
 		this.addMouseOverListeners();
 		}
 	
-	}
-	
-ContentUpdater.prototype = {
+	},
+{
 	
 	/*
 	The preference which determines the default state of this.autorefresh.
@@ -410,7 +408,7 @@ ContentUpdater.prototype = {
 			}
 		}
 	
-	}
+	});
 	
 	
 /*
@@ -418,11 +416,10 @@ Responsible for updating the topics list on a board.
 Shouldn't update when the mouse is over the topics list.
 refresher should be a PageRefresher.
 */
-function TopicsUpdater(refresher) {
+var TopicsUpdater = extend(ContentUpdater, function(refresher) {
 	ContentUpdater.call(this, refresher, document.getElementById("boards_board_list_table"), true);
-	}
-	
-TopicsUpdater.prototype = {
+	},
+{
 	
 	//override
 	get autorefreshPref() {
@@ -468,16 +465,14 @@ TopicsUpdater.prototype = {
 			}
 		}
 	
-	}
-	
-extend(TopicsUpdater, ContentUpdater);
+	});
 
 
 /*
 Responsible for updating a topic page with new replies, edits, poll changes, paginators.
 this.url will change to a URL with a reply ID after the user posts a reply.
 */
-function RepliesUpdater(refresher) {
+var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 	ContentUpdater.call(this, refresher, document.getElementById("boards_full_width"));
 	
 	/*
@@ -485,9 +480,8 @@ function RepliesUpdater(refresher) {
 	just in case this.url is changed to one that points to a different page.
 	*/
 	this.lastValidUrl = this.refresher.url;
-	}
-
-RepliesUpdater.prototype = {
+	},
+{
 	
 	//override
 	get autorefreshPref() {
@@ -624,20 +618,17 @@ RepliesUpdater.prototype = {
 		if(newStuff) resize(window);
 		}
 	
-	}
-	
-extend(RepliesUpdater, ContentUpdater);
+	});
 
 
 /*
 Responsible for updating the recent posts area on the bottom.
 Recent posts area must be at least partially visible for this to be ready.
 */
-function RecentUpdater(refresher) {
+var RecentUpdater = extend(ContentUpdater, function(refresher) {
 	ContentUpdater.call(this, refresher, document.getElementById("boards_add_info_my_recent_posts"), true);
-	}
-
-RecentUpdater.prototype = {
+	},
+{
 	
 	//override
 	get autorefreshPref() {
@@ -750,17 +741,13 @@ RecentUpdater.prototype = {
 		
 		}
 	
-	}
-	
-extend(RecentUpdater, ContentUpdater);
+	});
 
 
-
-function PMCountUpdater(refresher) {
+var PMCountUpdater = extend(ContentUpdater, function(refresher) {
 	ContentUpdater.call(this, refresher);
-	}
-
-PMCountUpdater.prototype = {
+	},
+{
 	
 	//override
 	get autorefreshPref() {
@@ -825,11 +812,7 @@ PMCountUpdater.prototype = {
 		
 		}
 	
-	}
-	
-extend(PMCountUpdater, ContentUpdater);
-
-
+	});
 	
 
 

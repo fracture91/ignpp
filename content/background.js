@@ -83,6 +83,7 @@ var Background = new function() {
 	Scripts which will be injected with this.injectScripts.
 	*/
 	this.scripts = [
+		"content/inheritance.js",
 		"content/util.js",
 		"content/info.js",
 		"content/console.js",

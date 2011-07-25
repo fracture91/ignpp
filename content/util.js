@@ -15,21 +15,9 @@ function defined(o) {
 //Chrome will have defined window.chrome, but Firefox doesn't.
 //Setting it to null lets us easily check if the browser is Chrome in an if statement.
 if(!defined(window.chrome)) chrome = null;
-	
-function extend(subclass, superclass) {
-	subclass.prototype.__proto__ = superclass.prototype;
-	/*
-	Don't trust super! It's only for use in trivial things.
-	If you have a method A which calls this.__super.prototype.someFunc.call(this),
-	and method B inherits from A's object and calls this.__super.prototype.A.call(this),
-	__super within method A will then be bound to B's object, rather than A's. I think.
-	Instead of using this.__super.prototype, point to the class directly (B.prototype.A.call(this)).
-	You should know what you're inheriting from anyway.
-	*/
-	subclass.prototype.__super = superclass;
-}
-	
-	
+
+
+
 //not done yet or tested properly
 //plan to use for anonymous posting (need to delete and restore cookies)
 //may not work if correct cookies are inaccessible, then I'd have to use the cookie monster

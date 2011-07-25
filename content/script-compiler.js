@@ -23,7 +23,7 @@ scriptPrefix: "chrome://vestitools/content/",
 			
 //list of scripts to inject into sandbox in order
 scriptList: [
-				"util.js", "info.js", "console.js", "parse.js", 
+				"inheritance.js", "util.js", "info.js", "console.js", "parse.js", 
 				"replies.js", "topics.js", "editors.js", "panels.js", "overlay.js", "message.js",
 				"infopanels.js", "quickstats.js", "threadpreview.js", "autowul.js",
 				"conditionalstyle.js", "integratedtools.js", "autorefresh.js"

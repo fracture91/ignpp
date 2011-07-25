@@ -1,0 +1,146 @@
+<html>
+<head>
+<script type="text/javascript" src="inheritance.js"></script>
+<script type="text/javascript">
+
+
+function assert(result, expected) {
+	if(result === expected) {
+		//do nothing
+	}
+	else {
+		throw new Error("FAIL");
+	}
+}
+
+function runTests() {
+
+	window.sideEffect = false;
+
+	var Animal = extend(null, function(name) {
+		this.name = name;
+		window.sideEffect = true;
+		var secret = "iliketurtles";
+		this.__defineGetter__("secret", function(){
+			return secret;
+		});
+		this._size = 9001;
+	},
+	{
+		eat: function() { return "Yum" },
+		get size() {
+			return this._size;
+		},
+		set size(n) {
+			return this._size = n;
+		}
+	});
+
+	var Dog = extend(Animal, function(name) {
+		Animal.call(this, name);
+	},
+	{
+		bark: function() { return "Arf" },
+		walk: function() { return "*pant pant pant*" },
+		get size() {
+			return this._size - 1000;
+		},
+		set size(n) {
+			return this._size = n + 500;
+		}
+	});
+
+	var Collie = extend(Dog, function(name) {
+		Dog.call(this, name);
+		delete this.secret;
+		this.secret = "ilikecats";
+	},
+	{
+		get size() {
+			return Dog.prototype.__lookupGetter__("size").call(this) + 100;
+		},
+		set size(n) {
+			return this._size = Dog.prototype.__lookupSetter__("size").call(this, n) - 100;
+		},
+		walk: function() {
+			return Dog.prototype.walk.call(this) + "\n*strut strut strut*";
+		}
+	});
+
+	assert(window.sideEffect, false);
+
+	var mysteryAnimal = new Animal("Mystery");
+	assert(window.sideEffect, true);
+	assert(mysteryAnimal instanceof Animal, true);
+	assert(mysteryAnimal instanceof Dog, false);
+	assert(mysteryAnimal instanceof Collie, false);
+	assert(mysteryAnimal.name, "Mystery");
+	assert(mysteryAnimal.secret, "iliketurtles");
+	assert(mysteryAnimal.eat(), "Yum");
+	assert(mysteryAnimal.bark, undefined);
+	assert(mysteryAnimal.size, 9001);
+	mysteryAnimal.size = 0;
+	assert(mysteryAnimal.size, 0);
+	window.sideEffect = false;
+
+	var mutt = new Dog("Mutt");
+	assert(window.sideEffect, true);
+	assert(mutt instanceof Animal, true);
+	assert(mutt instanceof Dog, true);
+	assert(mutt instanceof Collie, false);
+	assert(mutt.name, "Mutt");
+	assert(mutt.secret, "iliketurtles");
+	assert(mutt.eat(), "Yum");
+	assert(mutt.bark(), "Arf");
+	assert(mutt.walk(), "*pant pant pant*");
+	assert(mutt.size, 8001);
+	mutt.size = 7000;
+	assert(mutt.size, 6500);
+	window.sideEffect = false;
+
+	var lassie = new Collie("Lassie");
+	assert(window.sideEffect, true);
+	assert(lassie instanceof Animal, true);
+	assert(lassie instanceof Dog, true);
+	assert(lassie instanceof Collie, true);
+	assert(lassie.name, "Lassie");
+	assert(lassie.secret, "ilikecats");
+	assert(lassie.eat(), "Yum");
+	assert(lassie.bark(), "Arf");
+	assert(lassie.walk(), "*pant pant pant*\n*strut strut strut*");
+	assert(lassie.size, 8101);
+	lassie.size = 100;
+	assert(lassie.size, -400);
+	window.sideEffect = false;
+
+}
+
+window.addEventListener("load", function() {
+	var fail = false;
+	try {
+		runTests();
+	} catch(e) {
+		fail = true;
+		document.getElementById("results").value = "FAIL, stack:\n" + e.stack;
+	}
+	if(!fail) {
+		document.getElementById("results").value = "SUCCESS";
+	}
+}, true);
+
+</script></head>
+<body>
+<textarea id="results"></textarea>
+<p>Tests the following:
+	<ul>
+		<li>Makes sure instanceof works</li>
+		<li>Makes sure constructors only called when new operator is used</li>
+		<li>Constructor chaining</li>
+		<li>Inheritance of native getters and setters</li>
+		<li>Basic property and method inheritance</li>
+		<li>Private properties with getters</li>
+		<li>Method, property, getter, setter overriding and chaining</li>
+	</ul>
+</p>
+</body>
+</html>
