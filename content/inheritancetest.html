@@ -158,6 +158,35 @@ function runTests() {
 	assert(typeof class4, "function");
 	assert(class4.prototype.prop, "hi");
 	
+	var decorator = extend(null, null, {
+		_DONTDECORATE_: true,
+		extend: function(subclass) {
+			copyProps({
+				prop1: "hi",
+				prop2: "bye"
+			}, subclass.prototype);
+		}
+	});
+	
+	var decoratee = extend(decorator, null, {
+		prop1: "woo"
+	});
+	
+	//make sure _DONTDECORATE_ works
+	assert((new decoratee()) instanceof decorator, true);
+	assert(decoratee.prototype.extend, decorator.prototype.extend);
+	assert(decoratee.prototype.prop2, undefined);
+	
+	decorator.prototype._DONTDECORATE_ = false;
+	var decoratee = extend(decorator, null, {
+		prop1: "woo"
+	});
+	
+	assert((new decoratee()) instanceof decorator, true);
+	assert(decoratee.prototype.extend, decorator.prototype.extend);
+	assert(decoratee.prototype.prop2, "bye");
+	assert(decoratee.prototype.prop1, "woo"); //subclass overrides decorator
+	
 }
 
 window.addEventListener("load", function() {
@@ -192,6 +221,7 @@ Tests this prototypical inheritance stuff:
 		<li>Makes sure subclassInstance.__proto__ instanceof superclass</li>
 		<li>Setting prototypical property on instance creates <i>instance</i> property</li>
 		<li>Changing prototype of subclass leaves superclass prototype unaltered</li>
+		<li>Makes sure decorators work</li>
 	</ul>
 </p>
 </body>

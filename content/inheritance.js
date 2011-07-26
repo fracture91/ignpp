@@ -43,6 +43,13 @@ subclass is responsible for calling superclass constructor within its own constr
 Borks subclassInstance.__proto__ a bit in that it's equal to that closured _inheritance_ function,
 but still (subclassInstance.__proto__ instanceof superclass) === true .
 
+If the superclass has an extend method itself, that method will be called whenever the
+superclass is extended.  This can allow the superclass to become, for lack of a better word, a "decorator".
+Changes made by the decorator should always be overriden in favor of the subclass, but they should also
+be visible to the decorator when it is invoked.  This will make it a bit slower than undecorated classes.
+extend method bound to superclass, passed the subclass.
+Setting superclass._DONTDECORATE_ to true prevents this behavior when extend method is present.
+
 No yucky strings, no obscene abstraction, no testing functions with regex, no custom properties,
 no calling constructors during inheritance, just JS inheritance as it was meant to be.
 
@@ -67,6 +74,12 @@ Based on function by Juan Mendes: http://js-bits.blogspot.com/2010/08/javascript
 */
 var extend = (function(){
 	function _inheritance_(){};
+	function consCopy(subclass, newproto) {
+		if(newproto) {
+			copyProps(newproto, subclass.prototype);
+		}
+		subclass.prototype.constructor = subclass;
+	}
 	return function extend(superclass, subclass, newproto) {
 		if(typeof subclass != "function") {
 			subclass = function(){};
@@ -74,10 +87,11 @@ var extend = (function(){
 		if(typeof superclass == "function") {
 			_inheritance_.prototype = superclass.prototype;
 			subclass.prototype = new _inheritance_();
-			subclass.prototype.constructor = subclass;
-			if(newproto) {
-				copyProps(newproto, subclass.prototype);
+			if(typeof superclass.prototype.extend == "function" && !superclass.prototype._DONTDECORATE_) {
+				consCopy(subclass, newproto); //so it's visible to decorator
+				superclass.prototype.extend.call(superclass, subclass);
 			}
+			consCopy(subclass, newproto); //to override decorator's changes
 		}
 		else if(newproto) {
 			subclass.prototype = newproto;
