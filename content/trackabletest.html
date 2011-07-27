@@ -1,0 +1,147 @@
+<html>
+<head>
+<script type="text/javascript" src="inheritance.js"></script>
+<script type="text/javascript" src="employee.js"></script>
+<script type="text/javascript" src="observable.js"></script>
+<script type="text/javascript" src="trackable.js"></script>
+<script type="text/javascript">
+
+
+function assert(result, expected) {
+	if(result === expected) {
+		//do nothing
+	}
+	else {
+		throw new Error("FAIL");
+	}
+}
+
+function checkInstances(instances, constructor) {
+	for(var i=0, len=instances.length; i<len; i++) {
+		assert(instances[i] instanceof constructor, true);
+	}
+	return true;
+}
+
+function runTests() {
+
+	var t1 = new Trackable();
+	var t2 = new Trackable();
+	var t3 = new Trackable();
+	checkInstances(t1.instances, Trackable);
+	assert(t1.instances, Trackable.prototype.instances);
+	assert(t1.instances.length, 3);
+	
+	var error = false;
+	try {
+		t1._track();
+	} catch(e) {
+		error = e;
+	}
+	assert(error.message, "Added instance must be unique");
+	
+	var sub = extend(Trackable, function() {
+		Trackable.call(this);
+	});
+	assert(sub.prototype.instances !== Trackable.prototype.instances, true);
+	var sub1 = new sub();
+	var sub2 = new sub();
+	var sub3 = new sub();
+	checkInstances(sub1.instances, sub);
+	checkInstances(t1.instances, Trackable);
+	assert(sub1.instances.length, 3);
+	assert(t1.instances.length, 6);
+	
+	var subsub = extend(sub, function(){
+		sub.call(this);
+	});
+	var subsub1 = new subsub();
+	var subsub2 = new subsub();
+	var subsub3 = new subsub();
+	checkInstances(subsub1.instances, subsub);
+	checkInstances(sub1.instances, sub);
+	checkInstances(t1.instances, Trackable);
+	assert(subsub1.instances.length, 3);
+	assert(sub1.instances.length, 6);
+	assert(t1.instances.length, 9);
+	
+	subsub1.untrack();
+	assert(subsub1.instances.length, 2);
+	assert(sub1.instances.length, 5);
+	assert(t1.instances.length, 8);
+	
+	sub1.untrack();
+	assert(subsub1.instances.length, 2);
+	assert(sub1.instances.length, 4);
+	assert(t1.instances.length, 7);
+	
+	t1.untrack();
+	assert(subsub1.instances.length, 2);
+	assert(sub1.instances.length, 4);
+	assert(t1.instances.length, 6);
+	t1.untrack(); //calling twice shouldn't raise error
+	
+	//next we make sure the _DONTTRACK_ property works
+	
+	var donttrack = extend(subsub, function() {
+		subsub.call(this);
+	},
+	{
+		_DONTTRACK_: true
+	});
+	assert(donttrack.prototype.instances, subsub.prototype.instances);
+	
+	var donttrack1 = new donttrack();
+	assert(donttrack.prototype.instances.length, 3);
+	assert(sub.prototype.instances.length, 5);
+	assert(Trackable.prototype.instances.length, 7);
+	
+	donttrack1.untrack();
+	assert(donttrack.prototype.instances.length, 2);
+	assert(sub.prototype.instances.length, 4);
+	assert(Trackable.prototype.instances.length, 6);
+	
+	var dotrack = extend(donttrack, function(){
+		donttrack.call(this);
+	},
+	{
+		_DONTTRACK_: false
+	});
+	assert(dotrack.prototype.instances !== donttrack.prototype.instances, true);
+	assert(dotrack.prototype.instances.length, 0);
+	
+	var dotrack1 = new dotrack();
+	assert(dotrack.prototype.instances.length, 1);
+	assert(donttrack.prototype.instances.length, 3);
+	assert(subsub.prototype.instances.length, 3);
+	assert(sub.prototype.instances.length, 5);
+	assert(Trackable.prototype.instances.length, 7);
+	
+	dotrack1.untrack();
+	assert(dotrack.prototype.instances.length, 0);
+	assert(donttrack.prototype.instances.length, 2);
+	assert(subsub.prototype.instances.length, 2);
+	assert(sub.prototype.instances.length, 4);
+	assert(Trackable.prototype.instances.length, 6);
+	
+}
+
+window.addEventListener("load", function() {
+	var fail = false;
+	try {
+		runTests();
+	} catch(e) {
+		fail = true;
+		document.getElementById("results").value = "FAIL, stack:\n" + e.stack;
+	}
+	if(!fail) {
+		document.getElementById("results").value = "SUCCESS";
+	}
+}, true);
+
+</script></head>
+<body>
+<textarea id="results"></textarea>
+<p>Tests Trackable instances, subclasses, untracking, and _DONTTRACK_ property</p>
+</body>
+</html>

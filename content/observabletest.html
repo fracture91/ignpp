@@ -1,0 +1,78 @@
+<html>
+<head>
+<script type="text/javascript" src="inheritance.js"></script>
+<script type="text/javascript" src="employee.js"></script>
+<script type="text/javascript" src="observable.js"></script>
+<script type="text/javascript">
+
+
+function assert(result, expected) {
+	if(result === expected) {
+		//do nothing
+	}
+	else {
+		throw new Error("FAIL");
+	}
+}
+
+function runTests() {
+
+	var observable = new Observable();
+	observable.event("testEvent", "hi"); //nothing happens
+	
+	var observer = extend(null, function(target){
+		this.target = target;
+		this.target.addObserver(this);
+		this.numEvents = 0;
+	},
+	{
+		onTestEvent: function(source, extra) {
+			assert(source, this.target);
+			assert(extra, "hi");
+			this.numEvents++;
+		}
+	});
+	
+	var obs1 = new observer(observable);
+	assert(observable._observers.indexOf(obs1) != -1, true);
+	assert(observable._observers.length, 1);
+	observable.event("testEvent", "hi");
+	assert(obs1.numEvents, 1);
+	
+	var obs2 = new observer(observable);
+	assert(observable._observers.indexOf(obs2) != -1, true);
+	assert(observable._observers.length, 2);
+	observable.event("testEvent", "hi");
+	assert(obs1.numEvents, 2);
+	assert(obs2.numEvents, 1);
+	
+	observable.removeObserver(obs2);
+	assert(observable._observers.indexOf(obs2), -1);
+	assert(observable._observers.length, 1);
+	
+	observable.event("testEvent", "hi");
+	assert(obs1.numEvents, 3);
+	assert(obs2.numEvents, 1);
+	
+	
+}
+
+window.addEventListener("load", function() {
+	var fail = false;
+	try {
+		runTests();
+	} catch(e) {
+		fail = true;
+		document.getElementById("results").value = "FAIL, stack:\n" + e.stack;
+	}
+	if(!fail) {
+		document.getElementById("results").value = "SUCCESS";
+	}
+}, true);
+
+</script></head>
+<body>
+<textarea id="results"></textarea>
+<p>Tests Observable listening, unlistening, and events</p>
+</body>
+</html>
