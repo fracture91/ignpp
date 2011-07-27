@@ -35,7 +35,7 @@ var Observable = extend(Employee, function() {
 	
 	/*
 	Fire an event with the given type.
-	Doing this will call the method "onType" for each observer if it exists.
+	Doing this will call the method "onTypeEvent" for each observer if it exists.
 	Args will be passed along preceeded by the event source to this method.
 	The source can be useful if listening to multiple things which can fire the same event type.
 	*/
@@ -47,7 +47,7 @@ var Observable = extend(Employee, function() {
 			args.unshift(this);
 			
 			this._observers.forEach(function(obs) {
-				var handler = obs["on" + capType];
+				var handler = obs["on" + capType + "Event"];
 				if(typeof handler == "function") {
 					try {
 						handler.apply(obs, args);

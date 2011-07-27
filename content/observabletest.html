@@ -36,13 +36,13 @@ function runTests() {
 	var obs1 = new observer(observable);
 	assert(observable._observers.indexOf(obs1) != -1, true);
 	assert(observable._observers.length, 1);
-	observable.event("testEvent", "hi");
+	observable.event("test", "hi");
 	assert(obs1.numEvents, 1);
 	
 	var obs2 = new observer(observable);
 	assert(observable._observers.indexOf(obs2) != -1, true);
 	assert(observable._observers.length, 2);
-	observable.event("testEvent", "hi");
+	observable.event("test", "hi");
 	assert(obs1.numEvents, 2);
 	assert(obs2.numEvents, 1);
 	
@@ -50,7 +50,7 @@ function runTests() {
 	assert(observable._observers.indexOf(obs2), -1);
 	assert(observable._observers.length, 1);
 	
-	observable.event("testEvent", "hi");
+	observable.event("test", "hi");
 	assert(obs1.numEvents, 3);
 	assert(obs2.numEvents, 1);
 	
