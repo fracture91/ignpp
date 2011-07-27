@@ -49,6 +49,7 @@ Changes made by the decorator should always be overriden in favor of the subclas
 be visible to the decorator when it is invoked.  This will make it a bit slower than undecorated classes.
 extend method bound to superclass, passed the subclass.
 Setting superclass._DONTDECORATE_ to true prevents this behavior when extend method is present.
+extend methods should call superclass extend methods if present to allow chaining multiple decorators.
 
 No yucky strings, no obscene abstraction, no testing functions with regex, no custom properties,
 no calling constructors during inheritance, just JS inheritance as it was meant to be.

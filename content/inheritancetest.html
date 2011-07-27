@@ -187,6 +187,36 @@ function runTests() {
 	assert(decoratee.prototype.prop2, "bye");
 	assert(decoratee.prototype.prop1, "woo"); //subclass overrides decorator
 	
+	var subdecorator = extend(decorator, function(){
+		decorator.call(this);
+	},
+	{
+		extend: function(subclass) {
+			if(typeof decorator.prototype.extend == "function" && !decorator.prototype._DONTDECORATE_) {
+				decorator.prototype.extend.call(this, subclass);
+			}
+			copyProps({
+				prop3: "boop"
+			}, subclass.prototype);
+		}
+	});
+	
+	assert((new subdecorator()) instanceof decorator, true);
+	assert(subdecorator.prototype.extend !== decorator.prototype.extend, true);
+	assert(subdecorator.prototype.prop1, "hi");
+	assert(subdecorator.prototype.prop2, "bye");
+	
+	var subdecoratee = extend(subdecorator, function(){
+		subdecorator.call(this);
+	});
+	
+	assert((new subdecoratee()) instanceof subdecorator, true);
+	assert(subdecoratee.prototype.extend, subdecorator.prototype.extend);
+	assert(subdecoratee.prototype.prop1, "hi");
+	assert(subdecoratee.prototype.prop2, "bye");
+	assert(subdecoratee.prototype.prop3, "boop");
+	
+	
 }
 
 window.addEventListener("load", function() {
