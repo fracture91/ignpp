@@ -1,0 +1,141 @@
+<html>
+<head>
+<script type="text/javascript" src="inheritance.js"></script>
+<script type="text/javascript" src="util.js"></script>
+<script type="text/javascript" src="employee.js"></script>
+<script type="text/javascript" src="observable.js"></script>
+<script type="text/javascript" src="trackable.js"></script>
+<script type="text/javascript" src="model.js"></script>
+<script type="text/javascript" src="view.js"></script>
+<script type="text/javascript" src="controller.js"></script>
+<script type="text/javascript">
+
+
+function assert(result, expected) {
+	if(result === expected) {
+		//do nothing
+	}
+	else {
+		throw new Error("FAIL");
+	}
+}
+
+function runTests() {
+
+	var ViewSub = extend(View, function(parent, before, model) {
+		View.call(this, parent, before, model);
+		this.input = null;
+		this.button = null;
+	},
+	{
+		className: "ViewSub",
+		decorateContainer: function() {
+			View.prototype.decorateContainer.call(this);
+			addClass(this.container, "ViewSub");
+		},
+		createEverythingElse: function() {
+			this.input = createElementX("input", {type: "text"});
+			this.button = createElementX("input", {type: "button", value: "woo"});
+			this.container.appendChild(this.input);
+			this.container.appendChild(this.button);
+		},
+		onModelValueChange: function(source, value) {
+			this.input.value = value;
+		}
+	});
+	
+	var ModelSub = extend(Model, function(value) {
+		Model.call(this);
+		this.value = value;
+	},
+	{
+		increment: function() {
+			this.change({value: this.value + 1});
+		}
+	});
+	
+	var ControllerSub = extend(Controller, function() {
+		Controller.call(this);
+	},
+	{
+		viewClass: ViewSub,
+		init: function() {
+			this.addViewListener(document, "click",
+				this.onButtonClick, undefined, this.onButtonClickPrec);
+		},
+		onButtonClickPrec: function(e) {
+			return e.which == 1 && e.target &&
+				e.target.tagName == "INPUT" && e.target.type == "button";
+		},
+		onButtonClick: function(e, instance) {
+			instance.model.increment();
+		}
+	});
+	
+	var controller = new ControllerSub();
+	controller.init();
+	
+	var dump = document.getElementById("dump");
+	
+	var model1 = new ModelSub(0);
+	var model2 = new ModelSub(10);
+	var view1 = new ViewSub(dump, null, model1);
+	var view2 = new ViewSub(dump, null, model1); //same model
+	var view3 = new ViewSub(dump, null, model2);
+	view1.commit();
+	view2.commit();
+	view3.commit();
+	
+	assert(view1.container.parentNode, dump);
+	assert(hasClass(view1.container, "View"), true);
+	assert(hasClass(view1.container, "ViewSub"), true);
+	assert(+view1.input.value, model1.value);
+	assert(+view2.input.value, model1.value);
+	assert(+view3.input.value, model2.value);
+	
+	model1.increment();
+	assert(model1.value, 1);
+	assert(model2.value, 10); //no change
+	assert(+view1.input.value, model1.value);
+	assert(+view2.input.value, model1.value);
+	assert(+view3.input.value, model2.value);
+	
+	view3.button.click();
+	assert(model1.value, 1); //no change
+	assert(model2.value, 11);
+	assert(+view1.input.value, model1.value);
+	assert(+view2.input.value, model1.value);
+	assert(+view3.input.value, model2.value);
+	
+	while(ViewSub.prototype.instances.length > 0) {
+		ViewSub.prototype.instances[0].destroy();
+	}
+	
+	assert(ViewSub.prototype.instances.length, 0);
+	assert(view1.container, null);
+	assert(model1._observers.length, 0);
+	assert(model2._observers.length, 0);
+	assert(dump.childNodes.length, 0);
+	
+}
+
+window.addEventListener("load", function() {
+	var fail = false;
+	try {
+		runTests();
+	} catch(e) {
+		fail = true;
+		document.getElementById("results").value = "FAIL, stack:\n" + e.stack;
+	}
+	if(!fail) {
+		document.getElementById("results").value = "SUCCESS";
+	}
+}, true);
+
+</script></head>
+<body>
+<textarea id="results"></textarea>
+<p>Tests interaction of classes Model, View, and Controller</p>
+<div id="dump"></div>
+</body>
+</html>
