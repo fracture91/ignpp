@@ -14,24 +14,9 @@ var Refresher = extend(Model, function () {
 	this._contentUpdaters = [];
 	
 	/*
-	The HTTP Accept header value to use.
-	*/
-	this.accept = "text/html, text/xml, text/plain";
-	
-	/*
-	The subject of this refresher for use in logging (Page, PM Count).
-	*/
-	this.subject = "Generic";
-	
-	/*
 	A Date representing when the last request ended.
 	*/
 	this.requestEndDate = new Date();
-	
-	/*
-	The target URL to request.  Can be a function that returns a string or just a string.
-	*/
-	this._url = window.location.href;
 	
 	/*
 	True if currently refreshing.
@@ -48,7 +33,7 @@ var Refresher = extend(Model, function () {
 	Set by this.init to the interval of the first ContentUpdater.
 	Whenever set, this.backgroundInterval is updated accordingly.
 	*/
-	this.interval = 10000;
+	this._interval = 10000;
 	
 	/*
 	Interval ID returned by setInterval.
@@ -60,7 +45,7 @@ var Refresher = extend(Model, function () {
 	Managed by the setter for this.interval,
 	should always be this.backgroundIntervalMultiplierPref * this.interval.
 	*/
-	this.backgroundInterval;
+	this._backgroundInterval;
 	
 	/*
 	Background interval ID returned by setInterval.
@@ -69,6 +54,21 @@ var Refresher = extend(Model, function () {
 	
 	},
 {
+	
+	/*
+	The subject of this refresher for use in logging (Page, PM Count).
+	*/
+	subject: "Generic",
+	
+	/*
+	The HTTP Accept header value to use.
+	*/
+	accept: "text/html, text/xml, text/plain",
+	
+	/*
+	The target URL to request.  Can be a function that returns a string or just a string.
+	*/
+	_url: window.location.href,
 	
 	get interval() {
 		return this._interval;
@@ -138,7 +138,6 @@ var Refresher = extend(Model, function () {
 	The first ContentUpdater added determines the refresh rate with its interval property.
 	*/
 	addContentUpdater: function(updater) {
-		try{throw "";} catch(e){}
 		var bak = this._observers;
 		this._observers = this._contentUpdaters;
 		this.addObserver(updater); //add to this._contentUpdaters
@@ -164,21 +163,48 @@ var Refresher = extend(Model, function () {
 	get backgroundPref() {
 		return GM_getValue("autorefreshBackground", true);
 		},
+		
+	/*
+	True if this tab is in focus, false otherwise.
+	Managed by RefreshListViewController.
+	*/
+	_inFocus: false,
+	
+	get inFocus() {
+		if(chrome) {
+			/*
+			document.hasFocus() always returns true on Chrome, so we have to fall
+			back to this manually maintained variable.
+			See issue #229 and http://code.google.com/p/chromium/issues/detail?id=64846
+			*/
+			return this._inFocus;
+			}
+		return document.hasFocus();
+		},
+		
+	set inFocus(b){
+		return this._inFocus = b
+		},
+	
+	/*
+	True if focus should be considered when a request is deciding to continue or not.
+	*/
+	focusMatters: true,
 	
 	/*
 	Returns true if this refresher is ready to make a request.
 	background should be true if this is a request originating from the background interval.
 	Only considered ready when not currently refreshing, at least one ContentUpdater isReady,
 	the browser has not been idle for this.idleTimeoutPref or longer if focusMatters,
-	and the tab is in an acceptable focus state considering Autorefresh.focusMatters and background.
+	and the tab is in an acceptable focus state considering focusMatters and background.
 	*/
 	isReady: function(background) {
 		if(!this._refreshing) {
-			var goodIdle = !Autorefresh.focusMatters || !GM_idle(this.idleTimeoutPref);
+			var goodIdle = !this.focusMatters || !GM_idle(this.idleTimeoutPref);
 			//yay Karnaugh maps
-			var goodFocus = !Autorefresh.focusMatters && !background ||
-				Autorefresh.inFocus && !background ||
-				Autorefresh.focusMatters && !Autorefresh.inFocus && background && this.backgroundPref;
+			var goodFocus = !this.focusMatters && !background ||
+				this.inFocus && !background ||
+				this.focusMatters && !this.inFocus && background && this.backgroundPref;
 			if(goodIdle && goodFocus && this.updatersAreReady()) {
 				return true;
 				}
@@ -258,12 +284,12 @@ Responsible for refreshing the current page.
 */
 var PageRefresher = extend(Refresher, function () {
 	Refresher.call(this);
-	this.subject = "Page";
 	if(I.url.pageType == "board") {
 		this.url = I.url.boardUrl;
 		}
 	},
 {
+	subject: "Page",
 
 	/*
 	True if the user wants to trigger a refresh after posting a reply.
@@ -280,15 +306,14 @@ Responsible for refreshing the little PM Count JS file.
 */
 var PMCountRefresher = extend(Refresher, function () {
 	Refresher.call(this);
-	this.subject = "PM Count";
-	this.url = this.getPMCountUrl;
-	this.accept = "text/javascript, text/plain";
 	},
 {
-	getPMCountUrl: function() {
+	subject: "PM Count",
+	accept: "text/javascript, text/plain",
+	_url: function() {
 		/*
 		This has a randomized number in it, so we need to actually call it seperately
-		rather than set this.url to a string.
+		rather than set _url to a string.
 		*/
 		return I.url.PMCountUrl;
 		}
@@ -346,6 +371,11 @@ var ContentUpdater = extend(Model, function(refresher, contentElement, hoverMatt
 	
 	},
 {
+	
+	/*
+	What this is responsible for updating ("Topics", "PM Count", etc.)
+	*/
+	subject: "Generic",
 	
 	/*
 	The preference which determines the default state of this.autorefresh.
@@ -454,6 +484,8 @@ var TopicsUpdater = extend(ContentUpdater, function(refresher) {
 	},
 {
 	
+	subject: "Topics",
+	
 	//override
 	get autorefreshPref() {
 		return GM_getValue("autorefreshTopics", true);
@@ -515,6 +547,8 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 	this.lastValidUrl = this.refresher.url;
 	},
 {
+	
+	subject: "Replies",
 	
 	//override
 	get autorefreshPref() {
@@ -663,6 +697,8 @@ var RecentUpdater = extend(ContentUpdater, function(refresher) {
 	},
 {
 	
+	subject: "Recent Posts",
+	
 	//override
 	get autorefreshPref() {
 		return GM_getValue("autorefreshRecent", true);
@@ -782,6 +818,8 @@ var PMCountUpdater = extend(ContentUpdater, function(refresher) {
 	},
 {
 	
+	subject: "Unread PM Count",
+	
 	//override
 	get autorefreshPref() {
 		return GM_getValue("autorefreshPMCount", true);
@@ -846,154 +884,435 @@ var PMCountUpdater = extend(ContentUpdater, function(refresher) {
 		}
 	
 	});
+
 	
-
-
-
-/*
-Autorefresh has Refreshers.
-Each refresher has a target URL and ContentUpdaters listening to them.
-The Autorefresh object constructs these objects and does some helper stuff.
-*/
-
-var Autorefresh = new function() {
-	
-	/*
-	True if this tab is in focus, false otherwise.
-	Managed by a bunch of listeners added below.
-	*/
-	var inFocus = false;
-	this.__defineGetter__("inFocus", function() {
-		if(chrome) {
-			/*
-			document.hasFocus() always returns true on Chrome, so we have to fall
-			back to this manually maintained variable.
-			See issue #229 and http://code.google.com/p/chromium/issues/detail?id=64846
-			*/
-			return inFocus;
-			}
-		return document.hasFocus();
+var RefresherListModel = extend(Model, function(refreshers) {
+	Model.call(this);
+	this.refreshers = refreshers;
+	this.forEach(function(e, i, a) {
+		e.addObserver(this);
 		});
-	this.__defineSetter__("inFocus", function(b){ inFocus = b });
-	
+	},
+{
+	_focusMatters: Refresher.prototype.focusMatters,
+
+	get focusMatters() {
+		return this._focusMatters;
+		},
+		
+	set focusMatters(b) {
+		this.forEach(function(e, i, a) {
+			e.change({focusMatters: b});
+			});
+		return this._focusMatters = b;
+		},
+		
+	_disabled: ContentUpdater.prototype._disabled,
+		
+	get disabled() {
+		return this._disabled;
+		},
+		
+	set disabled(b) {
+		this.forEachUpdater(function(e, i, a) {
+			e.change({disabled: b});
+			});
+		return this._disabled = b;
+		},
+		
+	_refreshing: false,
+		
+	onModelChangeEvent: function(source, changes) {
+		if("_refreshing" in changes) {
+			var anyRefreshing = changes._refreshing;
+			if(!anyRefreshing) {
+				this.forEach(function(e, i, a) {
+					if(e._refreshing) anyRefreshing = true;
+					});
+				}
+			if(this._refreshing != anyRefreshing) {
+				this.change({_refreshing: anyRefreshing});
+				}
+			}
+		},
+
 	/*
-	True if focus should be considered when a request is deciding to continue or not.
+	Call some function for each refresher.
 	*/
-	this.focusMatters = true;
-	
-	/*
-	All refreshers for this page.
-	*/
-	this.refreshers = [];
-	
+	forEach: function(func, thisObj) {
+		if(!defined(thisObj)) thisObj = this;
+		return this.refreshers.forEach(function(e, i, a) {
+			func.call(thisObj, e, i, a);
+			});
+		},
+
 	/*
 	Call some function for each updater on each refresher in this.refreshers.
 	*/
-	this.forEachUpdater = function(func) {
-		this.refreshers.forEach(function(e, i, a){
+	forEachUpdater: function(func, thisObj) {
+		if(!defined(thisObj)) thisObj = this;
+		this.forEach(function(e, i, a){
 			e._contentUpdaters.forEach(function(e, i, a) {
-				func(e, i, a);
+				func.call(thisObj, e, i, a);
 				});
 			});
-		}
-	
-	/*
-	For each updater, toggle its disabled state.
-	*/
-	this.toggleDisabled = function() {
-		this.forEachUpdater(function(e, i, a) {
-			e.disabled = !e.disabled;
-			});
-		}
+		},
 		
 	/*
 	Call request method of any refreshers which haven't been refreshed for interval milliseconds.
 	*/
-	this.refreshOutdated = function() {
+	refreshOutdated: function() {
 		var now = new Date();
-		this.refreshers.forEach(function(e, i, a) {
+		this.forEach(function(e, i, a) {
 			if(e.isOutdated(now)) {
 				e.request();
 				}
 			});
 		}
+	});
 	
+
+
+var ContentUpdaterView = extend(View, function(parent, before, model) {
+	View.call(this, parent, before, model);
+	this.checkbox = null;
+	this.labelText = null;
+	},
+{
+	className: "ContentUpdaterView",
+	createContainer: function() {
+		this.container = document.createElement("label");
+		},
+	decorateContainer: function() {
+		View.prototype.decorateContainer.call(this);
+		addClass(this.container, "ContentUpdaterView");
+		},
+	createEverythingElse: function() {
+		this.checkbox = createElementX("input", {type: "checkbox"});
+		this.labelText = document.createTextNode("");
+		this.container.appendChild(this.checkbox);
+		this.container.appendChild(this.labelText);
+		},
+	onModelSubjectChange: function(source, value) {
+		this.labelText.textContent = value;
+		},
+	onModelAutorefreshChange: function(source, value) {
+		this.checkbox.checked = value;
+		},
+	onModelDisabledChange: function(source, value) {
+		this.checkbox.disabled = value;
+		}
+	});
+	
+var ContentUpdaterController = extend(Controller, function() {
+	Controller.call(this);
+	},
+{
+	viewClass: ContentUpdaterView,
+	init: function() {
+		this.addViewListener(document, "change", this.onChange, true, this.onChangePrec);
+		},
+	onChangePrec: function(e) {
+		return e.target && e.target.tagName == "INPUT" && e.target.type == "checkbox";
+		},
+	onChange: function(e, instance) {
+		instance.model.change({autorefresh: e.target.checked});
+		}
+	});
+	
+(new ContentUpdaterController()).init();
+
+var RefresherView = extend(View, function(parent, before, model) {
+	View.call(this, parent, before, model);
+	this.refreshButton = null;
+	this.contentUpdaterViews = [];
+	this.model._contentUpdaters.forEach(function(e, i, a) {
+		this.contentUpdaterViews.push(new ContentUpdaterView(null, null, e));
+		}, this);
+	},
+{
+	className: "RefresherView",
+	createContainer: function() {
+		var container = this.container = document.createElement("fieldset");
+		this.contentUpdaterViews.forEach(function(e, i, a) {
+			e.parent = container;
+			});
+		},
+	decorateContainer: function() {
+		View.prototype.decorateContainer.call(this);
+		addClass(this.container, "RefresherView");
+		},
+	createEverythingElse: function() {
+		this.refreshButton = createElementX("input", {type: "button"});
+		this.container.appendChild(this.refreshButton);
+		this.contentUpdaterViews.forEach(function(e, i, a) {
+			e.render();
+			});
+		},
+	commit: function() {
+		this.contentUpdaterViews.forEach(function(e, i, a) {
+			e.commit();
+			});
+		View.prototype.commit.call(this);
+		},
+	onModelSubjectChange: function(source, value) {
+		this.refreshButton.value = "Refresh " + value;
+		},
+	onModel_refreshingChange: function(source, value) {
+		this.container.setAttribute("refreshing", value);
+		}
+	});
+
+var RefresherController = extend(Controller, function() {
+	Controller.call(this);
+	},
+{
+	viewClass: RefresherView,
+	init: function() {
+		this.addViewListener(document, "click", this.onClick, true, this.onClickPrec);
+		},
+	onClickPrec: function(e) {
+		return e.which == 1 && e.target && e.target.tagName == "INPUT" &&
+				e.target.type == "button";
+		},
+	onClick: function(e, instance) {
+		if(e.target == instance.refreshButton) {
+			instance.model.request(true);
+			}
+		}
+	});
+	
+(new RefresherController()).init();
+	
+	
+var RefresherListView = extend(View, function(parent, before, model) {
+	View.call(this, parent, before, model);
+	
+	/*
+	Array of RefresherView that are contained in this view.
+	*/
+	this.refresherViews = [];
+	
+	this.model.forEach(function(e, i, a) {
+		this.refresherViews.push(new RefresherView(null, null, e));
+		}, this);
+	
+	},
+{
+	className: "RefresherListView",
+	createContainer: function() {
+		View.prototype.createContainer.call(this);
+		this.refresherViews.forEach(function(e, i, a) {
+			e.parent = this.container;
+			}, this);
+		},
+	decorateContainer: function() {
+		View.prototype.decorateContainer.call(this);
+		addClass(this.container, "RefresherListView");
+		},
+	createEverythingElse: function() {
+		this.refreshButton = createElementX("input", {type: "button", value: "Refresh All"});
+		this.disableButton = createElementX("input", {type: "button"});
+		this.focusLabel = createElementX("label", {textContent: "Focus Matters"});
+		this.focusCheckbox = createElementX("input", {type: "checkbox"});
+		this.focusLabel.insertBefore(this.focusCheckbox, this.focusLabel.firstChild);
+		this.container.appendChild(this.refreshButton);
+		this.container.appendChild(this.disableButton);
+		this.container.appendChild(this.focusLabel);
+		this.refresherViews.forEach(function(e, i, a) {
+			e.render();
+			});
+		},
+	commit: function() {
+		View.prototype.commit.call(this);
+		this.refresherViews.forEach(function(e, i, a) {
+			e.commit();
+			});
+		},
+	onModelDisabledChange: function(source, value) {
+		this.disableButton.value = value ? "Enable All" : "Disable All";
+		},
+	onModelFocusMattersChange: function(source, value) {
+		this.focusCheckbox.checked = value;
+		},
+	onModel_refreshingChange: function(source, value) {
+		this.container.setAttribute("refreshing", value);
+		}
+	});
+
+
+var RefresherListController = extend(Controller, function() {
+	Controller.call(this);
+	},
+{	
+	viewClass: RefresherListView,
+
+	get inFocus() {
+		return Refresher.prototype.inFocus;
+		},
+		
+	set inFocus(b) {
+		Refresher.prototype.inFocus = b;
+		this.forEachView(function(e, i, a) {
+			e.model.forEach(function(e, i, a) {
+				e.inFocus = b;
+				});
+			});
+		},
+
+	init: function() {
+		this.addMyListener(document, "keyup", this.onKeyup, true);
+		this.addViewListener(document, "click", this.onClick, true);
+		this.addViewListener(document, "change", this.onChange, true, this.onChangePrec);
+		this.addMyListener(window, "focus", this.onFocus, true);
+		
+		if(chrome) {
+			function setFocus(b) {
+				return function(e) {
+					this.inFocus = b;
+					}
+				}
+		
+			//only Chrome needs these to maintain inFocus
+			this.addMyListener(window, "blur", setFocus(false), true);
+			this.addMyListener(window, "click", setFocus(true), true);
+			this.addMyListener(window, "scroll", setFocus(true), true);
+			}
+		},
+
 	/*
 	Get all necessary refreshers and their updaters started.
 	*/
-	this.initializeRefreshers = function() {
-	
-		this.page = new PageRefresher();
-		this.refreshers.push(this.page);
+	constructRefresherListModel: function() {	
+		var list = [];
+		var page = new PageRefresher();
+		list.push(page);
 		if(I.url.pageType == "board") {
-			new TopicsUpdater(this.page);
+			new TopicsUpdater(page);
 			}
 		else if(I.url.pageType == "topic") {
-			new RepliesUpdater(this.page);
+			new RepliesUpdater(page);
 			}
 		if(document.getElementById("boards_add_info_my_recent_posts")) {
-			new RecentUpdater(this.page);
+			new RecentUpdater(page);
 			}
-		this.page.init();
 		
-		this.pms = new PMCountRefresher();
-		this.refreshers.push(this.pms);
-		new PMCountUpdater(this.pms);
-		this.pms.init();
+		var pms = new PMCountRefresher();
+		list.push(pms);
+		new PMCountUpdater(pms);
+
+		return new RefresherListModel(list);
+		},
 		
-		}
+	constructRefresherListView: function() {
+		var target;
+		if(I.layout.fresh) {
+			target = document.getElementById("boards_board_list_table_header") ||
+					getFirstByClassName(document.body, "boards_thread_row");
+			}
+		else {
+			target = document.getElementById("boards_board_list_table") ||
+					document.getElementById("boards_thread_table");
+			}
+		var target = target || document.body.firstChild; 
+		var view = new RefresherListView(target.parentNode, target, this.constructRefresherListModel());
+		view.model.forEach(function(e, i, a) {
+			e.init();
+			});
+		view.commit();
+		return view;
+		},
+		
+	onFocus: function(e) {
+		this.inFocus = true;
+		this.forEachView(function(e, i, a) {
+			e.model.refreshOutdated();
+			});
+		},
+		
+	onClickPrec: RefresherController.prototype.onClickPrec,
+	onClick: function(e, instance) {
+		if(e.target == instance.refreshButton) {
+			this.requestAndOverride(instance.model);
+			}
+		else if(e.target == instance.disableButton) {
+			this.toggleDisabled(instance.model);
+			}
+		},
+		
+	onChangePrec: ContentUpdaterController.prototype.onChangePrec,
+	onChange: function(e, instance) {
+		if(e.target == instance.focusCheckbox) {
+			instance.model.change({focusMatters: e.target.checked});
+			}
+		},
+		
+	/*
+	Call request(true) for each Refresher in the given model.
+	*/
+	requestAndOverride: function(model) {
+		model.forEach(function(e, i, a) {
+			e.request(true);
+			});
+		},
+		
+	/*
+	Given a model, toggle its disabled state.
+	*/
+	toggleDisabled: function(model) {
+		model.change({disabled: !model.disabled});
+		},
+		
+	KEYS: {
+		DISABLE: "A".charCodeAt(0),
+		REFRESH: "R".charCodeAt(0)
+		},
+		
+	/*
+	Return true if code is in this.KEYS.
+	*/
+	codeInKeys: function(code) {
+		for(var i in this.KEYS) {
+			if(this.KEYS[i] == code) {
+				return true;
+				}
+			}
+		},
 		
 	/*
 	This should be called on keyup.
 	Handles keyboard shotcuts.
 	*/
-	this.onKeyup = function(e) {
+	onKeyup: function(e) {
 		
 		this.inFocus = true;
 		if(e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
-		if(e.which!=65 && e.which!=82) return;
+		if(!this.codeInKeys(e.which)) return;
 		if(Listeners.elementAcceptsInput(e.target)) return;
 		
 		e.preventDefault();
 		
-		//a
-		if(e.which==65) {
-			this.toggleDisabled();
-			}
-		//r
-		else if(e.which==82) {
-			this.refreshers.forEach(function(e, i, a){
-				e.request(true);
-				});
+		switch(e.which) {
+			case this.KEYS.DISABLE:
+				this.forEachView(function(e, i, a) {
+					this.toggleDisabled(e.model);
+					});
+				break;
+			case this.KEYS.REFRESH:
+				this.forEachView(function(e, i, a){
+					this.requestAndOverride(e.model);
+					});
+				break;
 			}
 		
 		}
-		
-	var that = this;
-	Listeners.add(document, 'keyup', function(e) {
-		that.onKeyup(e);
-		}, true);
 	
-	Listeners.add(window, 'focus', function(e) {
-		that.inFocus = true;
-		that.refreshOutdated();
-		}, true);
+	});
 	
-	if(chrome) {
-		//only Chrome needs these to maintain inFocus
-		Listeners.add(window, 'blur', function(e) {
-			that.inFocus = false;
-			}, true);
-			
-		Listeners.add(window, "click", function(e) {
-			that.inFocus = true;
-			}, true);
-			
-		Listeners.add(window, 'scroll', function(e) {
-			that.inFocus = true;
-			}, true);
-		}
+var Autorefresh = new RefresherListController();
+Autorefresh.init();
+Autorefresh.constructRefresherListView();
+
+
+
 	
-	}
-	
-Autorefresh.initializeRefreshers();
