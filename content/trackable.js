@@ -43,6 +43,16 @@ var Trackable = extend(Observable, function() {
 	},
 	
 	/*
+	Call some function for each instance.
+	*/
+	forEachInstance: function(func, thisObj) {
+		if(!defined(thisObj)) thisObj = window;
+		this.instances.forEach(function(e, i, a) {
+			func.call(thisObj, e, i, a);
+		});
+	},
+	
+	/*
 	Called when a subclass is created.
 	this is bound to the superclass.
 	Decorates subclass's prototype with its own instances array,

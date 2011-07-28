@@ -27,9 +27,18 @@ var Controller = extend(null, null, {
 	event and relevant view instance is passed to method.
 	*/
 	addViewListener: function(target, types, func, useCapture, precondition) {
+		if(typeof precondition != "function") precondition = function(){ return true };
 		this.addMyListener(target, types, this.viewListener.bind(
 			this, func.bind(this), precondition.bind(this)
 		), useCapture);
+	},
+	
+	/*
+	Convenience method.
+	Returns the viewClass instance at the specified index of the instances array.
+	*/
+	getViewInstance: function(index) {
+		return this.viewClass.prototype.instances[index];
 	},
 	
 	/*
@@ -64,5 +73,15 @@ var Controller = extend(null, null, {
 		for(var i=0, len=types.length; i<len; i++) {
 			Listeners.add(target, types[i], func, useCapture);
 		}
+	},
+	
+	/*
+	Call some function for each view.
+	*/
+	forEachView: function(func, thisObj) {
+		if(!defined(thisObj)) thisObj = this;
+		this.viewClass.prototype.forEachInstance(function(e, i, a) {
+			func.call(thisObj, e, i, a);
+			});
 	}
 });
