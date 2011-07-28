@@ -39,13 +39,16 @@ GM_API.setValue = function(name, value, sender) {
 GM_API.oldOnIdleStateUpdate = GM_API.onIdleStateUpdate;
 
 /*
-Call the old one but sendRequest to all managed tabs to let them know the idle state.
+Call the old one but sendRequest to all managed tabs to let them know the idle state when it changes.
 Client is responsible for calling this every second.
 */
 GM_API.onIdleStateUpdate = function(newState) {
-	GM_API.oldOnIdleStateUpdate(newState);
-	for(var i in this.tabManager.tabs) {
-		chrome.tabs.sendRequest(this.tabManager.tabs[i].id, {type: "idlestate", state: newState});
+	var oldState = this.currentlyActive;
+	this.oldOnIdleStateUpdate(newState);
+	if(oldState != this.currentlyActive) {
+		for(var i in this.tabManager.tabs) {
+			chrome.tabs.sendRequest(this.tabManager.tabs[i].id, {type: "idlestate", state: newState});
+			}
 		}
 	}
 	

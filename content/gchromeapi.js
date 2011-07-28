@@ -143,19 +143,25 @@ var GM_API = new function() {
 	this.lastActivity = new Date();
 	
 	/*
+	True if active, turns false once non-active state is received.
+	*/
+	this.currentlyActive = true;
+	
+	/*
 	Updates this.lastActivity according to the new idle state provided.
-	Client is responsible for calling this every second.
+	Client is responsible for calling this when idle state changes.
 	*/
 	this.onIdleStateUpdate = function(newState) {
 		if(newState == "active") {
 			//the user could have just been active or was active 14 seconds ago - assume just active
-			this.lastActivity = new Date();
+			this.currentlyActive = true;
 			}
 		else {
 			/*
 			minimum queryState threshold is 15 seconds, so we know the last time
 			the user was possibly active was 15 seconds ago.
 			*/
+			this.currentlyActive = false;
 			this.lastActivity = new Date(new Date() - 15000);
 			}
 		}
@@ -165,6 +171,7 @@ var GM_API = new function() {
 	On Chrome, only thresholds above 15000 are accurate (within about 3 seconds).
 	*/
 	this.idle = function(threshold) {
+		if(this.currentlyActive) return false;
 		return new Date() - this.lastActivity > threshold;
 		}
 		

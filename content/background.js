@@ -147,7 +147,8 @@ var Background = new function() {
 				sendResponse({time: (new Date()).getTime()});
 				break;
 			case "initialize":
-				sendResponse({localStorage: GM_API.localStorageCopy, files: GM_API.files});
+				sendResponse({localStorage: GM_API.localStorageCopy, files: GM_API.files, 
+					currentlyActive: GM_API.currentlyActive});
 				this.injectScripts(sender.tab);
 				break;
 			case "addstyle":

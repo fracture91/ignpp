@@ -14,6 +14,7 @@ in response, and inject necessary scripts.
 chrome.extension.sendRequest({type: "initialize"}, function(response) {
 	GM_API.localStorage = response.localStorage;
 	GM_API.files = response.files;
+	GM_API.currentlyActive = response.currentlyActive;
 	});
 
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
