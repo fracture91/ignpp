@@ -199,7 +199,7 @@ var Refresher = extend(Model, function () {
 			return;
 			}
 		
-		this._refreshing = true;
+		this.change({_refreshing: true});
 		var that = this;
 		this._gynecologist = GM_xmlhttpRequest({
 			method: "GET",
@@ -226,7 +226,7 @@ var Refresher = extend(Model, function () {
 	Clears refreshing flag and gynecologist.
 	*/
 	onRequestEnd: function() {
-		this._refreshing = false;
+		this.change({_refreshing: false});
 		this._gynecologist = null;
 		this.requestEndDate = new Date();
 		},
@@ -310,10 +310,13 @@ var ContentUpdater = extend(Model, function(refresher, contentElement, hoverMatt
 	this.refresher = refresher;
 	refresher.addContentUpdater(this);
 	
+	this._autorefresh = this.autorefreshPref;
+	this._disabled = false;
+	
 	/*
-	True if the user wants autorefresh to occur for this content.
+	The autorefresh state before this was disabled.
 	*/
-	this.autorefresh = this.autorefreshPref;
+	this._autorefreshBeforeDisable = this._autorefresh;
 	
 	/*
 	The element this is responsible for updating.
@@ -356,6 +359,45 @@ var ContentUpdater = extend(Model, function(refresher, contentElement, hoverMatt
 	*/
 	get intervalPref() {
 		return 10000;
+		},
+		
+	/*
+	True if the user wants autorefresh to occur for this content.
+	Cannot change if this.disabled is true.
+	*/
+	get autorefresh() {
+		return this._autorefresh;
+		},
+		
+	set autorefresh(b) {
+		if(!this._disabled) {
+			this._autorefresh = b;
+			}
+		return this._autorefresh;
+		},
+		
+	/*
+	True if the client shouldn't be able to change this.autorefresh.
+	When true, this.autorefresh is always false and can't be changed.
+	When changed back to false, this.autorefresh changes to the state it was in before disabling.
+	*/
+	get disabled() {
+		return this._disabled;
+		},
+		
+	set disabled(b) {
+		if(this._disabled != b) {
+			if(b) {
+				this.change({_autorefreshBeforeDisable: this.autorefresh});
+				this.change({autorefresh: false});
+				this._disabled = b;
+				}
+			else {
+				this._disabled = b;
+				this.change({autorefresh: this._autorefreshBeforeDisable});
+				}
+			}
+		return this._disabled;
 		},
 	
 	/*
@@ -845,11 +887,6 @@ var Autorefresh = new function() {
 	this.refreshers = [];
 	
 	/*
-	Whether Autorefresh is in a disabled state or not (from the keyboard shortcut).
-	*/
-	this._disabled = false;
-	
-	/*
 	Call some function for each updater on each refresher in this.refreshers.
 	*/
 	this.forEachUpdater = function(func) {
@@ -861,18 +898,11 @@ var Autorefresh = new function() {
 		}
 	
 	/*
-	For each updater, toggle between its disabled state and its original state.
+	For each updater, toggle its disabled state.
 	*/
 	this.toggleDisabled = function() {
-		this._disabled = !this._disabled;
-		var that = this;
 		this.forEachUpdater(function(e, i, a) {
-			if(that._disabled) {
-				e.change({autorefresh: false});
-				}
-			else {
-				e.change({autorefresh: e.originalAutorefresh});
-				}
+			e.disabled = !e.disabled;
 			});
 		}
 		
@@ -890,7 +920,6 @@ var Autorefresh = new function() {
 	
 	/*
 	Get all necessary refreshers and their updaters started.
-	Set originalAutorefresh on each updater.
 	*/
 	this.initializeRefreshers = function() {
 	
@@ -911,10 +940,6 @@ var Autorefresh = new function() {
 		this.refreshers.push(this.pms);
 		new PMCountUpdater(this.pms);
 		this.pms.init();
-		
-		this.forEachUpdater(function(e, i, a){
-			e.change({originalAutorefresh: e.autorefresh});
-			});
 		
 		}
 		
