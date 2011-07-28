@@ -5,17 +5,13 @@ ContentUpdaters can be added which will have onLoad methods called with details.
 Refresh interval determined by first updater added.
 init method must be called to start refreshing.
 */
-var Refresher = extend(null, function () {
+var Refresher = extend(Model, function () {
+	Model.call(this);
 	
 	/*
-	All objects subscribed.
+	All contentUpdaters subscribed (also in this._observers).
 	*/
-	this.observers = [];
-	
-	/*
-	All contentUpdaters subscribed (also in this.observers).
-	*/
-	this.contentUpdaters = [];
+	this._contentUpdaters = [];
 	
 	/*
 	The HTTP Accept header value to use.
@@ -102,8 +98,8 @@ var Refresher = extend(null, function () {
 	Call this.setIntervals to start refreshing.
 	*/
 	init: function() {
-		if(this.contentUpdaters[0]) {
-			this.interval = this.contentUpdaters[0].interval;
+		if(this._contentUpdaters[0]) {
+			this.interval = this._contentUpdaters[0].interval;
 			}
 		this.setIntervals();
 		},
@@ -137,29 +133,25 @@ var Refresher = extend(null, function () {
 	set url(s) { this._url = s; },
 	
 	/*
-	Add an observer to this refresher which will have its onLoad method called
-	when a request finishes.  Details of the request are passed to onLoad.
-	*/
-	addObserver: function(observer) {
-		this.observers.push(observer);
-		},
-	
-	/*
-	Add a ContentUpdater to this Refresher to get onLoad called.
+	Add a ContentUpdater to this Refresher to get onLoadEvent called.
 	Also added as a plain old observer.
 	The first ContentUpdater added determines the refresh rate with its interval property.
 	*/
 	addContentUpdater: function(updater) {
-		this.contentUpdaters.push(updater);
-		this.addObserver(updater);
+		try{throw "";} catch(e){}
+		var bak = this._observers;
+		this._observers = this._contentUpdaters;
+		this.addObserver(updater); //add to this._contentUpdaters
+		this._observers = bak;
+		this.addObserver(updater); //add to this._observers
 		},
 	
 	/*
 	Returns true if any ContentUpdater isReady, false otherwise.
 	*/
 	updatersAreReady: function() {
-		for(var i=0, len=this.contentUpdaters.length; i<len; i++) {
-			if(this.contentUpdaters[i].isReady()) {
+		for(var i=0, len=this._contentUpdaters.length; i<len; i++) {
+			if(this._contentUpdaters[i].isReady()) {
 				return true;
 				}
 			}
@@ -181,7 +173,7 @@ var Refresher = extend(null, function () {
 	and the tab is in an acceptable focus state considering Autorefresh.focusMatters and background.
 	*/
 	isReady: function(background) {
-		if(!this.refreshing) {
+		if(!this._refreshing) {
 			var goodIdle = !Autorefresh.focusMatters || !GM_idle(this.idleTimeoutPref);
 			//yay Karnaugh maps
 			var goodFocus = !Autorefresh.focusMatters && !background ||
@@ -207,7 +199,7 @@ var Refresher = extend(null, function () {
 			return;
 			}
 		
-		this.refreshing = true;
+		this._refreshing = true;
 		var that = this;
 		this._gynecologist = GM_xmlhttpRequest({
 			method: "GET",
@@ -220,15 +212,13 @@ var Refresher = extend(null, function () {
 		},
 		
 	/*
-	Call the onLoad method on each observer, providing details from the request
+	Fire load event, providing details from the request
 	and the override/background value (passed along from this.request).
 	*/
 	onLoad: function(details, override, background) {
 		this.onRequestEnd();
 		vlog(this.subject + (background ? " Background" : "") + " Refresher Load");
-		this.observers.forEach(function(e, i, a) {
-			e.onLoad(details, override, background);
-			});
+		this.event("load", details, override, background);
 		},
 		
 	/*
@@ -236,7 +226,7 @@ var Refresher = extend(null, function () {
 	Clears refreshing flag and gynecologist.
 	*/
 	onRequestEnd: function() {
-		this.refreshing = false;
+		this._refreshing = false;
 		this._gynecologist = null;
 		this.requestEndDate = new Date();
 		},
@@ -311,7 +301,8 @@ Observes a refresher and updates some content on the page
 based on the refresher's network response.
 contentElement is optional, unless hoverMatters is true, then it's required.
 */
-var ContentUpdater = extend(null, function(refresher, contentElement, hoverMatters) {
+var ContentUpdater = extend(Model, function(refresher, contentElement, hoverMatters) {
+	Model.call(this);
 	
 	/*
 	The refresher this is observing.
@@ -390,10 +381,10 @@ var ContentUpdater = extend(null, function(refresher, contentElement, hoverMatte
 	Is called when the refresher loads with details of the request.
 	Calls this.updateContent if ready or overridden.
 	*/
-	onLoad: function(details, override) {
+	onLoadEvent: function(source, details, override, background) {
 		//Ready state could have changed between request start and load
 		if(override || this.isReady()) {
-			this.updateContent(details, override);
+			this.updateContent(details, override, background);
 			}
 		},
 		
@@ -401,7 +392,7 @@ var ContentUpdater = extend(null, function(refresher, contentElement, hoverMatte
 	Update the content on the page with content from details.
 	Override is true if this resulted from an overridden request.
 	*/
-	updateContent: function(details, override) {
+	updateContent: function(details, override, background) {
 		//something very simple that subclasses should override
 		if(this.contentElement) {
 			this.contentElement.textContent = details.responseText;
@@ -453,7 +444,7 @@ var TopicsUpdater = extend(ContentUpdater, function(refresher) {
 		},
 	
 	//override
-	updateContent: function(details, override) {
+	updateContent: function(details, override, background) {
 		//replace the table on the page with the contents of the table in responsetext
 		if(!this.contentElement) return;
 		var newTable = this.getTable(details.responseText);
@@ -554,7 +545,7 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 		},
 	
 	//override
-	updateContent: function(details, override) {
+	updateContent: function(details, override, background) {
 		//make a new Replies object out of the slice of text containing all the replies
 		var newReplies = new Replies(details.responseText);
 		
@@ -712,7 +703,7 @@ var RecentUpdater = extend(ContentUpdater, function(refresher) {
 		},
 	
 	//override
-	updateContent: function(details, override) {
+	updateContent: function(details, override, background) {
 		
 		var newRecent = this.getRecent(details.responseText);
 		if(newRecent == "") return;
@@ -775,7 +766,7 @@ var PMCountUpdater = extend(ContentUpdater, function(refresher) {
 		},
 		
 	//override
-	updateContent: function(details, override) {
+	updateContent: function(details, override, background) {
 		
 		var PMAreaID = "boards_user_private_messages_wrapper";
 		var PMArea = document.getElementById(PMAreaID);
@@ -863,7 +854,7 @@ var Autorefresh = new function() {
 	*/
 	this.forEachUpdater = function(func) {
 		this.refreshers.forEach(function(e, i, a){
-			e.contentUpdaters.forEach(function(e, i, a) {
+			e._contentUpdaters.forEach(function(e, i, a) {
 				func(e, i, a);
 				});
 			});
@@ -877,10 +868,10 @@ var Autorefresh = new function() {
 		var that = this;
 		this.forEachUpdater(function(e, i, a) {
 			if(that._disabled) {
-				e.autorefresh = false;
+				e.change({autorefresh: false});
 				}
 			else {
-				e.autorefresh = e.originalAutorefresh;
+				e.change({autorefresh: e.originalAutorefresh});
 				}
 			});
 		}
@@ -922,7 +913,7 @@ var Autorefresh = new function() {
 		this.pms.init();
 		
 		this.forEachUpdater(function(e, i, a){
-			e.originalAutorefresh = e.autorefresh;
+			e.change({originalAutorefresh: e.autorefresh});
 			});
 		
 		}
