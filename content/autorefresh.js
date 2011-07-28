@@ -1219,8 +1219,14 @@ var RefresherListController = extend(Controller, function() {
 		view.model.forEach(function(e, i, a) {
 			e.init();
 			});
-		view.commit();
+		if(this.showControlsPref) {
+			view.commit();
+			}
 		return view;
+		},
+		
+	get showControlsPref() {
+		return GM_getValue("autorefreshControls", true);
 		},
 		
 	onFocus: function(e) {
