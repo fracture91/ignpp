@@ -917,7 +917,16 @@ var RefresherListModel = extend(Model, function(refreshers) {
 		this.forEachUpdater(function(e, i, a) {
 			e.change({disabled: b});
 			});
+		if(b && this._refreshing) {
+			this.forEach(function(e, i, a) {
+				e.abort();
+				});
+			}
 		return this._disabled = b;
+		},
+		
+	toggleDisabled: function() {
+		this.change({disabled: !this.disabled});
 		},
 		
 	_refreshing: false,
@@ -967,6 +976,15 @@ var RefresherListModel = extend(Model, function(refreshers) {
 			if(e.isOutdated(now)) {
 				e.request();
 				}
+			});
+		},
+		
+	/*
+	Call request(true) for each Refresher.
+	*/
+	requestAndOverride: function() {
+		this.forEach(function(e, i, a) {
+			e.request(true);
 			});
 		}
 	});
@@ -1239,11 +1257,19 @@ var RefresherListController = extend(Controller, function() {
 	onClickPrec: RefresherController.prototype.onClickPrec,
 	onClick: function(e, instance) {
 		if(e.target == instance.refreshButton) {
-			this.requestAndOverride(instance.model);
+			this.onRefreshClick(e, instance);
 			}
 		else if(e.target == instance.disableButton) {
-			this.toggleDisabled(instance.model);
+			this.onDisableClick(e, instance);
 			}
+		},
+		
+	onRefreshClick: function(e, instance) {
+		instance.model.requestAndOverride();
+		},
+		
+	onDisableClick: function(e, instance) {
+		instance.model.toggleDisabled();
 		},
 		
 	onChangePrec: ContentUpdaterController.prototype.onChangePrec,
@@ -1251,22 +1277,6 @@ var RefresherListController = extend(Controller, function() {
 		if(e.target == instance.focusCheckbox) {
 			instance.model.change({focusMatters: e.target.checked});
 			}
-		},
-		
-	/*
-	Call request(true) for each Refresher in the given model.
-	*/
-	requestAndOverride: function(model) {
-		model.forEach(function(e, i, a) {
-			e.request(true);
-			});
-		},
-		
-	/*
-	Given a model, toggle its disabled state.
-	*/
-	toggleDisabled: function(model) {
-		model.change({disabled: !model.disabled});
 		},
 		
 	KEYS: {
@@ -1300,13 +1310,13 @@ var RefresherListController = extend(Controller, function() {
 		
 		switch(e.which) {
 			case this.KEYS.DISABLE:
-				this.forEachView(function(e, i, a) {
-					this.toggleDisabled(e.model);
+				this.forEachView(function(view) {
+					this.onDisableClick(e, view);
 					});
 				break;
 			case this.KEYS.REFRESH:
-				this.forEachView(function(e, i, a){
-					this.requestAndOverride(e.model);
+				this.forEachView(function(view){
+					this.onRefreshClick(e, view);
 					});
 				break;
 			}
