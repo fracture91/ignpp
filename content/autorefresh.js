@@ -252,9 +252,9 @@ var Refresher = extend(Model, function () {
 	Clears refreshing flag and gynecologist.
 	*/
 	onRequestEnd: function() {
-		this.change({_refreshing: false});
+		this.change({_refreshing: false,
+					requestEndDate: new Date()});
 		this._gynecologist = null;
-		this.requestEndDate = new Date();
 		},
 	
 	/*
@@ -1061,11 +1061,20 @@ var RefresherView = extend(View, function(parent, before, model) {
 		addClass(this.container, "RefresherView");
 		},
 	createEverythingElse: function() {
+		this.refreshContainer = document.createElement("div");
 		this.refreshButton = createElementX("input", {type: "button"});
-		this.container.appendChild(this.refreshButton);
+		this.refreshContainer.appendChild(this.refreshButton);
+		this.dateContainer = document.createElement("div");
+		this.dateLabel = createElementX("label", {textContent: "Last Refresh"});
+		this.dateText = document.createTextNode("Never");
+		this.dateContainer.appendChild(this.dateLabel);
+		this.dateContainer.appendChild(this.dateText);
+		this.container.appendChild(this.refreshContainer);
+		this.container.appendChild(this.dateContainer);
 		this.contentUpdaterViews.forEach(function(e, i, a) {
+			e.parent = this.refreshContainer;
 			e.render();
-			});
+			}, this);
 		},
 	commit: function() {
 		this.contentUpdaterViews.forEach(function(e, i, a) {
@@ -1078,6 +1087,12 @@ var RefresherView = extend(View, function(parent, before, model) {
 		},
 	onModel_refreshingChange: function(source, value) {
 		this.container.setAttribute("refreshing", value);
+		},
+	onModelRequestEndDateChange: function(source, value) {
+		this.dateText.textContent = 
+			(value.getMonth() + 1) + "/" + value.getDate() + " " +
+			value.toLocaleTimeString().replace(/^0(\d)/, "$1");  //remove leading zeros
+		this.dateContainer.title = value.toLocaleString();
 		}
 	});
 
