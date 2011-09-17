@@ -12,7 +12,7 @@ var Integratedtools = new function() {
 	var search = document.getElementById("boards_search_container");
 	var form = getFirstByTagName(search, "form");
 	var input = document.getElementById('boards_search_input');
-	var dropDownBottom = getFirstByClassName( getFirstByClassName(document.getElementById("nav-global"), "home"), "sub-nav-display-sub");
+	var dropDown = getFirstByClassName(document.getElementById("navItem-boards"), "sub-nav-display");
 	
 	this.addSearchInTab = function() {
 		
@@ -60,7 +60,7 @@ var Integratedtools = new function() {
 			links[3].href = chrome.extension.getURL("content/options/gchromeoptions.html");
 			}
 
-		dropDownBottom.parentNode.insertBefore(temp.firstChild, dropDownBottom);
+		dropDown.appendChild(temp.firstChild);
 		
 		}
 		
@@ -71,13 +71,14 @@ var Integratedtools = new function() {
 			});
 		
 		for(var i=0, len = temp.childNodes.length; i<len; i++)
-			dropDownBottom.parentNode.insertBefore(temp.firstChild, dropDownBottom);
+			dropDown.appendChild(temp.firstChild);
 			
 		//we also want to get rid of Board Options link and replace with Help
-		var firstGroup = dropDownBottom.parentNode.firstElementChild;
-		var columns = firstGroup.getElementsByTagName("ul");
-		columns[0].removeChild(columns[0].getElementsByTagName("li")[2]);
-		columns[0].appendChild(columns[1].getElementsByTagName("li")[3]);
+		var list = getFirstByTagName(dropDown, "ul");
+		var help = list.lastElementChild;
+		list.removeChild(list.getElementsByTagName("li")[2]); //board options
+		removeClass(help, "col2");
+		list.insertBefore(help, getFirstByClassName(list, "reset"));
 		
 		}
 		
