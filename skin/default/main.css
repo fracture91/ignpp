@@ -62,13 +62,16 @@ box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
 }
 
 /* control buttons in boards drop down */
-.vtControls > a, .vtControls > a > img {
+.ignppControls, .ignppControls > li, .ignppControls > li > a {
+overflow: auto;
+}
+.ignppControls > li, .ignppControls > li > a > img {
 float: left;
 }
-.vtControls > a {
+.ignppControls > li > a {
 min-height: 24px !important;
 min-width: 30px !important;
-margin-left: 5px !important;
+margin-left: 1px !important;
 padding: 0 !important;
 border: none !important;
 -moz-user-select: none;
@@ -77,14 +80,9 @@ background-color: transparent;
 font: bold 10pt verdana,arial,sans-serif;
 color: #BBBBBB;
 text-decoration: none;
-cursor: pointer;
 }
-.vtControls > ul {
-float: left !important;
-width: auto !important;
-}
-.vtControls > ul + a {
-margin-left: 10px !important;
+.ignppControls > li:nth-child(2) {
+margin-left: 5px !important;
 }
 #privateMessageButton > img {
 margin-top: -2px;
@@ -92,7 +90,10 @@ margin-top: -2px;
 #optionsButton > img {
 margin: 5px 8px;
 }
-.nav-item.home .sub-bullets-head a {
+.ignppLargeReset {
+margin-top: -176px !important;
+}
+.ignppNavBlack {
 font-weight: bold !important;
 font-size: 12px !important;
 color: black !important;
