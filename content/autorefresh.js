@@ -24,6 +24,11 @@ var Refresher = extend(Model, function () {
 	this._refreshing = false;
 	
 	/*
+	True if any ContentUpdaters have autorefresh enabled.
+	*/
+	this._autorefresh = false;
+	
+	/*
 	The object returned by GM_xmlhttpRequest which lets us abort the current request.
 	*/
 	this._gynecologist = null;
@@ -143,6 +148,35 @@ var Refresher = extend(Model, function () {
 		this.addObserver(updater); //add to this._contentUpdaters
 		this._observers = bak;
 		this.addObserver(updater); //add to this._observers
+		
+		updater.addObserver(this); //so we can catch autorefresh changes
+		if(updater.autorefresh) {
+			this.change({_autorefresh: true});
+			}
+		},
+		
+	/*
+	Update a property in this model which indicates that some property in at least one
+	"child" model is true.
+	*/
+	updateCompositeProperty: function(myProperty, childProperty, children, changes) {
+		if(childProperty in changes) {
+			var any = changes[childProperty];
+			if(!any) {
+				any = children.some(function(e, i, a) {
+					return e[childProperty];
+					});
+				}
+			if(this[myProperty] != any) {
+				var obj = {};
+				obj[myProperty] = any;
+				this.change(obj);
+				}
+			}
+		},
+		
+	onModelChangeEvent: function(source, changes) {
+		this.updateCompositeProperty("_autorefresh", "autorefresh", this._contentUpdaters, changes);
 		},
 	
 	/*
@@ -333,7 +367,6 @@ var ContentUpdater = extend(Model, function(refresher, contentElement, hoverMatt
 	The refresher this is observing.
 	*/
 	this.refresher = refresher;
-	refresher.addContentUpdater(this);
 	
 	this._autorefresh = this.autorefreshPref;
 	this._disabled = false;
@@ -368,6 +401,8 @@ var ContentUpdater = extend(Model, function(refresher, contentElement, hoverMatt
 	if(this.hoverMatters) {
 		this.addMouseOverListeners();
 		}
+		
+	refresher.addContentUpdater(this);
 	
 	},
 {
@@ -890,6 +925,9 @@ var RefresherListModel = extend(Model, function(refreshers) {
 	Model.call(this);
 	this.refreshers = refreshers;
 	this.forEach(function(e, i, a) {
+		if(e._autorefresh) {
+			this._autorefresh = true;
+			}
 		e.addObserver(this);
 		});
 	},
@@ -929,20 +967,14 @@ var RefresherListModel = extend(Model, function(refreshers) {
 		this.change({disabled: !this.disabled});
 		},
 		
+	_autorefresh: false,
 	_refreshing: false,
+	
+	updateCompositeProperty: Refresher.prototype.updateCompositeProperty,
 		
 	onModelChangeEvent: function(source, changes) {
-		if("_refreshing" in changes) {
-			var anyRefreshing = changes._refreshing;
-			if(!anyRefreshing) {
-				this.forEach(function(e, i, a) {
-					if(e._refreshing) anyRefreshing = true;
-					});
-				}
-			if(this._refreshing != anyRefreshing) {
-				this.change({_refreshing: anyRefreshing});
-				}
-			}
+		this.updateCompositeProperty("_refreshing", "_refreshing", this.refreshers, changes);
+		this.updateCompositeProperty("_autorefresh", "_autorefresh", this.refreshers, changes);
 		},
 
 	/*
@@ -1162,8 +1194,15 @@ var RefresherListView = extend(View, function(parent, before, model) {
 			e.commit();
 			});
 		},
+	updateDisableButtonState: function() {
+		this.disableButton.value = this.model.disabled || !this.model._autorefresh
+			? "Enable All" : "Disable All";
+		},
+	onModel_autorefreshChange: function(source, value) {
+		this.updateDisableButtonState();
+		},
 	onModelDisabledChange: function(source, value) {
-		this.disableButton.value = value ? "Enable All" : "Disable All";
+		this.updateDisableButtonState();
 		},
 	onModelFocusMattersChange: function(source, value) {
 		this.focusCheckbox.checked = value;
@@ -1284,7 +1323,15 @@ var RefresherListController = extend(Controller, function() {
 		},
 		
 	onDisableClick: function(e, instance) {
-		instance.model.toggleDisabled();
+		var model = instance.model;
+		if(!model.disabled && !model._autorefresh) {
+			model.forEachUpdater(function(updater) {
+				updater.change({autorefresh: true});
+				});
+			}
+		else {
+			model.toggleDisabled();
+			}
 		},
 		
 	onChangePrec: ContentUpdaterController.prototype.onChangePrec,
