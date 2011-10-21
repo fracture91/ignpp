@@ -674,6 +674,8 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 		//if this is true, we definitely have an old copy of the page
 		if(len < oldLen) return;
 		
+		this.updatePaginator(newReplies);
+		
 		var reached = false, //true after the first iteration when i >= oldLen
 		newStuff = false; //true after the loop if there were any new replies or edits
 		
