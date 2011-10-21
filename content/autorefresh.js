@@ -641,7 +641,9 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 				customEvent(botPag, "newPaginator");
 				}
 			
+			return newReplies.lastPage - pageReplies.lastPage;
 			}
+		return 0;
 		},
 	
 	/*
@@ -653,6 +655,37 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 		oldReply.postContent = newReply.allPostContent;
 		oldReply.subject = newReply.subject;
 		customEvent(oldReply.ref, "replyEdited");
+		},
+	
+	/*
+	Given the number of new things, construct a message to express the newfound things.
+	At least one parameter should be > 0 to get a good message.
+	*/
+	constructMessage: function(newPages, newReplies, newEdits, newVotes) {
+		var list = [];
+		var simplePlurality = {plural: "s", singular: ""};
+		var yPlurality = {plural: "ies", singular: "y"};
+		
+		function newThing(number, name, plurality) {
+			this.number = number; this.name = name; this.plurality = plurality;
+			}
+			
+		var newStuff = [
+			new newThing(newPages, "page", simplePlurality),
+			new newThing(newReplies, "repl", yPlurality),
+			new newThing(newEdits, "edit", simplePlurality),
+			new newThing(newVotes, "vote", simplePlurality)
+			];
+			
+		newStuff.forEach(function(e, i, a) {
+			if(e.number > 0) {
+				var listElement = e.number + " new " + e.name;
+				listElement += e.number > 1 ? e.plurality.plural : e.plurality.singular;
+				list.push(listElement);
+				}
+			});
+			
+		return "Found " + list.join(", ") + ".";
 		},
 	
 	//override
@@ -674,10 +707,12 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 		//if this is true, we definitely have an old copy of the page
 		if(len < oldLen) return;
 		
-		this.updatePaginator(newReplies);
+		var numNewPages = this.updatePaginator(newReplies); //total number of new pages found
+		var numNewReplies = len - oldLen; //total number of new replies found
 		
 		var reached = false, //true after the first iteration when i >= oldLen
-		newStuff = false; //true after the loop if there were any new replies or edits
+		numNewEdits = 0, //total number of new edits found
+		numNewVotes = 0; //total number of new poll votes found
 		
 		//loop through all the replies
 		for(var i=0; i<len; i++) {
@@ -690,12 +725,14 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 				//if there's a new edit
 				if(this.editsPref && (newReply.editCount > oldReply.editCount)) {
 					this.applyEdit(oldReply, newReply);
-					newStuff = true;
+					numNewEdits++;
 					}
 				//if it's the first post and there's a poll on the page
 				if(this.pollsPref && i==0 && oldReply.poll) {
 					//if the poll has more votes, update it
-					if(oldReply.votes < newReply.votes) oldReply.poll = newReply.poll;
+					var voteDiff = newReply.votes - oldReply.votes;
+					if(voteDiff > 0) oldReply.poll = newReply.poll;
+					numNewVotes += voteDiff;
 					}
 				}
 			//otherwise, it's a new post
@@ -712,14 +749,18 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 				newReply.fixEmbeds();
 				//add the new reply
 				pageReplies.add(newReply);
-				newStuff = true;
 				customEvent(newReply.ref, "newReply");
 				}
 		
 			}
 		
 		newReplies = null;
-		if(newStuff) resize(window);
+		if(numNewPages > 0 || numNewReplies > 0 || numNewEdits > 0 || numNewVotes > 0) {
+			resize(window);
+			this.event("publishMessage",
+				this.constructMessage(numNewPages, numNewReplies, numNewEdits, numNewVotes));
+			}
+		
 		}
 	
 	});
@@ -917,7 +958,11 @@ var PMCountUpdater = extend(ContentUpdater, function(refresher) {
 			PMArea.parentNode.removeChild(PMArea);
 			customEvent(container, "PMBubbleRemoved");
 			}
-		
+			
+		if(PMCount > oldPMCount) {
+			var diff = PMCount - oldPMCount;
+			this.event("publishMessage", "Found " + diff + " new PM" + (diff > 1 ? "s" : ""));
+			}
 		}
 	
 	});
@@ -1002,6 +1047,17 @@ var RefresherListModel = extend(Model, function(refreshers) {
 		},
 		
 	/*
+	Returns an array of all ContentUpdaters in this.refreshers.
+	*/
+	getUpdaters: function() {
+		var updaters = [];
+		this.forEachUpdater(function(e, i, a) {
+			updaters.push(e);
+			});
+		return updaters;
+		},
+		
+	/*
 	Call request method of any refreshers which haven't been refreshed for interval milliseconds.
 	*/
 	refreshOutdated: function() {
@@ -1020,6 +1076,90 @@ var RefresherListModel = extend(Model, function(refreshers) {
 		this.forEach(function(e, i, a) {
 			e.request(true);
 			});
+		}
+	});
+	
+	
+/*
+Represents a queue of messages which an array of Observable messengers can add to.
+The messengers must fire PublishMessageEvents, passing a string as its extra argument where
+the string is the message to be displayed.
+Clients should only listen for ModelChangeEvents, consider everything else private.
+
+The MessageQueueModel will change its currentMessage property to equal the message at the top
+of the queue for some amount of time so that each published message is given a fair amount of time.
+This message is shifted from the queue.
+After this, if there are more messages to show, the next one is set.
+Otherwise, the currentMessage remains indefinitely.
+*/
+var MessageQueueModel = extend(Model, function(messengers, minimumTime) {
+	Model.call(this);
+	
+	/*
+	The current message in this queue.
+	*/
+	this.currentMessage = null;
+	
+	/*
+	The remaining messages.
+	*/
+	this.messages = [""];
+	
+	/*
+	The minimum amount of time, in milliseconds, that each message must be currentMessage.
+	*/
+	this.minimumTime = minimumTime;
+	
+	/*
+	The interval being used to periodically call updateCurrentMessage.
+	*/
+	this.interval = null;
+	
+	/*
+	All Observable messengers this queue is observing for messages.
+	*/
+	this.messengers = messengers;
+	this.messengers.forEach(function(e, i, a) {
+		e.addObserver(this);
+		}, this);
+	
+	this.updateCurrentMessage();
+	
+	},
+{
+	/*
+	If there are messages waiting in the queue, change this.currentMessage to the top message in
+	the queue and remove it.
+	Start periodically updating if necessary.
+	*/
+	updateCurrentMessage: function() {
+		if(this.messages.length > 0) {
+			this.change({currentMessage: this.messages.shift()});
+			this.startIntervalIfNecessary();
+			}
+		else {
+			this.stopIntervalIfPossible();
+			}
+		},
+		
+	onPublishMessageEvent: function(source, message) {
+		this.messages.push(message);
+		if(this.interval == null) {
+			this.updateCurrentMessage();
+			}
+		},
+		
+	startIntervalIfNecessary: function() {
+		if(this.interval == null) {
+			this.interval = setInterval(this.updateCurrentMessage.bind(this), this.minimumTime);
+			}
+		},
+		
+	stopIntervalIfPossible: function() {
+		if(this.interval != null) {
+			clearInterval(this.interval);
+			this.interval = null;
+			}
 		}
 	});
 	
@@ -1151,6 +1291,21 @@ var RefresherController = extend(Controller, function() {
 	
 (new RefresherController()).init();
 	
+
+var MessageQueueView = extend(View, function(parent, before, model) {
+	View.call(this, parent, before, model);
+	},
+{
+	className: "MessageQueueView",
+	decorateContainer: function() {
+		View.prototype.decorateContainer.call(this);
+		addClass(this.container, "MessageQueueView");
+		},
+	onModelCurrentMessageChange: function(source, value) {
+		this.container.textContent = value;
+		}
+	});
+	
 	
 var RefresherListView = extend(View, function(parent, before, model) {
 	View.call(this, parent, before, model);
@@ -1163,6 +1318,9 @@ var RefresherListView = extend(View, function(parent, before, model) {
 	this.model.forEach(function(e, i, a) {
 		this.refresherViews.push(new RefresherView(null, null, e));
 		}, this);
+		
+	this.messageQueueView = new MessageQueueView(null, null,
+		new MessageQueueModel(this.model.getUpdaters(), 2000) );
 	
 	},
 {
@@ -1172,6 +1330,7 @@ var RefresherListView = extend(View, function(parent, before, model) {
 		this.refresherViews.forEach(function(e, i, a) {
 			e.parent = this.container;
 			}, this);
+		this.messageQueueView.parent = this.container;
 		},
 	decorateContainer: function() {
 		View.prototype.decorateContainer.call(this);
@@ -1189,12 +1348,14 @@ var RefresherListView = extend(View, function(parent, before, model) {
 		this.refresherViews.forEach(function(e, i, a) {
 			e.render();
 			});
+		this.messageQueueView.render();
 		},
 	commit: function() {
 		View.prototype.commit.call(this);
 		this.refresherViews.forEach(function(e, i, a) {
 			e.commit();
 			});
+		this.messageQueueView.commit();
 		},
 	updateDisableButtonState: function() {
 		this.disableButton.value = this.model.disabled || !this.model._autorefresh
