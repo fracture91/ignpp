@@ -1337,13 +1337,15 @@ var RefresherListView = extend(View, function(parent, before, model) {
 		addClass(this.container, "RefresherListView");
 		},
 	createEverythingElse: function() {
+		this.buttonContainer = document.createElement("div");
 		this.refreshButton = createElementX("input", {type: "button", value: "Refresh All"});
 		this.disableButton = createElementX("input", {type: "button"});
+		this.buttonContainer.appendChild(this.refreshButton);
+		this.buttonContainer.appendChild(this.disableButton);
 		this.focusLabel = createElementX("label", {textContent: "Focus Matters"});
 		this.focusCheckbox = createElementX("input", {type: "checkbox"});
 		this.focusLabel.insertBefore(this.focusCheckbox, this.focusLabel.firstChild);
-		this.container.appendChild(this.refreshButton);
-		this.container.appendChild(this.disableButton);
+		this.container.appendChild(this.buttonContainer);
 		this.container.appendChild(this.focusLabel);
 		this.refresherViews.forEach(function(e, i, a) {
 			e.render();
@@ -1352,10 +1354,11 @@ var RefresherListView = extend(View, function(parent, before, model) {
 		},
 	commit: function() {
 		View.prototype.commit.call(this);
-		this.refresherViews.forEach(function(e, i, a) {
-			e.commit();
-			});
 		this.messageQueueView.commit();
+		this.refresherViews.forEach(function(e, i, a) {
+			e.before = this.focusLabel;
+			e.commit();
+			}, this);
 		},
 	updateDisableButtonState: function() {
 		this.disableButton.value = this.model.disabled || !this.model._autorefresh

@@ -140,6 +140,80 @@ cursor: pointer;
 }
 
 
+.RefresherListView {
+clear: both;
+overflow: auto;
+background-color: #c2c2ca;
+border-bottom: 2px groove white;
+padding: 2px 4px;
+}
+.RefresherListView > .RefresherView,
+.RefresherListView > div {
+float: left;
+}
+.RefresherListView > label {
+float: right;
+margin-top: 17px !important;
+margin-bottom: 19px !important;
+}
+.RefresherListView > div {
+padding: 2px 2px 2px 0;
+}
+.RefresherListView > div > input[type="button"],
+.RefresherView > div > input[type="button"] {
+display: block;
+height: 24px;
+padding-bottom: 2px;
+padding-left: 2px;
+padding-right: 2px;
+width: 100%;
+}
+.RefresherView > div > input[type="button"] {
+margin-bottom: 3px !important;
+}
+.RefresherView {
+border: 1px solid #807f85;
+padding: 0;
+background: #B6B4BF;
+margin: 0 2px;
+border-radius: 2px;
+}
+.RefresherView > div {
+float: left;
+text-align: center;
+padding: 1px 2px 4px 2px;
+}
+.RefresherView > div:last-child {
+background-color: rgba(255, 255, 255, 0.1);
+border-left: 1px solid #807F85;
+padding-bottom: 5px;
+}
+.RefresherView > div > label:not(.ContentUpdaterView) {
+display: block;
+font-size: 13px;
+margin-top: 1px;
+margin-bottom: 8px;
+padding: 2px;
+}
+.ContentUpdaterView,
+.RefresherListView > label {
+margin: 0 2px;
+}
+.ContentUpdaterView > input,
+.RefresherListView > label > input {
+position: relative;
+top: 2px;
+margin-right: 2px !important;
+}
+.MessageQueueView {
+float: none !important;
+margin-top: 13px;
+text-align: center;
+font-size: 13px;
+max-height: 35px;
+opacity: 0.7;
+}
+
 
 /* control buttons on panels */
 .closeButton, .minimizeButton, .restoreButton, .maximizeButton {
