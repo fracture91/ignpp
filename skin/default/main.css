@@ -178,6 +178,9 @@ background: #B6B4BF;
 margin: 0 2px;
 border-radius: 2px;
 }
+.RefresherView[refreshing="true"] {
+border-color: green;
+}
 .RefresherView > div {
 float: left;
 text-align: center;
