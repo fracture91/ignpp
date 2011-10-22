@@ -216,6 +216,13 @@ font-size: 13px;
 max-height: 35px;
 opacity: 0.7;
 }
+.RefresherListView > * {
+z-index: 1;
+position: relative;
+}
+.MessageQueueView {
+z-index: 0 !important;
+}
 
 
 /* control buttons on panels */
