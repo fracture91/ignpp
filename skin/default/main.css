@@ -169,7 +169,7 @@ padding-right: 2px;
 width: 100%;
 }
 .RefresherView > div > input[type="button"] {
-margin-bottom: 3px !important;
+margin-bottom: 4px !important;
 }
 .RefresherView {
 border: 1px solid #807f85;
@@ -195,7 +195,7 @@ padding-bottom: 5px;
 display: block;
 font-size: 13px;
 margin-top: 1px;
-margin-bottom: 8px;
+margin-bottom: 9px;
 padding: 2px;
 }
 .ContentUpdaterView,
