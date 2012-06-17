@@ -11,13 +11,9 @@ Components.utils.import("resource://vestitools/files.js");
 
 var vestitools_gmCompiler={
 
-includes: 	[
-			/^http:\/\/((beta)?boards|forums)\.ign\.com\/.*/
-			],
+includes: [ /^http:\/\/www\.ign\.com\/boards\/.*/ ],
 
-excludes: 	[
-			/http:\/\/((beta)?boards|forums)\/QuickPost\/.*/
-			],
+excludes: [],
 
 scriptPrefix: "chrome://vestitools/content/",
 			
