@@ -223,7 +223,7 @@ var vestitools_style = new function vt_Style() {
 		//google chrome doesn't support the -moz-document-domain thing, so it has to be added in here
 		//also need to fix chrome-extension URIs
 		if(temp) mainDataUri = this.newCSSDataUri(
-			"@-moz-document domain(boards.ign.com), domain(betaboards.ign.com), domain(forums.ign.com) { " +
+			"@-moz-document url-prefix(http://www.ign.com/boards) { " +
 				/*
 				Ideally, I'd only need to replace __MSG_@@extension_id__ specifically with vestitools,
 				but I can't use it since it's broken.
