@@ -17,9 +17,7 @@
 	"permissions": [
 		"idle",
 		"tabs",
-		"http://boards.ign.com/*",
-		"http://forums.ign.com/*",
-		"http://betaboards.ign.com/*",
+		"http://www.ign.com/boards/*",
 		"http://derekdev.com/mozilla/ignbq/*",
 		"unlimitedStorage"
 	],
@@ -30,9 +28,7 @@
 	"content_scripts": [
 		{
 			"matches": [
-				"http://boards.ign.com/*",
-				"http://forums.ign.com/*",
-				"http://betaboards.ign.com/*"
+				"http://www.ign.com/boards/*"
 			],
 			"css": ["skin/default/main.css"],
 			"js": [
@@ -42,9 +38,7 @@
 		},
 		{
 			"matches": [
-				"http://boards.ign.com/*",
-				"http://forums.ign.com/*",
-				"http://betaboards.ign.com/*"
+				"http://www.ign.com/boards/*"
 			],
 			"js": ["content/gchromecolors.js"],
 			"run_at": "document_start"
