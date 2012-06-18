@@ -733,19 +733,15 @@ var vestitools_style = new function vt_Style() {
 		return users;
 		}
 	
-	var mozDocument = '@-moz-document domain(boards.ign.com), domain(betaboards.ign.com),\ndomain(vnboards.ign.com), domain(forums.ign.com) {\n'
+	var mozDocument = '@-moz-document url-prefix(http://www.ign.com/boards) {\n'
 	
-	var profileLinkUrl = "http://club.ign.com/b/about?username=";
-	var peopleLinkUrl = "http://people.ign.com/";
-	var clubBoardLinkUrl = "http://my.ign.com/club-board?username=";
-	
-	var profileLinkSelector = ['a', '[href^="', profileLinkUrl, 'unknown', '"]'];
-	var peopleLinkSelector = profileLinkSelector.slice(0); //copy array
-	peopleLinkSelector[2] = peopleLinkUrl;
-	peopleLinkSelector[1] = '[href="';
-	var clubBoardLinkSelector = profileLinkSelector.slice(0);
-	clubBoardLinkSelector[2] = clubBoardLinkUrl;
-	var linkSelectorUsernameLoc = 3;
+	/*
+	URL looks like ...members/yab.1234/
+	We want to match "members/yab.", but not "members/yab.." so we don't have
+	people with trailing periods impersonating others.
+	nulls here will be replaced with username.
+	*/
+	var profileLinkSelector = ['a.username[href*="members/', null, '."]:not([href*="members/', null, '.."])'];
 	
 	var importantEnding = " !important;\n";
 	
@@ -766,81 +762,66 @@ var vestitools_style = new function vt_Style() {
 		concatenations all over.  This should be much faster.
 		*/
 		var buf = [];
-		var showUsercolorsPeopleLinks = GM_getValue("showUsercolorsPeopleLinks", false);
-		var showUsercolorsClubBoardLinks = GM_getValue("showUsercolorsClubBoardLinks", false);
 		
-		function selectorPusher(e, i) {
-			//push the username where "unknown" would be located
-			if(i==linkSelectorUsernameLoc) {
-				buf.push(user.username);
-				}
-			else buf.push(e);
-			}
+		function selectorPusher(element) {
+			buf.push(element===null ? user.username.toLowerCase() : element);
+		}
 		
 		//only apply to select domains (@-moz-document)
 		if(!this.chrome) {
 			buf.push(mozDocument);
-			}
+		}
 		
-		//the object should be an array of users
+		// the object should be an array of users
 		for(var i=0, len=obj.length; i<len; i++) {
-			
 			var user = obj[i];
-			var normalWeight = false;
 			
-			//add the selector for this user's profile link
+			// add the selector for this user's profile link
 			profileLinkSelector.forEach(selectorPusher);
-			
-			//and select the user's people link as well if preferred
-			if(showUsercolorsPeopleLinks) {
-				buf.push(",\n");
-				peopleLinkSelector.forEach(selectorPusher);
-				}
-				
-			//and select the user's club-board link as well if preferred
-			if(showUsercolorsClubBoardLinks) {
-				buf.push(",\n");
-				clubBoardLinkSelector.forEach(selectorPusher);
-				}
-				
 			buf.push(" {\n");
 			
-			var styles = user.styles;
+			// need to keep track of these for later...
+			var nonNullStyles = [];
 			
-			//add relevant CSS declarations provided by styles
+			// add relevant CSS declarations provided by styles object
+			var styles = user.styles;
 			for(var j in styles) {
 				if(styles[j] !== null) {
 					buf.push(styleElements[j].prop, ": ");
 					if(j == "bordercolor") buf.push("1px solid ");
-					if(colorStyleExp.test(j)) buf.push("#"); //push hash for colors
+					if(colorStyleExp.test(j)) buf.push("#"); // push hash for colors
 					buf.push(styles[j], importantEnding);
-					if(j == "weight" && styles[j] == "normal") normalWeight = true;
-					}
+					nonNullStyles.push(j);
 				}
-				
+			}
+			
+			if(nonNullStyles.length > 0) {
+				// some instances of these links have display: block,
+				// seemingly for no reason
+				buf.push("display: inline", importantEnding);
+			}
+			
 			buf.push("}\n");
 			
-			if(normalWeight) {
-				//need to make sure child b elements inherit font-weight
+			// IGN's builtin usercolors style a child span - override those styles
+			if(nonNullStyles.length > 0) {
 				profileLinkSelector.forEach(selectorPusher);
-				buf.push(" > b");
-				if(showUsercolorsPeopleLinks) {
-					buf.push(",\n");
-					peopleLinkSelector.forEach(selectorPusher);
-					buf.push(" > b");
-					}
-				buf.push(" {\nfont-weight: inherit", importantEnding, "}\n");
-				}
-			
+				buf.push(" > span {\n");
+				nonNullStyles.forEach(function(element) {
+					buf.push(styleElements[element].prop);
+					buf.push(": ", element == "bordercolor" ? "none" : "inherit");
+					buf.push(importantEnding);
+				});
+				buf.push("}\n");
 			}
+		}
 			
 		if(!this.chrome) {
-			buf.push("}\n"); //end of @-moz-document
-			}
+			buf.push("}\n"); // end of @-moz-document
+		}
 			
 		return buf.join("");
+	}
 		
-		}
 		
-		
-	};
+};

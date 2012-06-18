@@ -416,24 +416,21 @@ var I = new function() {
 						getFirstByClassName(document, "boards_profile_theme_white_selected") ? "white" : "classic";
 	
 	this.layout.fresh = this.layout.name != "classic";
-
-		
-	//get the user's username
-	//good luck reading this code
-	var cook, ignlogin, username="<unknown>";
-	if(cook = document.cookie) {
-		if(ignlogin = cook.slice( cook.indexOf("ignlogin=")+9, cook.indexOf(";", cook.indexOf("ignlogin=")+9) )) {
-			if(!(username = ignlogin.slice( ignlogin.lastIndexOf("\\", ignlogin.lastIndexOf("\\")-1)+1, ignlogin.lastIndexOf("\\") ))) {username = GM_getValue("username", "<unknown>");}
-			}
-		}
-		
+	
+	// get the user's username from IGN's cookie
 	this.validUsername = /^[\w.\-]{3,20}$/i;
-		
-	if(username != "<unknown>" && !this.validUsername.test(username)) username = "<error>";
+	/*
+	Cookie looks something like this:
+	a=b; c=d; ... ignlogin=abcd4rr3h34\gvdvf\ffsdf\ ... \gamerX1011\1;
 	
-	if(username != "<error>") GM_setValue("username", username);
-	
-	this.username = GM_getValue("username", "<unknown>");
+	Match ignlogin followed by any number of those slash groups, then capture
+	with a group for the username, then match the last slash group and semicolon.
+	*/
+	var match = document.cookie.match(/ignlogin\=(?:[^;]*\\)*([^;]*)\\[^;]*;/);
+	if(match && match[1] && this.validUsername.test(match[1])) {
+		GM_setValue("username", match[1]);
+	}
+	this.username = GM_getValue("username", "unknown");
 	
 	var uid, url;
 	if(

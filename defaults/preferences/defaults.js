@@ -1,7 +1,4 @@
 pref("extensions.vestitools.applyUsercolors", true);
-pref("extensions.vestitools.showUsercolorsQuickstats", false);
-pref("extensions.vestitools.showUsercolorsPeopleLinks", false);
-pref("extensions.vestitools.showUsercolorsClubBoardLinks", false);
 pref("extensions.vestitools.lastUsercolorCheck", 0);
 pref("extensions.vestitools.UCcolor", "");
 pref("extensions.vestitools.UCbgcolor", "");

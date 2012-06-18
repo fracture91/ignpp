@@ -1,8 +1,6 @@
 
 var Quickstats = new function() {
 	
-	this.__defineGetter__("showUsercolors", function(){return GM_getValue("showUsercolorsQuickstats", false);});
-	
 	this.clubPattern = /^http:\/\/club\.ign\.com(\/b)?\/about.*$/;
 	this.peoplePattern = /^http:\/\/people\.ign\.com\/.*$/;
 	this.clubBoardPattern = /^http:\/\/my\.ign\.com\/club-board.*$/;
