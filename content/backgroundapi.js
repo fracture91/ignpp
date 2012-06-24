@@ -207,7 +207,8 @@ if you were calling it from a content script.
 GM_API.xmlhttpRequest = function(detailsOrPort) {
 	var rv = {abort: this.unsupported};
 	var gynecologist = null;
-	if(detailsOrPort instanceof chrome.Port) {
+	//hacky way to identify a Port, since instanceof chrome.Port no longer works
+	if(detailsOrPort.constructor.name.indexOf("Port") != -1) {
 		gynecologist = new this.XHRDockHag(detailsOrPort);
 		}
 	else {
