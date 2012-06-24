@@ -330,7 +330,12 @@ var PageRefresher = extend(Refresher, function () {
 	*/
 	get afterPostingPref() {
 		return GM_getValue("autorefreshRepliesAfterPosting", true);
-		}
+		},
+	
+	// disabled until autorefresh is fixed, todo
+	isReady: function() {
+		return false;
+	}
 		
 	});
 
@@ -350,7 +355,11 @@ var PMCountRefresher = extend(Refresher, function () {
 		rather than set _url to a string.
 		*/
 		return I.url.PMCountUrl;
-		}
+		},
+	// disabled until autorefresh is fixed, todo
+	isReady: function() {
+		return false;
+	}
 	});
 	
 	
@@ -1552,11 +1561,7 @@ var RefresherListController = extend(Controller, function() {
 		}
 	
 	});
-	
+
 var Autorefresh = new RefresherListController();
 Autorefresh.init();
 Autorefresh.constructRefresherListView();
-
-
-
-	
