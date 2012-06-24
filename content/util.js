@@ -16,64 +16,6 @@ function defined(o) {
 //Setting it to null lets us easily check if the browser is Chrome in an if statement.
 if(!defined(window.chrome)) chrome = null;
 
-
-
-//not done yet or tested properly
-//plan to use for anonymous posting (need to delete and restore cookies)
-//may not work if correct cookies are inaccessible, then I'd have to use the cookie monster
-//http://www.michael-noll.com/wiki/Cookie_Monster_for_XMLHttpRequest
-	
-var Cookie = {
-	
-	get all(){return document.cookie},
-	
-	//put the data into a multidimensional array
-	toArray: function(data){
-		if(!defined(data)) data = this.all;
-		data = data.replace(/ /g, "").split(";");
-		var arr = [];
-		for(var i=0, len=data.length; i<len; i++) {
-			var split = data[i].split("=");
-			if(split[0]=="") continue;
-			arr.push([split[0], split[1]]);
-			}
-		return arr;
-		},
-	
-	//delete everything in the cookie
-	clear: function() {
-		var arr = this.toArray();
-		for(var i=0, len=arr.length; i<len; i++)
-			this.set(arr[i][0], "");
-		},
-		
-	get: function(key) {
-		if(this.all.indexOf(key+"=")==-1) return;
-		return this.all.split(key+"=")[1].split(";")[0];
-		},
-		
-	//set the given key to the given value
-	//can alternately pass in a string like "a=b;b=c;"
-	//or a multidimensional array from toArray
-	set: function(key, value) {
-		if(!defined(key)) return false;
-		var hasMultiple = false;
-		if((typeof key == "object" && key!=null) || (hasMultiple = (typeof key == "string" && key.indexOf("=")!=-1))) {
-			if(hasMultiple) key = this.toArray(key);
-			for(var i=0, len=key.length; i<len; i++)
-				this.set(key[i][0], key[i][1]);
-			return this.all;
-			}
-		return document.cookie = key + "=" + (defined(value) ? value : "");
-		},
-	
-	//set the whole cookie to this data
-	set all(to) {
-		this.clear();
-		this.set(to);
-		}
-	
-	}
 	
 function appendAllChildren(from, to) {
 	var len = from.childNodes.length;

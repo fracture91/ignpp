@@ -73,10 +73,7 @@ var Background = new function() {
 	Files which will be copied to GM_API.files onload.
 	*/
 	this.knownFiles = [
-		"extension://content/panel.html",
-		"extension://content/wysiwyg.html",
-		"extension://content/extra.html",
-		"extension://content/controls.html"
+		"extension://content/wysiwyg.html"
 		];
 		
 	/*
@@ -98,12 +95,7 @@ var Background = new function() {
 		"content/topics.js",
 		"content/editors.js",
 		"content/panels.js",
-		"content/overlay.js",
-		"content/message.js",
-		"content/infopanels.js",
-		"content/quickstats.js",
-		"content/threadpreview.js",
-		"content/autowul.js",
+		"content/messenger.js",
 		"content/conditionalstyle.js",
 		"content/integratedtools.js",
 		"content/autorefresh.js"

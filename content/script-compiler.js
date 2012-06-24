@@ -21,8 +21,7 @@ scriptPrefix: "chrome://vestitools/content/",
 scriptList: [
 				"inheritance.js", "util.js", "console.js", "employee.js", "observable.js",
 				"trackable.js", "view.js", "model.js", "controller.js",  "info.js", "parse.js", 
-				"replies.js", "topics.js", "editors.js", "panels.js", "overlay.js", "message.js",
-				"infopanels.js", "quickstats.js", "threadpreview.js", "autowul.js",
+				"replies.js", "topics.js", "editors.js", "panels.js", "messenger.js",
 				"conditionalstyle.js", "integratedtools.js", "autorefresh.js"
 			],
 			
