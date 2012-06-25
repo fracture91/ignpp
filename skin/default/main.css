@@ -54,92 +54,6 @@ width: 100%;
 height: 100%;
 }
 
-/* floating panels need shadow */
-body > .panel, #settingsBox, #status, .infoPanel {
--moz-box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
--webkit-box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
-box-shadow: 4px 4px 2px -2px rgba(0,0,0, 0.5);
-}
-
-/* control buttons in boards drop down */
-.ignppControls, .ignppControls > li, .ignppControls > li > a {
-overflow: auto;
-}
-.ignppControls > li, .ignppControls > li > a > img {
-float: left;
-}
-.ignppControls > li > a {
-min-height: 24px !important;
-min-width: 30px !important;
-margin-left: 1px !important;
-padding: 0 !important;
-border: none !important;
--moz-user-select: none;
--webkit-user-select: none;
-background-color: transparent;
-font: bold 10pt verdana,arial,sans-serif;
-color: #BBBBBB;
-text-decoration: none;
-}
-.ignppControls > li:nth-child(2) {
-margin-left: 5px !important;
-}
-#privateMessageButton > img {
-margin-top: -2px;
-}
-#optionsButton > img {
-margin: 5px 8px;
-}
-.ignppLargeReset {
-margin-top: -176px !important;
-}
-.ignppNavBlack {
-font-weight: bold !important;
-font-size: 12px !important;
-color: black !important;
-}
-
-/* if using vesti wiki search, need to style things a bit differently */
-.searchTweak {
-background: #b3b1bf !important;
-border: 1px solid #65656d !important;
-width: 489px !important;
-height: 76px !important;
-}
-.searchTweak.white {
-background: url("http://media.ignimgs.com/boards/img/default/full_width_bg.jpg") repeat-x center center #e9e9e9 !important;
-border-color: #d5d5d5 !important;
-}
-.searchTweak #boards_search_input {
-width: 307px !important;
-margin-top: 0px !important;
-margin-left: 12px !important;
-}
-.searchTweak > h1 {
-padding-top: 4px !important;
-padding-left: 9px !important;
-padding-bottom: 7px !important;
-}
-.searchTweak #boards_search_submit {
-background: #b1b3bc url(http://media.ignimgs.com/boards/img/grey/google_search_bg.jpg) 79px 48px;
-width: 66px !important;
-}
-#wikiSearchButton {
--moz-appearance: none !important;
-background: #fff url(http://media.ign.com/ign/imgs/bg_btn.gif) repeat-x scroll 0 bottom !important;
-border: 1px solid #99999b !important;
-border-left-width: 0px !important;
-font-weight: bold;
-color: #1046b1;
-font-size: 11px;
-padding-bottom: 3px !important;
-height: 36px !important;
-width: 80px !important;
-white-space: normal;
-cursor: pointer;
-}
-
-
 .RefresherListView {
 clear: both;
 overflow: auto;
@@ -225,13 +139,6 @@ z-index: 0 !important;
 }
 
 
-/* control buttons on panels */
-.closeButton, .minimizeButton, .restoreButton, .maximizeButton {
-float:right;
-cursor: pointer;
-margin: 1px;
-}
-
 .panel {
 background-color: #999999;
 text-align: left;
@@ -268,213 +175,9 @@ border-radius: 4px 4px 2px 2px;
 height: 312px;
 z-index: 1;
 }
-/* this area needs to stretch for integrated panels */
-#boards_board_list_header {
-overflow: auto;
-}
-/* integrated topic panels and top integrated reply panels */
-#boards_board_list_header > .panel,
-#boards_board_list_footer > .panel,
-#boards_thread_header_links > .panel {
-margin-bottom: 3px;
-}
-
-.panel.maximized {
-height: 500px;
-}
-/* floating, maximized panel */
-body > .panel.maximized {
-left: 9.5% !important;
-bottom: 9.5% !important;
-width: 81%;
-height: 81%;
-}
-.panel.minimized {
-height: 19px;
-}
-.panel.minimized > .panelContent {
-display: none;
-}
-/* IGN's little infobox you get when you hover over icons will have this class
-if there's a PM panel inside */
-.panelInside {
-height: auto !important;
-width: auto !important;
-display: block !important;
-opacity: 1 !important;
-background: #dadbdf !important;
-background-image: none !important;
-border: 1px solid #66676b !important;
--moz-box-shadow: 2px 2px 0 0 #939498 !important;
--webkit-box-shadow: 2px 2px 0 0 #939498 !important;
-box-shadow: 2px 2px 0 0 #939498 !important;
-}
-.panelInside .panel {
-min-width: 500px;
-}
-
-/* infopanels (quickstats, thread preview) */
-.infoPanel {
-background-color: #999999;
-text-align: left;
-color: white;
-font: 11px arial,sans-serif;
-padding: 2px;
-position: absolute;
-border: 2px solid #cccccc;
--moz-border-radius: 4px 4px 4px 4px;
-border-radius: 4px 4px 4px 4px;
-z-index: 1;
-}
-.infoPanel > .panelContent > .loadingIcon {
-margin: 0 auto;
-}
-
-/* quickstats */
-.infoPanel td {
-padding-bottom: 2px;
-text-shadow: 0 0 2px black;
-}
-.infoPanel td:first-child {
-text-align: right;
-padding-right: 2px;
-}
-.infoPanel td:last-child {
-text-shadow: 0 0 1px black;
-max-width: 156px;
-}
-.infoPanel table {
-z-index: 1;
-position: relative;
-max-width: 200px;
-margin: 5px;
-border-spacing: 0;
-}
-.infoPanel .icon {
-position: absolute;
-right: 0;
-top: 35px;
-background: #b1b3bc;
-opacity: 0.25;
--moz-box-shadow: 0 0 10px 5px #b1b3bc;
--webkit-box-shadow: 0 0 10px 5px #b1b3bc;
-box-shadow: 0 0 10px 5px #b1b3bc;
-z-index: 0;
-}
-.infoPanel .icon > img {
-padding: 5px;
-}
-
-/* thread preview */
-.threadPreview {
-max-width: 700px;
-color: black;
-counter-reset: a;
-}
-.threadPreview > .panelHeading {
-position: relative;
-height: 17px;
-}
-.threadPreview > .panelHeading > a {
-position: absolute;
-top: -2px;
-}
-.threadPreview > .panelHeading img {
-position: absolute;
-right: 0;
-top: 0;
-}
-.panelHeading > .previewSubject {
-overflow: hidden;
-white-space: nowrap;
-margin: 0 25px 0 50px;
-padding-bottom: 1px;
-text-align: center;
-}
-.panelHeading > .previewSubject > a {
-color: white !important;
-font-size: 11px !important;
-position: relative;
-bottom: 1px;
-}
-.threadPreview > .panelContent {
-overflow-y: auto;
-max-height: 300px;
-}
-.threadPreview > .panelContent > .boards_pagination {
-position: absolute;
-z-index: 1;
-top: 19px;
-margin-top: 2px !important;
-width: 91% !important;
-height: 0;
-padding-top: 0 !important;
-padding-bottom: 0 !important;
-}
-.threadPreview > .panelContent > .boards_pagination > .loadingIcon {
-float: left;
-margin-left: 3px;
-position: absolute;
-}
-.threadPreview > .panelContent > .boards_pagination > ul {
-height: 0;
-padding-top: 0 !important;
-padding-bottom: 0 !important;
-margin-top: 2px !important;
-}
-.threadPreview > .panelContent > .replyPreview:nth-child(2) {
-margin-top: 20px;
-}
-.threadPreview > .panelContent > .boards_pagination > ul > li > a, .threadPreview > .panelContent > .boards_pagination > ul > li > a:visited {
-padding:1px 5px !important;
-}
-.threadPreview > .panelContent > .boards_pagination .disablelink, .threadPreview > .panelContent > .boards_pagination .disablelink:hover {
-padding:1px 5px !important;
-}
-.previewTop {
-padding: 2px 4px;
-background: #b1b3bc;
-margin: 1px;
-overflow: auto;
-}
-.previewTop > a {
-font-weight: bold;
-}
-.previewTop > .previewDate {
-float: right;
-}
-.previewTop:first-child:before {
-content: counter(a) " ";
-counter-increment: a;
-}
-.previewBottom {
-padding: 2px 4px;
-background: #c1c2c9;
-margin: 1px;
-}
 
 .panel > .panelHeading {
 padding: 2px 5px 0px;
--moz-user-select: -moz-none;
--webkit-user-select: none;
-}
-.infoPanel > .panelHeading {
-text-align: center;
-color: #000099;
-font: bold 10pt verdana,arial,sans-serif;
-text-decoration: none;
-}
-.threadPreview > .panelHeading > a {
-margin: 1px 4px;
-background: none;
-text-decoration: none;
-color: blue;
-padding: 0;
-font-weight: bold;
-font-size: 10pt;
-}
-.threadPreview > .panelHeading {
-text-align: left;
 -moz-user-select: -moz-none;
 -webkit-user-select: none;
 }
@@ -485,29 +188,6 @@ top: 17px;
 bottom: 1px;
 left: 5px;
 right: 5px;
-}
-.infoPanel .in {
-padding-left: 10px;
-}
-.infoPanel .banned {
-color: red;
-font-weight: bold;
-}
-.infoPanel .insider {
-color: #99ef99;
-}
-.infoPanel .vip, .infoPanel .mod, .infoPanel .modType, .infoPanel .manager, .infoPanel .admin {
-color: #df9f33;
-}
-.infoPanel .bottomLinks {
-position: static;
-padding: 0 2px 2px;
-text-align: center;
-font-size: 9.333px;
-}
-.infoPanel .bottomLinks > a {
-text-decoration: none;
-margin-top: 1px;
 }
 .panelContent > .top {
 position: absolute;
@@ -551,25 +231,8 @@ box-sizing: border-box;
 height: 19px;
 padding: 2px !important;
 }
-.panel > .panelContent > .top > .lock,
-.panelContent > .top > .user {
-display: none;
-}
-.edit > .panelContent > .top.canLock > .lock {
-display: block;
-}
-.pm > .panelContent > .top > .user {
-display: inline;
-width: 165px;
-position: absolute;
-left: 0px;
-}
-.edit > .panelContent > .top > .lock {
-position: absolute;
-left: 0px;
-margin: 3px 3px 3px 4px !important;
-}
-.panelContent > .middle > .body, .overlayContainer > .middle > .body {
+
+.panelContent > .middle > .body {
 height: 100% !important;
 width: 100% !important;
 -moz-box-sizing: border-box;
@@ -595,12 +258,6 @@ padding: 0px 2px 0px 1px;
 border: 1px solid #3d7bad;
 border-bottom: none !important;
 white-space: nowrap;
-}
-.pm .charsLeft {
-left: 200px !important;
-}
-.pm > .panelContent > .top > .subjectContainer {
-margin-left: 170px;
 }
 .edit > .panelContent > .top > .subjectContainer {
 margin-left: 0;
@@ -637,16 +294,6 @@ display: block;
 float: left;
 -moz-background-size: 12px 12px;
 background-size: 12px 12px;
-}
-
-
-.overlayContainer {
-position: relative;
-margin: 20px 0 0;
-}
-td > .controls {
-text-align: center;
-background-color: #b1b3bc;
 }
 
 /* editors */
@@ -762,9 +409,6 @@ text-shadow: 0 0 3px blue;
 .previewButtons > div {
 background-color: #b1b3bc;
 }
-.overlayContainer.editor > .buttons > .editorButton {
-background-color: #b1b3bc;
-}
 .buttons > .boldButton {
 font-weight: bold;
 }
@@ -830,65 +474,6 @@ background-color: rgba(153, 153, 153, 0.75);
 }
 
 
-/* post sub-links need pointer cursor and some styling */
-.hideReply, .showReply, .ignoreUser, .unIgnoreUser {
-cursor: pointer;
-}
-.hideReply, .showReply,
-.boards_thread_links > a[href*="action=update"],
-.boards_thread_links > a[href^="http://vestiwiki"] {
-margin-left: 20px;
-}
-.boards_thread_links > a.missing {
-opacity: 0.7;
-outline: 1px dashed rgba(0, 0, 255, 0.3);
-}
-
-/* reply numbers on the bottom right of posts */
-.replyNumber {
-font-weight: bold;
-font-family: tahoma;
-margin-right: 10px;
-text-align: right;
-text-shadow: 0 0 5px #353535;
-position: relative;
-bottom: 35px;
-height: 0;
-max-width: 300px;
-float: right;
-font-size: 20pt;
-opacity: 0.1;
-color: #353535;
-z-index: 0;
--moz-user-select: none;
--webkit-user-select: none;
-cursor: default;
-}
-td > .replyNumber {
-bottom: 30px;
-}
-.replyNumber:before {
-content: "#";
-}
-.hiddenReply .replyNumber {
-bottom: 3px;
-}
-
-
-/* hide icon, stars, post, sig in hidden replies */
-.hiddenReply .boards_thread_user_profile_icon_80,
-.hiddenReply .boards_thread_user_profile_icon_120,
-div.hiddenReply .boards_thread_user_profile_stars,
-div.hiddenReply .boards_thread_post,
-tr.hiddenReply .BoardStarLink,
-tr.hiddenReply + tr > td {
-display: none;
-}
-tr.hiddenReply .boards_thread_user_profile_container {
-padding-bottom: 10px;
-}
-
-
 /* when reply autorefresh gets some new content, indicate this with a little colored stripe on the left
 color blind people should still be able to distinguish the two stripes by their consistent positions */
 .newReply {
@@ -914,83 +499,19 @@ tr.editedReply > td:not(.boards_thread_subject) {
 background-color: transparent !important;
 }
 
-/* when recent replies autorefresh sees that a topic has new replies, add gradient and make bold */
-.boards_topic_tabs_row.newReplies {
-background-color: rgba(255,255,255, 0.05);
-background-image: -moz-linear-gradient(bottom, rgba(255,255,255,0.01), rgba(255,255,255, 0.3));
-background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.3)), to(rgba(255,255,255, 0.01)));
--moz-border-radius: 4px;
-border-radius: 4px;
-}
-.boards_topic_tabs_row.newReplies > a {
-font-weight: bold;
-}
-
-/* when PM autorefresh gets a new PM, blink the number */
-#boards_user_private_messages_wrapper.newPM > a > #boards_user_private_messages {
-text-decoration: blink !important;
-color: yellow !important;
-}
-
-/* color selector - not even close to done */
-.colorSelector {
-position: absolute;
-z-index: 100001;
-background: #c1c2c9;
-}
-.colorSelector .valSat {
-width: 255px;
-height: 255px;
-background: #b1b3bc;
-float: left;
-}
-.colorSelector .hue {
-width: 30px;
-height: 255px;
-background: #cccccc;
-float: left;
-}
-.colorSelector {
-
-}
-
 
 
 /* map extension images to image elements with designated class names */
 
 .vtIcon,
-.closeIcon,
-.maximizeIcon,
-.minimizeIcon,
-.restoreIcon,
 .gearIcon,
-.loadingIcon,
-.postHistoryIcon,
-.postTopicIcon,
-.postReplyIcon,
-.privateMessageIcon {
+.loadingIcon {
 height: 0px;
 width: 0px;
 overflow: hidden;
 background-repeat: no-repeat;
 }
 
-.closeIcon {
-padding: 13px 13px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/close.png") no-repeat;
-}
-.maximizeIcon {
-padding: 13px 13px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/maximize.png") no-repeat;
-}
-.minimizeIcon {
-padding: 13px 13px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/minimize.png") no-repeat;
-}
-.restoreIcon {
-padding: 13px 13px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/restore.png") no-repeat;
-}
 .gearIcon {
 padding: 13px 13px 0px 0px;
 background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/gear.png") no-repeat;
@@ -999,22 +520,6 @@ background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/defaul
 padding: 16px 16px 0px 0px;
 background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/loading.gif") no-repeat;
 display: block;
-}
-.postHistoryIcon {
-padding: 24px 27px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/posthistory.png") no-repeat;
-}
-.postTopicIcon {
-padding: 24px 29px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/posttopic.png") no-repeat;
-}
-.postReplyIcon {
-padding: 24px 30px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/postreply.png") no-repeat;
-}
-.privateMessageIcon {
-padding: 24px 32px 0px 0px;
-background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/privatemessage.png") no-repeat;
 }
 .codeIcon,
 .wysiwygIcon {
@@ -1026,4 +531,3 @@ background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/defaul
 .wysiwygIcon {
 background: url("chrome-extension://neccigeidlomkjogomjkjpeapgojbodn/skin/default/images/wysiwyg.png") no-repeat;
 }
-
