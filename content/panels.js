@@ -251,7 +251,7 @@ Panel.prototype = {
 		
 		if(parent != this.ref.parentNode) {
 			//for pms in the little infobox
-			if(I.layout.fresh) removeClass(getParentByClassName(this.ref, "panelInside"), "panelInside");
+			if(Info.layout.fresh) removeClass(getParentByClassName(this.ref, "panelInside"), "panelInside");
 			parent.appendChild(this.ref);
 			}
 		this.open();
@@ -351,11 +351,11 @@ Panel.prototype = {
 		
 	//will PM the author of the referenced post
 	pm: function(reply, map) {
-		if(!I.layout.fresh && !reply.ref) return this.pm(pageReplies.get(reply), map);
+		if(!Info.layout.fresh && !reply.ref) return this.pm(pageReplies.get(reply), map);
 		
-		this.user = I.layout.fresh ? Panels.getUser(reply) : reply.author;
+		this.user = Info.layout.fresh ? Panels.getUser(reply) : reply.author;
 		
-		if(I.layout.fresh && !this.floating) addClass(reply.parentNode.parentNode.parentNode, "panelInside");
+		if(Info.layout.fresh && !this.floating) addClass(reply.parentNode.parentNode.parentNode, "panelInside");
 		
 		this.standardInit(map);
 		
@@ -441,7 +441,7 @@ Panel.prototype = {
 		if(!this.visible) return;
 		this.visible = false;
 		
-		if(I.layout.fresh && this.type=="pm") removeClass(getParentByClassName(this.ref, "panelInside"), "panelInside");
+		if(Info.layout.fresh && this.type=="pm") removeClass(getParentByClassName(this.ref, "panelInside"), "panelInside");
 		
 		this.postButton.disabled = true;
 		this.previewButton.disabled = true;
@@ -780,7 +780,7 @@ Panels = new function Panels_Obj() {
 		
 	this.getUser = function(ref) {
 		
-		return I.layout.fresh ? getFirstByTagName(ref, "b").textContent : null;
+		return Info.layout.fresh ? getFirstByTagName(ref, "b").textContent : null;
 		
 		}
 	
@@ -812,8 +812,8 @@ Listeners.add(document, 'click', function(event) {
 			event.preventDefault();
 			Panels.reply(parent,
 						{subject: document.title.slice(0, document.title.lastIndexOf('-')-1),
-						topicId: I.url.topicNumber,
-						boardId: I.url.boardNumber});
+						topicId: Info.url.topicNumber,
+						boardId: Info.url.boardNumber});
 				
 			}
 			
@@ -827,8 +827,8 @@ Listeners.add(document, 'click', function(event) {
 			event.preventDefault();
 			Panels.quote(evt.parentNode, 
 						{subject: document.title.slice(0, document.title.lastIndexOf('-')-1),
-						topicId: I.url.topicNumber,
-						boardId: I.url.boardNumber});
+						topicId: Info.url.topicNumber,
+						boardId: Info.url.boardNumber});
 				
 			}
 		
@@ -840,8 +840,8 @@ Listeners.add(document, 'click', function(event) {
 		
 			event.preventDefault();
 			Panels.edit(evt.parentNode, 
-						{topicId: I.url.topicNumber,
-						boardId: I.url.boardNumber,
+						{topicId: Info.url.topicNumber,
+						boardId: Info.url.boardNumber,
 						replyId: evt.href.split('edit=')[1]});
 	
 			}
@@ -875,13 +875,13 @@ Listeners.add(document, 'click', function(event) {
 		
 		}
 		
-	if(I.url.pageType=="board" && Panels.hijack.topics) {
+	if(Info.url.pageType=="board" && Panels.hijack.topics) {
 		
 		if(evt.href.indexOf("ign.com/PostTopic.aspx?brd=") != -1 && evt.href.indexOf("createpoll") == -1) {
 
 			event.preventDefault();
 			Panels.topic(evt.parentNode.parentNode,
-						{boardId: I.url.boardNumber});
+						{boardId: Info.url.boardNumber});
 		
 			}
 		
@@ -898,7 +898,7 @@ Listeners.add(document, 'click', function(event) {
 	var isPreview = false;
 	var topic, evt = event.target;
 	
-	if((I.url.pageType=="board" && defined(pageTopics) && (evt.className == "boards_board_list_row_icon" || evt.parentNode.className == "boards_board_list_row_icon") && defined(topic = pageTopics.get(evt))) 
+	if((Info.url.pageType=="board" && defined(pageTopics) && (evt.className == "boards_board_list_row_icon" || evt.parentNode.className == "boards_board_list_row_icon") && defined(topic = pageTopics.get(evt))) 
 		|| (isPreview = (evt.tagName=="A" && evt.innerHTML == "Reply" && evt.parentNode.className == "panelHeading"))) {
 		
 		event.preventDefault();
@@ -907,7 +907,7 @@ Listeners.add(document, 'click', function(event) {
 		var map = {};
 		
 		map.topicId = isPreview ? url.getField("topic") : topic.id;
-		map.boardId = isPreview ? url.getField("brd") : I.url.boardNumber;
+		map.boardId = isPreview ? url.getField("brd") : Info.url.boardNumber;
 		map.subject = isPreview ? getFirstByClassName(evt.parentNode, "previewSubject").textContent : topic.subject;
 		
 		Panels.open(document.body, "reply", map);

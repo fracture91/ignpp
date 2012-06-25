@@ -693,7 +693,7 @@ Editor.prototype = {
 						
 					if(validSelection) {
 						username = username.replace(trimExp, "");
-						validUsername = I.validUsername.test(username);
+						validUsername = Info.validUsername.test(username);
 						}
 					
 					}
@@ -712,7 +712,7 @@ Editor.prototype = {
 					
 					if(e.altKey) {
 						text = "Profile link username";
-						value = I.username;
+						value = Info.username;
 						}
 					else if(changeExistingHref) {
 						text = "Change existing link URL";
@@ -725,7 +725,7 @@ Editor.prototype = {
 					
 					if(e.altKey) {
 						username = linkHref.replace(trimExp, "");
-						validUsername = I.validUsername.test(username);
+						validUsername = Info.validUsername.test(username);
 						if(!validUsername) return;
 						}
 						

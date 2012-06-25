@@ -197,11 +197,10 @@ Url.prototype = {
 	
 }
 
-//provides information about the page the user's on
-//and the user himself
-//call init() to put all information into object I
-
-var I = new function() {
+/*
+Provides information about the current page and the user
+*/
+var Info = new function() {
 	
 	this.url = new Url();
 	

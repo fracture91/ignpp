@@ -589,7 +589,7 @@ var Parse = new function() {
 		
 		var rv = text.slice(start, end);
 		
-		if(!I.validUsername.test(rv)) return "";
+		if(!Info.validUsername.test(rv)) return "";
 		
 		return rv;
 		

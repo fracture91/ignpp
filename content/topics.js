@@ -79,7 +79,7 @@ var Topics = function(parent) {
 		}
 		
 	if(typeof parent == "string") {
-		parent = createElementX( (I.layout.fresh ? "div" : "table"), {innerHTML: parent});
+		parent = createElementX( (Info.layout.fresh ? "div" : "table"), {innerHTML: parent});
 		}
 	
 	for(var j=0; j<2; j++) { //get both className and altClassName
@@ -120,7 +120,7 @@ Topics.prototype = {
 	}
 	
 	
-if(I.url.pageType=="board") {
+if(Info.url.pageType=="board") {
 	var pageTopics = new Topics(document.getElementById("boards_board_list_table"));
 	pageTopics.augment();
 	Cleanup.add(function(){ pageTopics = null; });

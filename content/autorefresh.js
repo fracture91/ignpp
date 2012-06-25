@@ -318,8 +318,8 @@ Responsible for refreshing the current page.
 */
 var PageRefresher = extend(Refresher, function () {
 	Refresher.call(this);
-	if(I.url.pageType == "board") {
-		this.url = I.url.boardUrl;
+	if(Info.url.pageType == "board") {
+		this.url = Info.url.boardUrl;
 		}
 	},
 {
@@ -354,7 +354,7 @@ var PMCountRefresher = extend(Refresher, function () {
 		This has a randomized number in it, so we need to actually call it seperately
 		rather than set _url to a string.
 		*/
-		return I.url.PMCountUrl;
+		return Info.url.PMCountUrl;
 		},
 	// disabled until autorefresh is fixed, todo
 	isReady: function() {
@@ -638,7 +638,7 @@ var RepliesUpdater = extend(ContentUpdater, function(refresher) {
 				//otherwise, we need to add in the whole element
 				var bfw = document.getElementById("boards_full_width");
 				topPag = newReplies.pages.cloneNode(true);
-				var topTarget = I.layout.fresh ? getFirstByClassName(bfw, 'boards_thread_row')
+				var topTarget = Info.layout.fresh ? getFirstByClassName(bfw, 'boards_thread_row')
 												: bfw.getElementsByClassName('clear')[1];
 				bfw.insertBefore(topPag, topTarget);
 				
@@ -794,7 +794,7 @@ var RecentUpdater = extend(ContentUpdater, function(refresher) {
 	//override
 	get intervalPref() {
 		//this doesn't have its own pref, uses interval of the Topic or Replies Updater
-		if(I.url.pageType == "topic"){
+		if(Info.url.pageType == "topic"){
 			return RepliesUpdater.prototype.intervalPref;
 			}
 		else {
@@ -1434,10 +1434,10 @@ var RefresherListController = extend(Controller, function() {
 		var list = [];
 		var page = new PageRefresher();
 		list.push(page);
-		if(I.url.pageType == "board") {
+		if(Info.url.pageType == "board") {
 			new TopicsUpdater(page);
 			}
-		else if(I.url.pageType == "topic") {
+		else if(Info.url.pageType == "topic") {
 			new RepliesUpdater(page);
 			}
 		if(document.getElementById("boards_add_info_my_recent_posts")) {
@@ -1453,7 +1453,7 @@ var RefresherListController = extend(Controller, function() {
 		
 	constructRefresherListView: function() {
 		var target;
-		if(I.layout.fresh) {
+		if(Info.layout.fresh) {
 			target = document.getElementById("boards_board_list_table_header") ||
 					getFirstByClassName(document.body, "boards_thread_row");
 			}

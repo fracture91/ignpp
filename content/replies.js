@@ -135,7 +135,7 @@ Replies.prototype = {
 		if(!defined(ref) || ref==null) return null;
 	
 		if(hasClass(ref, this.className)) return ref;
-		else if(I.layout.fresh) return getParentByClassName(ref, this.className);
+		else if(Info.layout.fresh) return getParentByClassName(ref, this.className);
 		else if((ref.tagName && ref.tagName == "TR") || 
 				(ref.nodeType != 1 && ref.previousSibling.tagName && ref.previousSibling.tagName=="TR")) return this.getRow(ref.previousSibling);
 		else return this.getRow(getParentByTagName(ref, "tr"));
@@ -224,7 +224,7 @@ Replies.prototype = {
 			
 				//if we aren't on the last page, we can find out the user's ppp by counting the replies on this page
 				//otherwise, we need to rely on the last measure of ppp
-				var ppp = (this.currentPage!=this.lastPage) ? this.length : I.postsPerPage;
+				var ppp = (this.currentPage!=this.lastPage) ? this.length : Info.postsPerPage;
 				
 				//if ppp is definitely inaccurate
 				if(ppp < this.length) {
@@ -284,7 +284,7 @@ function Reply(ref) {
 	
 	if(typeof ref == "string") {
 		
-		var temp = createElementX( (I.layout.fresh ? "div" : "table"), {innerHTML: ref});
+		var temp = createElementX( (Info.layout.fresh ? "div" : "table"), {innerHTML: ref});
 		this.ref = temp.getElementsByClassName(Replies.prototype.className)[0];
 		
 		}
@@ -292,7 +292,7 @@ function Reply(ref) {
 		
 	this.rows = [];
 		
-	if(!I.layout.fresh) {
+	if(!Info.layout.fresh) {
 			
 		this.rows[0] = this.ref;
 		this.rows[1] = getNextByTagName(this.rows[0], "tr");
@@ -302,22 +302,22 @@ function Reply(ref) {
 	else this.rows[0] = this.rows[1] = this.rows[2] = null;
 	
 	this.authorLink = getFirstByClassName(this.ref,
-										(I.layout.fresh ? "boards_thread_user_profile_info" : "boards_thread_user_name_stars"))
+										(Info.layout.fresh ? "boards_thread_user_profile_info" : "boards_thread_user_name_stars"))
 					.getElementsByTagName("a")[0];
 	
 	this.author = this.authorLink.textContent;
 					
 	this.subjectRef = getFirstByClassName(this.ref, "boards_thread_subject");
-	if(!I.layout.fresh) this.subjectRef = this.subjectRef.lastChild;
+	if(!Info.layout.fresh) this.subjectRef = this.subjectRef.lastChild;
 
-	this.postRef = I.layout.fresh ? this.ref : this.rows[1];
-	this.postRef = getFirstByClassName(this.postRef, I.layout.fresh ? "boards_thread_post" : "boards_thread_post_wrapper");
+	this.postRef = Info.layout.fresh ? this.ref : this.rows[1];
+	this.postRef = getFirstByClassName(this.postRef, Info.layout.fresh ? "boards_thread_post" : "boards_thread_post_wrapper");
 	
 	this.editRef = getFirstByClassName(this.postRef, "boards_message_edited");
 	
 	this.pollRef = getFirstByTagName(this.postRef, "form");
 	
-	this.subLinks = getFirstByClassName( (I.layout.fresh ? this.ref : this.rows[2]), "boards_thread_links");
+	this.subLinks = getFirstByClassName( (Info.layout.fresh ? this.ref : this.rows[2]), "boards_thread_links");
 	
 	var script;
 	var qpdiv = getFirstByClassName(this.subLinks, "boards_quick_post_inline");
@@ -344,8 +344,8 @@ Reply.prototype = {
 	ignoreLink: null,
 	
 	subjectRef: null,
-	get subject(){return I.layout.fresh ? this.subjectRef.textContent : this.subjectRef.nodeValue.substr(1)},
-	set subject(s){I.layout.fresh ? (this.subjectRef.textContent = s) : (this.subjectRef.nodeValue = " "+s)},
+	get subject(){return Info.layout.fresh ? this.subjectRef.textContent : this.subjectRef.nodeValue.substr(1)},
+	set subject(s){Info.layout.fresh ? (this.subjectRef.textContent = s) : (this.subjectRef.nodeValue = " "+s)},
 	
 	//dispatch a custom event to indicate that the hidden option has been destroyed
 	//so that the hidden option script can catch it and apply itself again
@@ -375,9 +375,9 @@ Reply.prototype = {
 		
 	append: function(after) {
 
-		after = (I.layout.fresh ? after.ref : after.rows[2]).nextSibling;
+		after = (Info.layout.fresh ? after.ref : after.rows[2]).nextSibling;
 		after.parentNode.insertBefore(this.ref, after);
-		if(!I.layout.fresh) {
+		if(!Info.layout.fresh) {
 			after.parentNode.insertBefore(this.rows[1], after);
 			after.parentNode.insertBefore(this.rows[2], after);
 			}
@@ -390,7 +390,7 @@ Reply.prototype = {
 		var textcontent = this.postRef.innerHTML;
 															
 		var endtc = textcontent.indexOf('<div class="boards_message_edited">'); //stop at edit info if there
-		if(endtc == -1) endtc = I.layout.fresh ? textcontent.indexOf('<br class="clear">')
+		if(endtc == -1) endtc = Info.layout.fresh ? textcontent.indexOf('<br class="clear">')
 												: textcontent.indexOf('<p>&nbsp;</p>'); //otherwise stop before the clearing line break/p
 		if(endtc == -1) endtc = textcontent.length;
 		var starttc = textcontent.indexOf('<!-- MESSAGE BODY -->') + 21;
@@ -428,7 +428,7 @@ Reply.prototype = {
 	get uid() {
 		
 		//TODO: move into method of Reply
-		if(I.layout.fresh) {
+		if(Info.layout.fresh) {
 			//only place you can find the UID is in a script tag in the reply
 			var script = this.ref.getElementsByTagName("SCRIPT")[0].innerHTML;
 			return script.slice(script.indexOf('usr=')+4, script.indexOf('">'));
@@ -461,7 +461,7 @@ Reply.prototype = {
 		link.innerHTML = "deWUL";
 		temp.appendChild(this.deWULLink = link);
 		
-		I.layout.fresh ? this.subLinks.appendChild(temp)
+		Info.layout.fresh ? this.subLinks.appendChild(temp)
 						: this.subLinks.insertBefore(temp, getFirstByClassName(this.subLinks, "boards_quick_post_inline"));
 		
 		},
@@ -474,8 +474,8 @@ Reply.prototype = {
 		
 		this.hideLink = createElementX("a", {
 			className: "hideReply",
-			innerHTML: I.layout.fresh ? "Hide" : "Hide Reply",
-			href: "http://" + I.url.host + "/" + I.url.boardName + "/b" + I.url.boardNumber + "/" + I.url.topicNumber + "/" + (this.id==-1 ? "p" + I.url.pageNumber : "r" + this.id),
+			innerHTML: Info.layout.fresh ? "Hide" : "Hide Reply",
+			href: "http://" + Info.url.host + "/" + Info.url.boardName + "/b" + Info.url.boardNumber + "/" + Info.url.topicNumber + "/" + (this.id==-1 ? "p" + Info.url.pageNumber : "r" + this.id),
 			});
 		temp.appendChild(this.hideLink);
 		
@@ -484,11 +484,11 @@ Reply.prototype = {
 		
 		this.ignoreLink = createElementX("a", {
 			className: "ignoreUser",
-			innerHTML: I.layout.fresh ? "Ignore" : "Ignore User"
+			innerHTML: Info.layout.fresh ? "Ignore" : "Ignore User"
 			});
 		temp.appendChild(this.ignoreLink);
 		
-		I.layout.fresh ? this.subLinks.appendChild(temp)
+		Info.layout.fresh ? this.subLinks.appendChild(temp)
 						: this.subLinks.insertBefore(temp, getFirstByClassName(this.subLinks, "boards_quick_post_inline"));
 		
 		if(alreadyChecked || Replies.prototype.ignoreList.split(",").indexOf(this.author)!=-1) this.ignore();
@@ -537,35 +537,35 @@ Reply.prototype = {
 	//add em back in
 	addMissingLinks: function() {
 	
-		var target = !I.layout.fresh ? undefined : this.hideLink ? this.hideLink : this.WULLink ? this.WULLink : undefined,
+		var target = !Info.layout.fresh ? undefined : this.hideLink ? this.hideLink : this.WULLink ? this.WULLink : undefined,
 		existing, isAuthor;
 	
-		if((isAuthor = this.author==I.username) && !(existing = getChildrenByTextContent(this.subLinks, "Edit")))
+		if((isAuthor = this.author==Info.username) && !(existing = getChildrenByTextContent(this.subLinks, "Edit")))
 			target = this.addLink("Edit", "/PostEdit.aspx?edit=" + this.id, target);
 		else if(isAuthor && existing) target = existing;
 		
 		if(!(existing = getChildrenByTextContent(this.subLinks, "Quote")))
-			target = this.addLink("Quote", "/PostReply.aspx?brd=" + I.url.boardNumber + "&topic=" + I.url.topicNumber + "&quote=" + this.id, target);
+			target = this.addLink("Quote", "/PostReply.aspx?brd=" + Info.url.boardNumber + "&topic=" + Info.url.topicNumber + "&quote=" + this.id, target);
 		else target = existing;
 		
 		if(!(existing = getChildrenByTextContent(this.subLinks, "Reply")))
-			target = this.addLink("Reply", "/PostReply.aspx?brd=" + I.url.boardNumber + "&topic=" + I.url.topicNumber, target);
+			target = this.addLink("Reply", "/PostReply.aspx?brd=" + Info.url.boardNumber + "&topic=" + Info.url.topicNumber, target);
 		else target = existing;
 
 		},
 		
 	addWikiLink: function() {
 		
-		var parent = I.layout.fresh ? this.subLinks : getFirstByClassName(this.rows[0], "boards_thread_user_info");
+		var parent = Info.layout.fresh ? this.subLinks : getFirstByClassName(this.rows[0], "boards_thread_user_info");
 		
-		var nextEl = I.layout.fresh ? null : parent.getElementsByTagName("a")[1].nextSibling;
+		var nextEl = Info.layout.fresh ? null : parent.getElementsByTagName("a")[1].nextSibling;
 		
 		var link = createElementX("a", {
 			href: "http://vestiwiki.yabd.org/wiki/index.php?title=" + this.author,
 			innerHTML: "Wiki"
 			});
 			
-		if(!I.layout.fresh) parent.insertBefore(document.createTextNode(" | "), nextEl);
+		if(!Info.layout.fresh) parent.insertBefore(document.createTextNode(" | "), nextEl);
 		
 		parent.insertBefore(link, nextEl);
 		
@@ -603,10 +603,10 @@ Reply.prototype = {
 		this.replyNumberRef = createElementX("div", {className: "replyNumber"});
 		var rv = simpleSet.call(this, num);
 		
-		var parent = I.layout.fresh ? getFirstByClassName(this.ref, "boards_thread_post_wrapper")
+		var parent = Info.layout.fresh ? getFirstByClassName(this.ref, "boards_thread_post_wrapper")
 									: getFirstByClassName(this.rows[1], "boards_thread_post_column");
 		
-		var before = I.layout.fresh ? this.subLinks : null;
+		var before = Info.layout.fresh ? this.subLinks : null;
 		
 		parent.insertBefore(this.replyNumberRef, before);
 		
@@ -708,16 +708,16 @@ Reply.prototype = {
 	}
 	
 	
-if(I.url.pageType=="topic") {
+if(Info.url.pageType=="topic") {
 	var pageReplies = new Replies(document.getElementById("boards_full_width"));
 	pageReplies.augment();
 	
 	if(pageReplies.currentPage!=pageReplies.lastPage)
-		I.postsPerPage = pageReplies.length + (pageReplies.currentPage==1 ? -1 : 0);
+		Info.postsPerPage = pageReplies.length + (pageReplies.currentPage==1 ? -1 : 0);
 		
 	//if the url has a reply number and the page isn't already scrolled too much
-	if(pageReplies.scrollToReplyOnLoad && I.url.replyNumber && window.scrollY<101)
-		pageReplies.scrollTo("#" + I.url.replyNumber);
+	if(pageReplies.scrollToReplyOnLoad && Info.url.replyNumber && window.scrollY<101)
+		pageReplies.scrollTo("#" + Info.url.replyNumber);
 	
 	//if you click a link to a topic that points to a reply on the page you're already on
 	//prevent the default action (going to the page) and just scroll to the reply
@@ -732,7 +732,7 @@ if(I.url.pageType=="topic") {
 		
 		var url = new Url(e.target.href);
 		
-		if(url.pageType == "topic" && url.replyNumber && url.topicNumber==I.url.topicNumber) {
+		if(url.pageType == "topic" && url.replyNumber && url.topicNumber==Info.url.topicNumber) {
 			
 			var reply = pageReplies.get("#" + url.replyNumber);
 			if(!reply) return;
