@@ -674,11 +674,13 @@ var vestitools_style = new function vt_Style() {
 	Otherwise, return an empty string.
 	*/
 	this.validateUsername = function(username) {
-		if(typeof username != "string" || !validUsernameExp.test(username)) {
+		// XXX the \d+ test there is a hack related to #270
+		if(typeof username != "string" || !validUsernameExp.test(username)
+				|| !/^\d+$/.test(username)) {
 			username = "";
-			}
-		return username;
 		}
+		return username;
+	}
 	
 	/*
 	Take in a user object (one that's gotten from usercolors server).
@@ -737,11 +739,10 @@ var vestitools_style = new function vt_Style() {
 	
 	/*
 	URL looks like ...members/yab.1234/
-	We want to match "members/yab.", but not "members/yab.." so we don't have
-	people with trailing periods impersonating others.
+	Want to match based on that UID (hacked into username field per #270).
 	nulls here will be replaced with username.
 	*/
-	var profileLinkSelector = ['a.username[href*="members/', null, '."]:not([href*="members/', null, '.."])'];
+	var profileLinkSelector = ['a.username[href*=".', null, '/"]'];
 	
 	var importantEnding = " !important;\n";
 	

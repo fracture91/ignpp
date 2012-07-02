@@ -229,6 +229,24 @@ usercolorController.prototype = {
 		return "Error. Status: " + xhr.status + " Response: " + xhr.responseText;
 		},
 	
+	// XXX hack related to #270
+	/*
+	Since IGN mangles usernames in their links, we need to style them based on
+	UID instead.  The usercolor server doesn't support doing this, so I'm just
+	going to hack it in there by submitting the UID as the username.
+	If a UID is < 3 characters we need to pad it with zeros to make it a valid
+	username, otherwise the usercolor server will reject it.
+	A UID > 21 characters couldn't fit in a 64 bit integer, so I don't think we
+	need to worry about that :).
+	*/
+	getFormattedUID: function() {
+		var uid = GM_getValue("uid", -1).toString();
+		while(uid.length < 3) {
+			uid = "0" + uid;
+		}
+		return uid;
+	},
+	
 	/*
 	Get main usercolors list from the server and save/apply.
 	Button log is updated to indicate status of the request (including errors).
@@ -250,10 +268,13 @@ usercolorController.prototype = {
 	Button log is updated to indicate status of the request (including errors).
 	*/
 	getColors: function(e) {
+		// XXX hack related to #270
+		var username = this.getFormattedUID();
+		
 		this.buttonLog("get", "Getting your colors from the server...");
 		
 		var that = this;
-		vestitools_style.getColors(GM_getValue("username", "unknown"), function(xhr, success, styles) {
+		vestitools_style.getColors(username, function(xhr, success, styles) {
 			vestitools_style.defaultGetColorsCallback(xhr, success, styles);
 			
 			var msg = "Personal colors successfully found and saved.";
@@ -280,7 +301,8 @@ usercolorController.prototype = {
 	*/
 	postColors: function(e) {
 		var styles = this.getStylesInput();
-		var username = GM_getValue("username", "unknown");
+		// XXX hack related to #270
+		var username = this.getFormattedUID();
 		
 		this.buttonLog("post", "Posting colors to the server...");
 		
