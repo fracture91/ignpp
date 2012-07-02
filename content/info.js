@@ -228,13 +228,26 @@ var Info = new function() {
 	var match = document.cookie.match(/ignlogin\=(?:[^;]*\\)*([^;]*)\\[^;]*;/);
 	if(match && match[1] && this.validUsername.test(match[1])) {
 		GM_setValue("username", match[1]);
+	} else {
+		vlog("Can't find username, falling back to pref.");
 	}
 	this.username = GM_getValue("username", "unknown");
 	
-	//todo
-	this.uid = +GM_getValue("uid", "");
-	
-	delete url;
+	// ID isn't present in cookie, so use these form inputs found on most pages
+	// contents are "userid, timestamp, secretkey" as far as I can tell
+	var tokenInput = document.querySelector('form input[name="_xfToken"]');
+	var success = false;
+	if(tokenInput && typeof tokenInput.value == "string") {
+		var match = tokenInput.value.match(/(\d+)\,/);
+		if(match && match[1]) {
+			GM_setValue("uid", +match[1]);
+			success = true;
+		}
+	}
+	if(!success) {
+		vlog("Can't find uid, falling back to pref.");
+	}
+	this.uid = +GM_getValue("uid", -1);
 	
 	this.__defineGetter__("postsPerPage", function(){ return GM_getValue("postsPerPage", 10); });
 	this.__defineSetter__("postsPerPage", function(n){ if(!isNaN(n=+n)) return GM_setValue("postsPerPage", n); });
