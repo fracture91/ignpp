@@ -224,8 +224,9 @@ var Info = new function() {
 	
 	Match ignlogin followed by any number of those slash groups, then capture
 	with a group for the username, then match the last slash group and semicolon.
+	The semicolon won't exist if ignlogin is the last key, so match $ then.
 	*/
-	var match = document.cookie.match(/ignlogin\=(?:[^;]*\\)*([^;]*)\\[^;]*;/);
+	var match = document.cookie.match(/ignlogin\=(?:[^;]*\\)*([^;]*)\\[^;]*(;|$)/);
 	if(match && match[1] && this.validUsername.test(match[1])) {
 		GM_setValue("username", match[1]);
 	} else {
